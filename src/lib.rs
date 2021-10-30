@@ -1,5 +1,3 @@
-#![feature(allow_internal_unstable)]
-
 use proc_macro2::{Ident, TokenStream, TokenTree};
 use quote::{format_ident, quote};
 use syn::parse::{Parse, ParseStream};
@@ -315,7 +313,6 @@ impl Traits {
 }
 
 #[proc_macro_attribute]
-#[allow_internal_unstable(core_intrinsics)]
 pub fn derive_where(
     attr: proc_macro::TokenStream,
     item: proc_macro::TokenStream,
