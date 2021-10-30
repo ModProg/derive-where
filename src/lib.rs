@@ -54,15 +54,15 @@ impl Parse for DeriveWhere {
     }
 }
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug)]
 enum Traits {
     Clone,
-    /*Debug,
+    Debug,
     Eq,
     Hash,
     PartialEq,
     PartialOrd,
-    Ord,*/
+    Ord,
 }
 
 impl TryFrom<Ident> for Traits {
@@ -73,12 +73,12 @@ impl TryFrom<Ident> for Traits {
 
         Ok(match ident.to_string().as_str() {
             "Clone" => Clone,
-            /*"Debug" => Debug,
+            "Debug" => Debug,
             "Eq" => Eq,
             "Hash" => Hash,
             "PartialEq" => PartialEq,
             "PartialOrd" => PartialOrd,
-            "Ord" => Ord,*/
+            "Ord" => Ord,
             ident => {
                 return Err(Error::new(
                     ident.span(),
@@ -90,173 +90,185 @@ impl TryFrom<Ident> for Traits {
 }
 
 impl Traits {
-    fn type_(&self) -> Type {
+    fn type_(self) -> Type {
         use Traits::*;
 
         syn::parse_str(match self {
             Clone => "::core::clone::Clone",
-            /*Debug => "::core::fmt::Debug",
+            Debug => "::core::fmt::Debug",
             Eq => "::core::cmp::Eq",
             Hash => "::core::hash::Hash",
             PartialEq => "::core::cmp::PartialEq",
             PartialOrd => "::core::cmp::PartialOrd",
-            Ord => "::core::cmp::Ord",*/
+            Ord => "::core::cmp::Ord",
         })
         .expect("couldn't pass path to trait")
     }
 
-    fn generate_body(&self, data: &Data) -> TokenStream {
+    fn generate_body(self, name: &str, data: &Data) -> TokenStream {
         let body = match &data {
             Data::Struct(data) => {
-                let name = quote! { Self };
+                let variant = quote! { Self };
 
                 match &data.fields {
-                    Fields::Named(fields) => {
-                        let body = self.generate_struct(name, fields);
-                        let fields_destructure = Self::prepare_field_named(fields);
-
-                        quote! {
-                            let Self { #(#fields_destructure),* } = self;
-                            #body
-                        }
-                    }
-                    Fields::Unnamed(fields) => {
-                        let body = self.generate_tuple(name, fields);
-                        let fields_temp = Self::prepare_field_unnamed(fields);
-
-                        quote! {
-                            let Self ( #(#fields_temp),* ) = self;
-                            #body
-                        }
-                    }
-                    Fields::Unit => self.generate_unit(name),
+                    Fields::Named(fields) => self.generate_struct(name, &variant, fields),
+                    Fields::Unnamed(fields) => self.generate_tuple(name, &variant, fields),
+                    Fields::Unit => self.generate_unit(name, &variant),
                 }
             }
-            Data::Enum(data) => {
-                let bodies: Vec<_> = data
-                    .variants
-                    .iter()
-                    .map(|variant| {
-                        let variant_ident = &variant.ident;
-                        let name = quote! { Self::#variant_ident };
+            Data::Enum(data) => data
+                .variants
+                .iter()
+                .map(|variant| {
+                    let variant_ident = &variant.ident;
+                    let variant_fields = &variant.fields;
+                    let name = variant_ident.to_string();
+                    let variant = quote! { Self::#variant_ident };
 
-                        match &variant.fields {
-                            Fields::Named(fields) => {
-                                let body = self.generate_struct(name, fields);
-                                let fields_destructure = Self::prepare_field_named(fields);
-
-                                quote! {
-                                    Self::#variant_ident { #(#fields_destructure),* } => { #body }
-                                }
-                            }
-                            Fields::Unnamed(fields) => {
-                                let body = self.generate_tuple(name, fields);
-                                let fields_temp = Self::prepare_field_unnamed(fields);
-
-                                quote! {
-                                    Self::#variant_ident ( #(#fields_temp),* ) => { #body }
-                                }
-                            }
-                            Fields::Unit => {
-                                let body = self.generate_unit(name);
-                                quote! { Self::#variant_ident => { #body } }
-                            }
-                        }
-                    })
-                    .collect();
-
-                quote! {
-                    match self {
-                        #(#bodies),*
+                    match variant_fields {
+                        Fields::Named(fields) => self.generate_struct(&name, &variant, fields),
+                        Fields::Unnamed(fields) => self.generate_tuple(&name, &variant, fields),
+                        Fields::Unit => self.generate_unit(&name, &variant),
                     }
-                }
-            }
+                })
+                .collect(),
             Data::Union(_) => todo!("Unions are not supported"),
         };
 
         self.generate_signature(body)
     }
 
-    fn prepare_field_named(fields: &FieldsNamed) -> impl Iterator<Item = TokenStream> + '_ {
-        fields
-            .named
-            .iter()
-            .map(|field| field.ident.as_ref().unwrap())
-            .map(|field| {
-                let temp = format_ident!("__{}", field);
-                quote! { #field: #temp }
-            })
-    }
-
-    fn prepare_field_unnamed(fields: &FieldsUnnamed) -> impl Iterator<Item = Ident> {
-        (0..fields.unnamed.len())
-            .into_iter()
-            .map(|field| format_ident!("__{}", field))
-    }
-
-    fn generate_signature(&self, body: TokenStream) -> TokenStream {
+    fn generate_signature(self, body: TokenStream) -> TokenStream {
         use Traits::*;
 
         match self {
             Clone => quote! {
                 fn clone(&self) -> Self {
-                    #body
+                    match self {
+                        #body
+                    }
                 }
             },
+            Debug => quote! {
+                fn fmt(&self, __f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+                    match self {
+                        #body
+                    }
+                }
+            },
+            Eq => quote! {},
+            Hash => quote! {
+                fn hash<__H: ::core::hash::Hasher>(&self, __state: &mut __H) {
+                    match self {
+                        #body
+                    }
+                }
+            },
+            PartialEq => quote! {
+                fn eq(&self, __other: &Self) -> bool {
+                    let mut __cmp = true;
+
+                    match (self, __other) {
+                        #body
+                    }
+                }
+            },
+            PartialOrd => quote! {
+                fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
+                    match (self, __other) {
+                        #body
+                    }
+                }
+            },
+            Ord => todo!(),
         }
     }
 
-    fn generate_struct(&self, name: TokenStream, fields: &FieldsNamed) -> TokenStream {
+    fn generate_struct(
+        self,
+        name: &str,
+        variant: &TokenStream,
+        fields: &FieldsNamed,
+    ) -> TokenStream {
         use Traits::*;
 
         let type_ = self.type_();
-        let fields_temp = fields
+
+        let fields: Vec<_> = fields
             .named
             .iter()
             .map(|field| field.ident.as_ref().unwrap())
-            .map(|field| format_ident!("__{}", field));
-        let fields = fields.named.iter().map(|f| f.ident.as_ref().unwrap());
+            .collect();
+
+        let fields_temp: Vec<_> = fields
+            .iter()
+            .map(|field| format_ident!("__{}", field))
+            .collect();
 
         match self {
-            Clone => {
-                let assigns = fields
-                    .into_iter()
-                    .zip(fields_temp)
-                    .map(|(field, field_temp)| {
-                        quote! { #field: #type_::clone(&#field_temp) }
-                    });
-
-                quote! {
-                    #name { #(#assigns),* }
+            Clone => quote! {
+                #variant { #(#fields: #fields_temp),* } => { #variant { #(#fields: #type_::clone(&#fields_temp)),* } }
+            },
+            Debug => quote! {
+                #variant { #(#fields: #fields_temp),* } => {
+                    let __builder = ::core::fmt::Formatter::debug_struct(__f, #name);
+                    #(::core::fmt::DebugStruct::field(__builder, #fields, &#fields_temp);)*
+                    ::core::fmt::DebugStruct::finish(__builder)
                 }
-            }
+            },
+            Eq => quote! {},
+            Hash => quote! {
+                #variant { #(#fields: #fields_temp),* } => { #(#type_::hash(&#fields_temp, __state);)* }
+            },
+            PartialEq => quote! {
+                (#variant { #(#fields: #fields_temp),* }, #variant { #(#fields: #fields_temp),* }) => {
+                    #(__cmp &= #type_::eq(&#fields_temp, &#fields_temp);)*
+                }
+            },
+            PartialOrd => todo!(),
+            Ord => todo!(),
         }
     }
 
-    fn generate_tuple(&self, name: TokenStream, fields: &FieldsUnnamed) -> TokenStream {
+    fn generate_tuple(
+        self,
+        _name: &str,
+        variant: &TokenStream,
+        fields: &FieldsUnnamed,
+    ) -> TokenStream {
         use Traits::*;
 
         let type_ = self.type_();
-        let fields_temp = Self::prepare_field_unnamed(fields);
+
+        let fields_temp: Vec<_> = (0..fields.unnamed.len())
+            .into_iter()
+            .map(|field| format_ident!("__{}", field))
+            .collect();
 
         match self {
-            Clone => {
-                let assigns = fields_temp.map(|field_temp| {
-                    quote! { #type_::clone(&#field_temp) }
-                });
-
-                quote! {
-                    #name (#(#assigns),*)
-                }
-            }
+            Clone => quote! {
+                #variant(#(#fields_temp),*) => #variant (#(#type_::clone(&#fields_temp)),*),
+            },
+            Debug => todo!(),
+            Eq => todo!(),
+            Hash => todo!(),
+            PartialEq => todo!(),
+            PartialOrd => todo!(),
+            Ord => todo!(),
         }
     }
 
-    fn generate_unit(&self, name: TokenStream) -> TokenStream {
+    fn generate_unit(self, _name: &str, variant: &TokenStream) -> TokenStream {
         use Traits::*;
 
         match self {
-            Clone => quote! { #name },
+            Clone => quote! { #variant => #variant, },
+            Debug => todo!(),
+            Eq => todo!(),
+            Hash => todo!(),
+            PartialEq => todo!(),
+            PartialOrd => todo!(),
+            Ord => todo!(),
         }
     }
 }
@@ -279,7 +291,7 @@ pub fn derive_where(
     } = parse_macro_input!(item);
 
     for trait_ in &derive_where.traits {
-        let body = trait_.generate_body(&data);
+        let body = trait_.generate_body(&ident.to_string(), &data);
         let trait_ = trait_.type_();
 
         let bounds = if derive_where.bounds.is_empty() {

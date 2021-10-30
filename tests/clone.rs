@@ -2,10 +2,6 @@
 
 use derive_restricted::derive_where;
 
-// Works on my part, but units cannot have types anyways.
-// #[derive_where(T: Clone; Clone)]
-// struct Test<T>;
-
 // test macro hygiene
 trait Clone {}
 
