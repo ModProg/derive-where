@@ -104,7 +104,7 @@ impl Traits {
             PartialOrd => "::core::cmp::PartialOrd",
             Ord => "::core::cmp::Ord",
         })
-        .expect("couldn't pass path to trait")
+        .expect("failed to pass path")
     }
 
     fn generate_body(self, name: &str, data: &Data) -> TokenStream {
