@@ -1,20 +1,20 @@
-use proc_macro2::{TokenStream, TokenTree};
+use proc_macro2::{Ident, TokenStream, TokenTree};
 use quote::{format_ident, quote};
-use syn::parse::Parse;
+use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
-use syn::{parse_macro_input, DeriveInput};
+use syn::{parse_macro_input, Data, DeriveInput, Error, Fields, Type};
 
 #[derive(Debug)]
 struct DeriveWhere {
-    bounds: Vec<proc_macro2::Ident>,
+    bounds: Vec<Ident>,
     traits: Vec<Traits>,
 }
 
 impl Parse for DeriveWhere {
-    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
         let mut bounds_done = false;
         let mut bounds = Vec::new();
-        let mut traits = Vec::<Traits>::new();
+        let mut traits = Vec::new();
 
         input.step(|cursor| {
             let mut rest = *cursor;
@@ -26,10 +26,7 @@ impl Parse for DeriveWhere {
                     if let TokenTree::Ident(ident) = tt {
                         traits.push(ident.try_into()?)
                     } else {
-                        return Err(syn::Error::new(
-                            tt.span(),
-                            format!("Unexpected token: {}", tt),
-                        ));
+                        return Err(Error::new(tt.span(), format!("Unexpected token: {}", tt)));
                     }
                 } else {
                     match tt {
@@ -41,7 +38,7 @@ impl Parse for DeriveWhere {
                         // TODO: check correct usage of comma
                         TokenTree::Punct(punct) if punct.as_char() == ',' => (),
                         tt => {
-                            return Err(syn::Error::new(
+                            return Err(Error::new(
                                 tt.span(),
                                 format!("Unexpected token: `{}`", tt),
                             ))
@@ -68,20 +65,22 @@ enum Traits {
     Ord,*/
 }
 
-impl TryFrom<proc_macro2::Ident> for Traits {
-    type Error = syn::Error;
+impl TryFrom<Ident> for Traits {
+    type Error = Error;
 
-    fn try_from(ident: proc_macro2::Ident) -> Result<Self, Self::Error> {
+    fn try_from(ident: Ident) -> Result<Self, Self::Error> {
+        use Traits::*;
+
         Ok(match ident.to_string().as_str() {
-            "Clone" => Self::Clone,
-            /*"Debug" => Self::Debug,
-            "Eq" => Self::Eq,
-            "Hash" => Self::Hash,
-            "PartialEq" => Self::PartialEq,
-            "PartialOrd" => Self::PartialOrd,
-            "Ord" => Self::Ord,*/
+            "Clone" => Clone,
+            /*"Debug" => Debug,
+            "Eq" => Eq,
+            "Hash" => Hash,
+            "PartialEq" => PartialEq,
+            "PartialOrd" => PartialOrd,
+            "Ord" => Ord,*/
             ident => {
-                return Err(syn::Error::new(
+                return Err(Error::new(
                     ident.span(),
                     format!("{} isn't supported", ident),
                 ))
@@ -91,26 +90,28 @@ impl TryFrom<proc_macro2::Ident> for Traits {
 }
 
 impl Traits {
-    fn type_(&self) -> syn::Type {
+    fn type_(&self) -> Type {
+        use Traits::*;
+
         syn::parse_str(match self {
-            Self::Clone => "::core::clone::Clone",
-            /*Self::Debug => "::core::fmt::Debug",
-            Self::Eq => "::core::cmp::Eq",
-            Self::Hash => "::core::hash::Hash",
-            Self::PartialEq => "::core::cmp::PartialEq",
-            Self::PartialOrd => "::core::cmp::PartialOrd",
-            Self::Ord => "::core::cmp::Ord",*/
+            Clone => "::core::clone::Clone",
+            /*Debug => "::core::fmt::Debug",
+            Eq => "::core::cmp::Eq",
+            Hash => "::core::hash::Hash",
+            PartialEq => "::core::cmp::PartialEq",
+            PartialOrd => "::core::cmp::PartialOrd",
+            Ord => "::core::cmp::Ord",*/
         })
         .expect("couldn't pass path to trait")
     }
 
-    fn generate_body(&self, data: &syn::Data) -> TokenStream {
+    fn generate_body(&self, data: &Data) -> TokenStream {
         let body = match &data {
-            syn::Data::Struct(data) => {
+            Data::Struct(data) => {
                 let name = quote! { Self };
 
                 match &data.fields {
-                    syn::Fields::Named(fields) => {
+                    Fields::Named(fields) => {
                         let fields: Vec<_> = fields
                             .named
                             .iter()
@@ -135,7 +136,7 @@ impl Traits {
                             #body
                         }
                     }
-                    syn::Fields::Unnamed(fields) => {
+                    Fields::Unnamed(fields) => {
                         let fields_temp: Vec<_> = (0..fields.unnamed.len())
                             .into_iter()
                             .map(|field| format_ident!("__{}", field))
@@ -148,10 +149,10 @@ impl Traits {
                             #body
                         }
                     }
-                    syn::Fields::Unit => self.generate_unit(name),
+                    Fields::Unit => self.generate_unit(name),
                 }
             }
-            syn::Data::Enum(data) => {
+            Data::Enum(data) => {
                 let bodies: Vec<_> = data
                     .variants
                     .iter()
@@ -160,7 +161,7 @@ impl Traits {
                         let name = quote! { Self::#variant_ident };
 
                         match &variant.fields {
-                            syn::Fields::Named(fields) => {
+                            Fields::Named(fields) => {
                                 let fields: Vec<_> = fields
                                     .named
                                     .iter()
@@ -186,7 +187,7 @@ impl Traits {
                                     Self::#variant_ident { #(#fields_destructure),* } => { #body }
                                 }
                             }
-                            syn::Fields::Unnamed(fields) => {
+                            Fields::Unnamed(fields) => {
                                 let fields_temp: Vec<_> = (0..fields.unnamed.len())
                                     .into_iter()
                                     .map(|field| format_ident!("__{}", field))
@@ -198,7 +199,7 @@ impl Traits {
                                     Self::#variant_ident ( #(#fields_temp),* ) => { #body }
                                 }
                             }
-                            syn::Fields::Unit => {
+                            Fields::Unit => {
                                 let body = self.generate_unit(name);
                                 quote! { Self::#variant_ident => { #body } }
                             }
@@ -212,15 +213,17 @@ impl Traits {
                     }
                 }
             }
-            syn::Data::Union(_) => todo!("Unions are not supported"),
+            Data::Union(_) => todo!("Unions are not supported"),
         };
 
         self.generate_signature(body)
     }
 
     fn generate_signature(&self, body: TokenStream) -> TokenStream {
+        use Traits::*;
+
         match self {
-            Traits::Clone => quote! {
+            Clone => quote! {
                 fn clone(&self) -> Self {
                     #body
                 }
@@ -231,13 +234,15 @@ impl Traits {
     fn generate_struct(
         &self,
         name: TokenStream,
-        fields: Vec<&proc_macro2::Ident>,
-        fields_temp: Vec<proc_macro2::Ident>,
+        fields: Vec<&Ident>,
+        fields_temp: Vec<Ident>,
     ) -> TokenStream {
+        use Traits::*;
+
         let type_ = self.type_();
 
         match self {
-            Traits::Clone => {
+            Clone => {
                 let assigns = fields
                     .into_iter()
                     .zip(fields_temp)
@@ -252,11 +257,13 @@ impl Traits {
         }
     }
 
-    fn generate_tuple(&self, name: TokenStream, fields_temp: &[proc_macro2::Ident]) -> TokenStream {
+    fn generate_tuple(&self, name: TokenStream, fields_temp: &[Ident]) -> TokenStream {
+        use Traits::*;
+
         let type_ = self.type_();
 
         match self {
-            Traits::Clone => {
+            Clone => {
                 let assigns = fields_temp.iter().map(|field_temp| {
                     quote! { #type_::clone(&#field_temp) }
                 });
@@ -269,8 +276,10 @@ impl Traits {
     }
 
     fn generate_unit(&self, name: TokenStream) -> TokenStream {
+        use Traits::*;
+
         match self {
-            Traits::Clone => quote! { #name },
+            Clone => quote! { #name },
         }
     }
 }
