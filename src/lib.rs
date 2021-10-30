@@ -1,3 +1,5 @@
+#![feature(allow_internal_unstable)]
+
 use proc_macro2::{Ident, TokenStream, TokenTree};
 use quote::{format_ident, quote};
 use syn::parse::{Parse, ParseStream};
@@ -113,7 +115,7 @@ impl Traits {
                 match &data.fields {
                     Fields::Named(fields) => self.generate_struct(name, &variant, fields),
                     Fields::Unnamed(fields) => self.generate_tuple(name, &variant, fields),
-                    Fields::Unit => self.generate_unit(name, &variant),
+                    Fields::Unit => panic!("Unit structs are not supported. They cannot have generics, therefor implementing using standard derive is always possible."),
                 }
             }
             Data::Enum(data) => data
@@ -141,6 +143,8 @@ impl Traits {
     fn generate_signature(self, body: TokenStream) -> TokenStream {
         use Traits::*;
 
+        let type_ = self.type_();
+
         match self {
             Clone => quote! {
                 fn clone(&self) -> Self {
@@ -159,6 +163,8 @@ impl Traits {
             Eq => quote! {},
             Hash => quote! {
                 fn hash<__H: ::core::hash::Hasher>(&self, __state: &mut __H) {
+                    #type_::hash(&::core::mem::discriminant(self), __state);
+
                     match self {
                         #body
                     }
@@ -166,10 +172,15 @@ impl Traits {
             },
             PartialEq => quote! {
                 fn eq(&self, __other: &Self) -> bool {
-                    let mut __cmp = true;
+                    if ::core::mem::discriminant(self) == ::core::mem::discriminant(__other) {
+                        let mut __cmp = true;
 
-                    match (self, __other) {
-                        #body
+                        match (self, __other) {
+                            #body
+                            _ => ::core::unreachable("Comparing discriminants failed")
+                        }
+                    } else {
+                        false
                     }
                 }
             },
@@ -180,7 +191,13 @@ impl Traits {
                     }
                 }
             },
-            Ord => todo!(),
+            Ord => quote! {
+                fn cmp(&self, __other: &Self) -> ::core::cmp::Ordering {
+                    match (self, __other) {
+                        #body
+                    }
+                }
+            },
         }
     }
 
@@ -205,9 +222,14 @@ impl Traits {
             .map(|field| format_ident!("__{}", field))
             .collect();
 
+        let fields_other: Vec<_> = fields
+            .iter()
+            .map(|field| format_ident!("__other_{}", field))
+            .collect();
+
         match self {
             Clone => quote! {
-                #variant { #(#fields: #fields_temp),* } => { #variant { #(#fields: #type_::clone(&#fields_temp)),* } }
+                #variant { #(#fields: #fields_temp),* } => #variant { #(#fields: #type_::clone(&#fields_temp)),* },
             },
             Debug => quote! {
                 #variant { #(#fields: #fields_temp),* } => {
@@ -221,8 +243,8 @@ impl Traits {
                 #variant { #(#fields: #fields_temp),* } => { #(#type_::hash(&#fields_temp, __state);)* }
             },
             PartialEq => quote! {
-                (#variant { #(#fields: #fields_temp),* }, #variant { #(#fields: #fields_temp),* }) => {
-                    #(__cmp &= #type_::eq(&#fields_temp, &#fields_temp);)*
+                (#variant { #(#fields: #fields_temp),* }, #variant { #(#fields: #fields_other),* }) => {
+                    #(__cmp &= #type_::eq(&#fields_temp, &#fields_other);)*
                 }
             },
             PartialOrd => todo!(),
@@ -232,7 +254,7 @@ impl Traits {
 
     fn generate_tuple(
         self,
-        _name: &str,
+        name: &str,
         variant: &TokenStream,
         fields: &FieldsUnnamed,
     ) -> TokenStream {
@@ -245,28 +267,47 @@ impl Traits {
             .map(|field| format_ident!("__{}", field))
             .collect();
 
+        let fields_other: Vec<_> = (0..fields.unnamed.len())
+            .into_iter()
+            .map(|field| format_ident!("__other_{}", field))
+            .collect();
+
         match self {
             Clone => quote! {
                 #variant(#(#fields_temp),*) => #variant (#(#type_::clone(&#fields_temp)),*),
             },
-            Debug => todo!(),
-            Eq => todo!(),
-            Hash => todo!(),
-            PartialEq => todo!(),
+            Debug => quote! {
+                #variant(#(#fields_temp),*) => {
+                    let __builder = ::core::fmt::Formatter::tuple(__f, #name);
+                    #(::core::fmt::DebugTuple::field(__builder, &#fields_temp);)*
+                    ::core::fmt::DebugTuple::finish(__builder)
+                }
+            },
+            Eq => quote! {},
+            Hash => quote! {
+                #variant(#(#fields_temp),*) => { #(#type_::hash(&#fields_temp, __state);)* }
+            },
+            PartialEq => quote! {
+                (#variant(#(#fields_temp),*), #variant(#(#fields_other),*)) => {
+                    #(__cmp &= #type_::eq(&#fields_temp, &#fields_other);)*
+                }
+            },
             PartialOrd => todo!(),
             Ord => todo!(),
         }
     }
 
-    fn generate_unit(self, _name: &str, variant: &TokenStream) -> TokenStream {
+    fn generate_unit(self, name: &str, variant: &TokenStream) -> TokenStream {
         use Traits::*;
 
         match self {
             Clone => quote! { #variant => #variant, },
-            Debug => todo!(),
-            Eq => todo!(),
-            Hash => todo!(),
-            PartialEq => todo!(),
+            Debug => quote! { ::core::fmt::Formatter::write_str(__f, #name), },
+            Eq => quote! {},
+            Hash => quote! { #variant => (), },
+            PartialEq => quote! {
+                (#variant, #variant) => true,
+            },
             PartialOrd => todo!(),
             Ord => todo!(),
         }
@@ -274,6 +315,7 @@ impl Traits {
 }
 
 #[proc_macro_attribute]
+#[allow_internal_unstable(core_intrinsics)]
 pub fn derive_where(
     attr: proc_macro::TokenStream,
     item: proc_macro::TokenStream,
