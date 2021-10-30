@@ -6,9 +6,12 @@ use derive_restricted::derive_where;
 // #[derive_where(T: Clone; Clone)]
 // struct Test<T>;
 
+// test macro hygiene
+trait Clone {}
+
 #[test]
 fn test_tuple() {
-    #[derive_where(T: Clone, S: Clone; Clone)]
+    #[derive_where(T, S; Clone)]
     #[derive(Debug)]
     struct TestTuple<T, S>(T, S);
 
@@ -21,7 +24,11 @@ fn test_tuple() {
 
 #[test]
 fn test_struct() {
-    #[derive_where(T: Clone, S: Clone; Clone)]
+    // test macro hygiene
+    #[allow(non_upper_case_globals)]
+    const a: usize = 0;
+
+    #[derive_where(T, S; Clone)]
     #[derive(Debug)]
     struct TestStruct<T, S> {
         a: T,
@@ -40,7 +47,7 @@ fn test_struct() {
 
 #[test]
 fn test_enum() {
-    #[derive_where(T: Clone, S: Clone; Clone)]
+    #[derive_where(T, S; Clone)]
     #[derive(Debug)]
     enum TestEnum<T, S> {
         VariantStruct { field: T },
