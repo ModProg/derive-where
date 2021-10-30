@@ -2,7 +2,7 @@ use proc_macro2::{Ident, TokenStream, TokenTree};
 use quote::{format_ident, quote};
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
-use syn::{parse_macro_input, Data, DeriveInput, Error, Fields, Type};
+use syn::{parse_macro_input, Data, DeriveInput, Error, Fields, FieldsNamed, FieldsUnnamed, Type};
 
 #[derive(Debug)]
 struct DeriveWhere {
@@ -112,24 +112,8 @@ impl Traits {
 
                 match &data.fields {
                     Fields::Named(fields) => {
-                        let fields: Vec<_> = fields
-                            .named
-                            .iter()
-                            .map(|f| f.ident.as_ref().expect("Every field should have a name"))
-                            .collect();
-
-                        let fields_temp: Vec<_> = fields
-                            .iter()
-                            .map(|field| format_ident!("__{}", field))
-                            .collect();
-
-                        let fields_destructure: Vec<_> = fields
-                            .iter()
-                            .zip(&fields_temp)
-                            .map(|(field, field_temp)| quote! { #field: #field_temp })
-                            .collect();
-
-                        let body = self.generate_struct(name, fields, fields_temp);
+                        let body = self.generate_struct(name, fields);
+                        let fields_destructure = Self::prepare_field_named(fields);
 
                         quote! {
                             let Self { #(#fields_destructure),* } = self;
@@ -137,12 +121,8 @@ impl Traits {
                         }
                     }
                     Fields::Unnamed(fields) => {
-                        let fields_temp: Vec<_> = (0..fields.unnamed.len())
-                            .into_iter()
-                            .map(|field| format_ident!("__{}", field))
-                            .collect();
-
-                        let body = self.generate_tuple(name, &fields_temp);
+                        let body = self.generate_tuple(name, fields);
+                        let fields_temp = Self::prepare_field_unnamed(fields);
 
                         quote! {
                             let Self ( #(#fields_temp),* ) = self;
@@ -162,38 +142,16 @@ impl Traits {
 
                         match &variant.fields {
                             Fields::Named(fields) => {
-                                let fields: Vec<_> = fields
-                                    .named
-                                    .iter()
-                                    .map(|f| {
-                                        f.ident.as_ref().expect("Every field should have a name")
-                                    })
-                                    .collect();
-
-                                let fields_temp: Vec<_> = fields
-                                    .iter()
-                                    .map(|field| format_ident!("__{}", field))
-                                    .collect();
-
-                                let fields_destructure: Vec<_> = fields
-                                    .iter()
-                                    .zip(&fields_temp)
-                                    .map(|(field, field_temp)| quote! { #field: #field_temp })
-                                    .collect();
-
-                                let body = self.generate_struct(name, fields, fields_temp);
+                                let body = self.generate_struct(name, fields);
+                                let fields_destructure = Self::prepare_field_named(fields);
 
                                 quote! {
                                     Self::#variant_ident { #(#fields_destructure),* } => { #body }
                                 }
                             }
                             Fields::Unnamed(fields) => {
-                                let fields_temp: Vec<_> = (0..fields.unnamed.len())
-                                    .into_iter()
-                                    .map(|field| format_ident!("__{}", field))
-                                    .collect();
-
-                                let body = self.generate_tuple(name, &fields_temp);
+                                let body = self.generate_tuple(name, fields);
+                                let fields_temp = Self::prepare_field_unnamed(fields);
 
                                 quote! {
                                     Self::#variant_ident ( #(#fields_temp),* ) => { #body }
@@ -219,6 +177,23 @@ impl Traits {
         self.generate_signature(body)
     }
 
+    fn prepare_field_named(fields: &FieldsNamed) -> impl Iterator<Item = TokenStream> + '_ {
+        fields
+            .named
+            .iter()
+            .map(|field| field.ident.as_ref().unwrap())
+            .map(|field| {
+                let temp = format_ident!("__{}", field);
+                quote! { #field: #temp }
+            })
+    }
+
+    fn prepare_field_unnamed(fields: &FieldsUnnamed) -> impl Iterator<Item = Ident> {
+        (0..fields.unnamed.len())
+            .into_iter()
+            .map(|field| format_ident!("__{}", field))
+    }
+
     fn generate_signature(&self, body: TokenStream) -> TokenStream {
         use Traits::*;
 
@@ -231,15 +206,16 @@ impl Traits {
         }
     }
 
-    fn generate_struct(
-        &self,
-        name: TokenStream,
-        fields: Vec<&Ident>,
-        fields_temp: Vec<Ident>,
-    ) -> TokenStream {
+    fn generate_struct(&self, name: TokenStream, fields: &FieldsNamed) -> TokenStream {
         use Traits::*;
 
         let type_ = self.type_();
+        let fields_temp = fields
+            .named
+            .iter()
+            .map(|field| field.ident.as_ref().unwrap())
+            .map(|field| format_ident!("__{}", field));
+        let fields = fields.named.iter().map(|f| f.ident.as_ref().unwrap());
 
         match self {
             Clone => {
@@ -257,14 +233,15 @@ impl Traits {
         }
     }
 
-    fn generate_tuple(&self, name: TokenStream, fields_temp: &[Ident]) -> TokenStream {
+    fn generate_tuple(&self, name: TokenStream, fields: &FieldsUnnamed) -> TokenStream {
         use Traits::*;
 
         let type_ = self.type_();
+        let fields_temp = Self::prepare_field_unnamed(fields);
 
         match self {
             Clone => {
-                let assigns = fields_temp.iter().map(|field_temp| {
+                let assigns = fields_temp.map(|field_temp| {
                     quote! { #type_::clone(&#field_temp) }
                 });
 
