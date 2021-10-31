@@ -1,3 +1,5 @@
+use core::cmp::Ordering;
+
 use proc_macro2::{Ident, TokenStream};
 use proc_macro_error::{abort_call_site, proc_macro_error};
 use quote::{format_ident, quote};
@@ -80,34 +82,107 @@ impl Traits {
     fn generate_body(self, name: &str, data: &Data) -> TokenStream {
         let body = match &data {
             Data::Struct(data) => {
-                let variant = quote! { Self };
+                let pattern = quote! { Self };
 
                 match &data.fields {
-                    Fields::Named(fields) => self.generate_struct(name, &variant, fields),
-                    Fields::Unnamed(fields) => self.generate_tuple(name, &variant, fields),
+                    Fields::Named(fields) => self.generate_struct(name, &pattern, None, fields),
+                    Fields::Unnamed(fields) => self.generate_tuple(name, &pattern, None, fields),
                     Fields::Unit => abort_call_site!("Using derive_where on unit struct is not supported as unit structs don't support generics.")
                 }
             }
-            Data::Enum(data) => data
-                .variants
-                .iter()
-                .map(|variant| {
-                    let variant_ident = &variant.ident;
-                    let variant_fields = &variant.fields;
-                    let name = variant_ident.to_string();
-                    let variant = quote! { Self::#variant_ident };
+            Data::Enum(data) => {
+                let variants: Vec<_> = data.variants.iter().map(|variant| &variant.ident).collect();
 
-                    match variant_fields {
-                        Fields::Named(fields) => self.generate_struct(&name, &variant, fields),
-                        Fields::Unnamed(fields) => self.generate_tuple(&name, &variant, fields),
-                        Fields::Unit => self.generate_unit(&name, &variant),
-                    }
-                })
-                .collect(),
-            Data::Union(_) => abort_call_site!("Using derive_where on Unions is not supported."),
+                data.variants
+                    .iter()
+                    .enumerate()
+                    .map(|(index, variant)| {
+                        let variant_ident = &variant.ident;
+                        let variant_fields = &variant.fields;
+                        let name = variant_ident.to_string();
+                        let pattern = quote! { Self::#variant_ident };
+
+                        match variant_fields {
+                            Fields::Named(fields) => self.generate_struct(
+                                &name,
+                                &pattern,
+                                Some((index, &variants)),
+                                fields,
+                            ),
+                            Fields::Unnamed(fields) => self.generate_tuple(
+                                &name,
+                                &pattern,
+                                Some((index, &variants)),
+                                fields,
+                            ),
+                            Fields::Unit => {
+                                self.generate_unit(&name, &pattern, Some((index, &variants)))
+                            }
+                        }
+                    })
+                    .collect()
+            }
+            Data::Union(_) => todo!("Unions are not supported"),
         };
 
         self.generate_signature(body)
+    }
+
+    fn prepare_ord(
+        self,
+        fields_temp: &[Ident],
+        fields_other: &[Ident],
+        variants: Option<(usize, &[&Ident])>,
+        skip: &TokenStream,
+    ) -> (TokenStream, TokenStream) {
+        use Traits::*;
+
+        let type_ = self.type_();
+
+        let mut less = quote! { ::core::cmp::Ordering::Less };
+        let mut equal = quote! { ::core::cmp::Ordering::Equal };
+        let mut greater = quote! { ::core::cmp::Ordering::Greater };
+
+        match self {
+            PartialOrd => {
+                less = quote! { ::core::option::Option::Some(#less) };
+                equal = quote! { ::core::option::Option::Some(#equal) };
+                greater = quote! { ::core::option::Option::Some(#greater) };
+            }
+            Ord => (),
+            _ => unreachable!(),
+        };
+
+        let mut body = quote! { #equal };
+
+        for (field_temp, field_other) in fields_temp.iter().zip(fields_other).rev() {
+            body = quote! {
+                match #type_::partial_cmp(&#field_temp, &#field_other) {
+                    #equal => #body,
+                    __cmp => __cmp,
+                }
+            };
+        }
+
+        let mut other = quote! {};
+
+        if let Some((variant, variants)) = variants {
+            for (index, variants) in variants.iter().enumerate() {
+                if variant != index {
+                    let ordering = match variant.cmp(&index) {
+                        Ordering::Less => &less,
+                        Ordering::Equal => &equal,
+                        Ordering::Greater => &greater,
+                    };
+
+                    other.extend(quote! {
+                        Self::#variants #skip => #ordering,
+                    })
+                }
+            }
+        }
+
+        (body, other)
     }
 
     fn generate_signature(self, body: TokenStream) -> TokenStream {
@@ -156,7 +231,7 @@ impl Traits {
             },
             PartialOrd => quote! {
                 fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
-                    match (self, __other) {
+                    match self {
                         #body
                     }
                 }
@@ -174,7 +249,8 @@ impl Traits {
     fn generate_struct(
         self,
         name: &str,
-        variant: &TokenStream,
+        pattern: &TokenStream,
+        variants: Option<(usize, &[&Ident])>,
         fields: &FieldsNamed,
     ) -> TokenStream {
         use Traits::*;
@@ -199,10 +275,10 @@ impl Traits {
 
         match self {
             Clone => quote! {
-                #variant { #(#fields: #fields_temp),* } => #variant { #(#fields: #type_::clone(&#fields_temp)),* },
+                #pattern { #(#fields: #fields_temp),* } => #pattern { #(#fields: #type_::clone(&#fields_temp)),* },
             },
             Debug => quote! {
-                #variant { #(#fields: #fields_temp),* } => {
+                #pattern { #(#fields: #fields_temp),* } => {
                     let __builder = ::core::fmt::Formatter::debug_struct(__f, #name);
                     #(::core::fmt::DebugStruct::field(__builder, #fields, &#fields_temp);)*
                     ::core::fmt::DebugStruct::finish(__builder)
@@ -210,22 +286,47 @@ impl Traits {
             },
             Eq => quote! {},
             Hash => quote! {
-                #variant { #(#fields: #fields_temp),* } => { #(#type_::hash(&#fields_temp, __state);)* }
+                #pattern { #(#fields: #fields_temp),* } => { #(#type_::hash(&#fields_temp, __state);)* }
             },
             PartialEq => quote! {
-                (#variant { #(#fields: #fields_temp),* }, #variant { #(#fields: #fields_other),* }) => {
+                (#pattern { #(#fields: #fields_temp),* }, #pattern { #(#fields: #fields_other),* }) => {
                     #(__cmp &= #type_::eq(&#fields_temp, &#fields_other);)*
                 }
             },
-            PartialOrd => todo!(),
-            Ord => todo!(),
+            PartialOrd => {
+                let (body, other) =
+                    self.prepare_ord(&fields_temp, &fields_other, variants, &quote! { { .. } });
+
+                quote! {
+                    #pattern { #(#fields: #fields_temp),* } => {
+                        match __other {
+                            #pattern { #(#fields: #fields_other),* } => #body,
+                            #other
+                        }
+                    }
+                }
+            }
+            Ord => {
+                let (body, other) =
+                    self.prepare_ord(&fields_temp, &fields_other, variants, &quote! { { .. } });
+
+                quote! {
+                    #pattern { #(#fields: #fields_temp),* } => {
+                        match __other {
+                            #pattern { #(#fields: #fields_other),* } => #body,
+                            #other
+                        }
+                    }
+                }
+            }
         }
     }
 
     fn generate_tuple(
         self,
         name: &str,
-        variant: &TokenStream,
+        pattern: &TokenStream,
+        variants: Option<(usize, &[&Ident])>,
         fields: &FieldsUnnamed,
     ) -> TokenStream {
         use Traits::*;
@@ -244,10 +345,10 @@ impl Traits {
 
         match self {
             Clone => quote! {
-                #variant(#(#fields_temp),*) => #variant (#(#type_::clone(&#fields_temp)),*),
+                #pattern(#(#fields_temp),*) => #pattern (#(#type_::clone(&#fields_temp)),*),
             },
             Debug => quote! {
-                #variant(#(#fields_temp),*) => {
+                #pattern(#(#fields_temp),*) => {
                     let __builder = ::core::fmt::Formatter::tuple(__f, #name);
                     #(::core::fmt::DebugTuple::field(__builder, &#fields_temp);)*
                     ::core::fmt::DebugTuple::finish(__builder)
@@ -255,31 +356,80 @@ impl Traits {
             },
             Eq => quote! {},
             Hash => quote! {
-                #variant(#(#fields_temp),*) => { #(#type_::hash(&#fields_temp, __state);)* }
+                #pattern(#(#fields_temp),*) => { #(#type_::hash(&#fields_temp, __state);)* }
             },
             PartialEq => quote! {
-                (#variant(#(#fields_temp),*), #variant(#(#fields_other),*)) => {
+                (#pattern(#(#fields_temp),*), #pattern(#(#fields_other),*)) => {
                     #(__cmp &= #type_::eq(&#fields_temp, &#fields_other);)*
                 }
             },
-            PartialOrd => todo!(),
-            Ord => todo!(),
+            PartialOrd => {
+                let (body, other) =
+                    self.prepare_ord(&fields_temp, &fields_other, variants, &quote! { (..) });
+
+                quote! {
+                    #pattern (#(#fields_other),*) => {
+                        match __other {
+                            #pattern (#(#fields_other),*) => #body,
+                            #other
+                        }
+                    }
+                }
+            }
+            Ord => {
+                let (body, other) =
+                    self.prepare_ord(&fields_temp, &fields_other, variants, &quote! { (..) });
+
+                quote! {
+                    #pattern (#(#fields_other),*) => {
+                        match __other {
+                            #pattern (#(#fields_other),*) => #body,
+                            #other
+                        }
+                    }
+                }
+            }
         }
     }
 
-    fn generate_unit(self, name: &str, variant: &TokenStream) -> TokenStream {
+    fn generate_unit(
+        self,
+        name: &str,
+        pattern: &TokenStream,
+        variants: Option<(usize, &[&Ident])>,
+    ) -> TokenStream {
         use Traits::*;
 
         match self {
-            Clone => quote! { #variant => #variant, },
-            Debug => quote! { ::core::fmt::Formatter::write_str(__f, #name), },
+            Clone => quote! { #pattern => #pattern, },
+            Debug => quote! { #pattern => ::core::fmt::Formatter::write_str(__f, #name), },
             Eq => quote! {},
-            Hash => quote! { #variant => (), },
-            PartialEq => quote! {
-                (#variant, #variant) => true,
+            Hash => quote! { #pattern => (), },
+            PartialEq => quote! { (#pattern, #pattern) => true, },
+            PartialOrd => {
+                let (body, other) = self.prepare_ord(&[], &[], variants, &quote! {});
+
+                quote! {
+                    #pattern => {
+                        match __other {
+                            #pattern => #body,
+                            #other
+                        }
+                    }
+                }
+            }
+            Ord => {
+                let (body, other) = self.prepare_ord(&[], &[], variants, &quote! {});
+
+                quote! {
+                    #pattern => {
+                        match __other {
+                            #pattern => #body,
+                            #other
+                        }
+                    }
+                }
             },
-            PartialOrd => todo!(),
-            Ord => todo!(),
         }
     }
 }
