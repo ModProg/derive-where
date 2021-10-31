@@ -87,7 +87,7 @@ impl Traits {
                 match &data.fields {
                     Fields::Named(fields) => self.generate_struct(name, &pattern, None, fields),
                     Fields::Unnamed(fields) => self.generate_tuple(name, &pattern, None, fields),
-                    Fields::Unit => abort_call_site!("Using derive_where on unit struct is not supported as unit structs don't support generics.")
+                    Fields::Unit => abort_call_site!("Using derive_where on unit struct is not supported as unit structs don't support generics."),
                 }
             }
             Data::Enum(data) => {
@@ -429,7 +429,7 @@ impl Traits {
                         }
                     }
                 }
-            },
+            }
         }
     }
 }
