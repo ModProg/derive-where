@@ -79,7 +79,7 @@ impl Traits {
         .expect("failed to pass path")
     }
 
-    fn generate_body(self, name: &str, data: &Data) -> TokenStream {
+    fn generate_body(self, name: &Ident, data: &Data) -> TokenStream {
         let body = match &data {
             Data::Struct(data) => {
                 let pattern = quote! { Self };
@@ -99,24 +99,24 @@ impl Traits {
                     .map(|(index, variant)| {
                         let variant_ident = &variant.ident;
                         let variant_fields = &variant.fields;
-                        let name = variant_ident.to_string();
+                        let name = variant_ident;
                         let pattern = quote! { Self::#variant_ident };
 
                         match variant_fields {
                             Fields::Named(fields) => self.generate_struct(
-                                &name,
+                                name,
                                 &pattern,
                                 Some((index, &variants)),
                                 fields,
                             ),
                             Fields::Unnamed(fields) => self.generate_tuple(
-                                &name,
+                                name,
                                 &pattern,
                                 Some((index, &variants)),
                                 fields,
                             ),
                             Fields::Unit => {
-                                self.generate_unit(&name, &pattern, Some((index, &variants)))
+                                self.generate_unit(name, &pattern, Some((index, &variants)))
                             }
                         }
                     })
@@ -248,7 +248,7 @@ impl Traits {
 
     fn generate_struct(
         self,
-        name: &str,
+        name: &Ident,
         pattern: &TokenStream,
         variants: Option<(usize, &[&Ident])>,
         fields: &FieldsNamed,
@@ -256,6 +256,8 @@ impl Traits {
         use Traits::*;
 
         let type_ = self.type_();
+
+        let name = name.to_string();
 
         let fields: Vec<_> = fields
             .named
@@ -324,7 +326,7 @@ impl Traits {
 
     fn generate_tuple(
         self,
-        name: &str,
+        name: &Ident,
         pattern: &TokenStream,
         variants: Option<(usize, &[&Ident])>,
         fields: &FieldsUnnamed,
@@ -332,6 +334,8 @@ impl Traits {
         use Traits::*;
 
         let type_ = self.type_();
+
+        let name = name.to_string();
 
         let fields_temp: Vec<_> = (0..fields.unnamed.len())
             .into_iter()
@@ -394,11 +398,13 @@ impl Traits {
 
     fn generate_unit(
         self,
-        name: &str,
+        name: &Ident,
         pattern: &TokenStream,
         variants: Option<(usize, &[&Ident])>,
     ) -> TokenStream {
         use Traits::*;
+
+        let name = name.to_string();
 
         match self {
             Clone => quote! { #pattern => #pattern, },
@@ -453,7 +459,7 @@ pub fn derive_where(
     } = parse_macro_input!(item);
 
     for trait_ in &derive_where.traits {
-        let body = trait_.generate_body(&ident.to_string(), &data);
+        let body = trait_.generate_body(&ident, &data);
         let trait_ = trait_.type_();
 
         let bounds = if derive_where.bounds.is_empty() {
