@@ -1,4 +1,5 @@
 use proc_macro2::{Ident, TokenStream};
+use proc_macro_error::{abort_call_site, proc_macro_error};
 use quote::{format_ident, quote};
 use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
@@ -84,7 +85,7 @@ impl Traits {
                 match &data.fields {
                     Fields::Named(fields) => self.generate_struct(name, &variant, fields),
                     Fields::Unnamed(fields) => self.generate_tuple(name, &variant, fields),
-                    Fields::Unit => panic!("Unit structs are not supported. They cannot have generics, therefor implementing using standard derive is always possible."),
+                    Fields::Unit => abort_call_site!("Using derive_where on unit struct is not supported as unit structs don't support generics.")
                 }
             }
             Data::Enum(data) => data
@@ -103,7 +104,7 @@ impl Traits {
                     }
                 })
                 .collect(),
-            Data::Union(_) => todo!("Unions are not supported"),
+            Data::Union(_) => abort_call_site!("Using derive_where on Unions is not supported."),
         };
 
         self.generate_signature(body)
@@ -283,6 +284,7 @@ impl Traits {
     }
 }
 
+#[proc_macro_error]
 #[proc_macro_attribute]
 pub fn derive_where(
     attr: proc_macro::TokenStream,
