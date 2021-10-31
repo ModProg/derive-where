@@ -279,9 +279,9 @@ impl Traits {
             },
             Debug => quote! {
                 #pattern { #(#fields: #fields_temp),* } => {
-                    let __builder = ::core::fmt::Formatter::debug_struct(__f, #name);
-                    #(::core::fmt::DebugStruct::field(__builder, #fields, &#fields_temp);)*
-                    ::core::fmt::DebugStruct::finish(__builder)
+                    let mut __builder = ::core::fmt::Formatter::debug_struct(__f, #name);
+                    #(::core::fmt::DebugStruct::field(&mut __builder, #fields, &#fields_temp);)*
+                    ::core::fmt::DebugStruct::finish(&mut __builder)
                 }
             },
             Eq => quote! {},
@@ -349,9 +349,9 @@ impl Traits {
             },
             Debug => quote! {
                 #pattern(#(#fields_temp),*) => {
-                    let __builder = ::core::fmt::Formatter::debug_tuple(__f, #name);
-                    #(::core::fmt::DebugTuple::field(__builder, &#fields_temp);)*
-                    ::core::fmt::DebugTuple::finish(__builder)
+                    let mut __builder = ::core::fmt::Formatter::debug_tuple(__f, #name);
+                    #(::core::fmt::DebugTuple::field(&mut __builder, &#fields_temp);)*
+                    ::core::fmt::DebugTuple::finish(&mut __builder)
                 }
             },
             Eq => quote! {},
