@@ -1,8 +1,11 @@
-use proc_macro2::{Ident, TokenStream, TokenTree};
+use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote};
 use syn::parse::{Parse, ParseStream};
+use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
-use syn::{parse_macro_input, Data, DeriveInput, Error, Fields, FieldsNamed, FieldsUnnamed, Type};
+use syn::{
+    parse_macro_input, Data, DeriveInput, Error, Fields, FieldsNamed, FieldsUnnamed, Token, Type,
+};
 
 #[derive(Debug)]
 struct DeriveWhere {
@@ -12,44 +15,13 @@ struct DeriveWhere {
 
 impl Parse for DeriveWhere {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let mut bounds_done = false;
-        let mut bounds = Vec::new();
-        let mut traits = Vec::new();
-
-        input.step(|cursor| {
-            let mut rest = *cursor;
-
-            while let Some((tt, next)) = rest.token_tree() {
-                rest = next;
-
-                if bounds_done {
-                    if let TokenTree::Ident(ident) = tt {
-                        traits.push(ident.try_into()?)
-                    } else {
-                        return Err(Error::new(tt.span(), format!("Unexpected token: {}", tt)));
-                    }
-                } else {
-                    match tt {
-                        TokenTree::Punct(punct) if punct.as_char() == ';' => bounds_done = true,
-                        TokenTree::Ident(ident) => {
-                            // TODO: check if these are really `syn::TraitBound`s
-                            bounds.push(ident)
-                        }
-                        // TODO: check correct usage of comma
-                        TokenTree::Punct(punct) if punct.as_char() == ',' => (),
-                        tt => {
-                            return Err(Error::new(
-                                tt.span(),
-                                format!("Unexpected token: `{}`", tt),
-                            ))
-                        }
-                    }
-                }
-            }
-
-            Ok(((), rest))
-        })?;
-
+        let bounds = Punctuated::<Ident, Token![,]>::parse_separated_nonempty(input)?
+            .into_iter()
+            .collect();
+        <Token![;]>::parse(input)?;
+        let traits = Punctuated::<Traits, Token![,]>::parse_terminated(input)?
+            .into_iter()
+            .collect();
         Ok(Self { bounds, traits })
     }
 }
@@ -65,11 +37,10 @@ enum Traits {
     Ord,
 }
 
-impl TryFrom<Ident> for Traits {
-    type Error = Error;
-
-    fn try_from(ident: Ident) -> Result<Self, Self::Error> {
+impl Parse for Traits {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
         use Traits::*;
+        let ident = Ident::parse(input)?;
 
         Ok(match ident.to_string().as_str() {
             "Clone" => Clone,
