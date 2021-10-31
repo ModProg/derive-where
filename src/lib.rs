@@ -32,12 +32,13 @@ impl Parse for DeriveWhere {
 #[derive(Copy, Clone, Debug)]
 enum Traits {
     Clone,
+    Copy,
     Debug,
     Eq,
     Hash,
+    Ord,
     PartialEq,
     PartialOrd,
-    Ord,
 }
 
 impl Parse for Traits {
@@ -47,12 +48,13 @@ impl Parse for Traits {
 
         Ok(match ident.to_string().as_str() {
             "Clone" => Clone,
+            "Copy" => Copy,
             "Debug" => Debug,
             "Eq" => Eq,
             "Hash" => Hash,
+            "Ord" => Ord,
             "PartialEq" => PartialEq,
             "PartialOrd" => PartialOrd,
-            "Ord" => Ord,
             ident => {
                 return Err(Error::new(
                     ident.span(),
@@ -69,12 +71,13 @@ impl Traits {
 
         syn::parse_str(match self {
             Clone => "::core::clone::Clone",
+            Copy => "::core::copy::Copy",
             Debug => "::core::fmt::Debug",
             Eq => "::core::cmp::Eq",
             Hash => "::core::hash::Hash",
+            Ord => "::core::cmp::Ord",
             PartialEq => "::core::cmp::PartialEq",
             PartialOrd => "::core::cmp::PartialOrd",
-            Ord => "::core::cmp::Ord",
         })
         .expect("failed to pass path")
     }
@@ -198,6 +201,7 @@ impl Traits {
                     }
                 }
             },
+            Copy => quote! {},
             Debug => quote! {
                 fn fmt(&self, __f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
                     match self {
@@ -211,6 +215,13 @@ impl Traits {
                     #type_::hash(&::core::mem::discriminant(self), __state);
 
                     match self {
+                        #body
+                    }
+                }
+            },
+            Ord => quote! {
+                fn cmp(&self, __other: &Self) -> ::core::cmp::Ordering {
+                    match (self, __other) {
                         #body
                     }
                 }
@@ -232,13 +243,6 @@ impl Traits {
             PartialOrd => quote! {
                 fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
                     match self {
-                        #body
-                    }
-                }
-            },
-            Ord => quote! {
-                fn cmp(&self, __other: &Self) -> ::core::cmp::Ordering {
-                    match (self, __other) {
                         #body
                     }
                 }
@@ -279,6 +283,7 @@ impl Traits {
             Clone => quote! {
                 #pattern { #(#fields: #fields_temp),* } => #pattern { #(#fields: #type_::clone(&#fields_temp)),* },
             },
+            Copy => quote! {},
             Debug => quote! {
                 #pattern { #(#fields: #fields_temp),* } => {
                     let mut __builder = ::core::fmt::Formatter::debug_struct(__f, #name);
@@ -290,12 +295,7 @@ impl Traits {
             Hash => quote! {
                 #pattern { #(#fields: #fields_temp),* } => { #(#type_::hash(&#fields_temp, __state);)* }
             },
-            PartialEq => quote! {
-                (#pattern { #(#fields: #fields_temp),* }, #pattern { #(#fields: #fields_other),* }) => {
-                    #(__cmp &= #type_::eq(&#fields_temp, &#fields_other);)*
-                }
-            },
-            PartialOrd => {
+            Ord => {
                 let (body, other) =
                     self.prepare_ord(&fields_temp, &fields_other, variants, &quote! { { .. } });
 
@@ -308,7 +308,12 @@ impl Traits {
                     }
                 }
             }
-            Ord => {
+            PartialEq => quote! {
+                (#pattern { #(#fields: #fields_temp),* }, #pattern { #(#fields: #fields_other),* }) => {
+                    #(__cmp &= #type_::eq(&#fields_temp, &#fields_other);)*
+                }
+            },
+            PartialOrd => {
                 let (body, other) =
                     self.prepare_ord(&fields_temp, &fields_other, variants, &quote! { { .. } });
 
@@ -351,6 +356,7 @@ impl Traits {
             Clone => quote! {
                 #pattern(#(#fields_temp),*) => #pattern (#(#type_::clone(&#fields_temp)),*),
             },
+            Copy => quote! {},
             Debug => quote! {
                 #pattern(#(#fields_temp),*) => {
                     let mut __builder = ::core::fmt::Formatter::debug_tuple(__f, #name);
@@ -362,12 +368,7 @@ impl Traits {
             Hash => quote! {
                 #pattern(#(#fields_temp),*) => { #(#type_::hash(&#fields_temp, __state);)* }
             },
-            PartialEq => quote! {
-                (#pattern(#(#fields_temp),*), #pattern(#(#fields_other),*)) => {
-                    #(__cmp &= #type_::eq(&#fields_temp, &#fields_other);)*
-                }
-            },
-            PartialOrd => {
+            Ord => {
                 let (body, other) =
                     self.prepare_ord(&fields_temp, &fields_other, variants, &quote! { (..) });
 
@@ -380,7 +381,12 @@ impl Traits {
                     }
                 }
             }
-            Ord => {
+            PartialEq => quote! {
+                (#pattern(#(#fields_temp),*), #pattern(#(#fields_other),*)) => {
+                    #(__cmp &= #type_::eq(&#fields_temp, &#fields_other);)*
+                }
+            },
+            PartialOrd => {
                 let (body, other) =
                     self.prepare_ord(&fields_temp, &fields_other, variants, &quote! { (..) });
 
@@ -408,11 +414,11 @@ impl Traits {
 
         match self {
             Clone => quote! { #pattern => #pattern, },
+            Copy => quote! {},
             Debug => quote! { #pattern => ::core::fmt::Formatter::write_str(__f, #name), },
             Eq => quote! {},
             Hash => quote! { #pattern => (), },
-            PartialEq => quote! { (#pattern, #pattern) => true, },
-            PartialOrd => {
+            Ord => {
                 let (body, other) = self.prepare_ord(&[], &[], variants, &quote! {});
 
                 quote! {
@@ -424,7 +430,8 @@ impl Traits {
                     }
                 }
             }
-            Ord => {
+            PartialEq => quote! { (#pattern, #pattern) => true, },
+            PartialOrd => {
                 let (body, other) = self.prepare_ord(&[], &[], variants, &quote! {});
 
                 quote! {
