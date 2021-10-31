@@ -349,7 +349,7 @@ impl Traits {
             },
             Debug => quote! {
                 #pattern(#(#fields_temp),*) => {
-                    let __builder = ::core::fmt::Formatter::tuple(__f, #name);
+                    let __builder = ::core::fmt::Formatter::debug_tuple(__f, #name);
                     #(::core::fmt::DebugTuple::field(__builder, &#fields_temp);)*
                     ::core::fmt::DebugTuple::finish(__builder)
                 }
