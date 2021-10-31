@@ -7,18 +7,18 @@ use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
 use syn::{
-    parse_macro_input, Data, DeriveInput, Error, Fields, FieldsNamed, FieldsUnnamed, Token, Type,
+    parse_macro_input, Data, DeriveInput, Error, Fields, FieldsNamed, FieldsUnnamed, Token,
+    TraitBound, Type,
 };
 
-#[derive(Debug)]
 struct DeriveWhere {
-    bounds: Vec<Ident>,
+    bounds: Vec<TraitBound>,
     traits: Vec<Traits>,
 }
 
 impl Parse for DeriveWhere {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let bounds = Punctuated::<Ident, Token![,]>::parse_separated_nonempty(input)?
+        let bounds = Punctuated::<TraitBound, Token![,]>::parse_separated_nonempty(input)?
             .into_iter()
             .collect();
         <Token![;]>::parse(input)?;
@@ -469,9 +469,10 @@ pub fn derive_where(
 
             bounds
         };
+        let (impl_generics, type_generics, ..) = generics.split_for_impl();
 
         output.extend(quote! {
-            impl #generics #trait_ for #ident #generics
+            impl #impl_generics #trait_ for #ident #type_generics
             #bounds
             {
                 #body

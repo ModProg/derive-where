@@ -6,6 +6,26 @@ use derive_restricted::derive_where;
 trait Clone {}
 
 #[test]
+fn test_() {
+    trait Trait {
+        type Type;
+    }
+    #[derive_where(T::Type; Clone, Debug)]
+    struct TestTuple<T: Trait>(T::Type);
+
+    struct Test;
+    impl Trait for Test {
+        type Type = String;
+    }
+
+    let test: TestTuple<Test> = TestTuple(String::from("hi"));
+    let cloned = test.clone();
+
+    dbg!(test);
+    dbg!(cloned);
+}
+
+#[test]
 fn test_tuple() {
     #[derive_where(T, S; Clone)]
     #[derive(Debug)]
