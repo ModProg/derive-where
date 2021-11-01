@@ -499,13 +499,12 @@ impl Traits {
 
 /// Internal derive function for handling errors.
 fn derive_where_internal(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
-    // The item needs to be added, as it is consumed by the derive.
-    let mut output = quote! { #item };
-
-    // Parse derive macro.
     let derive_where: DeriveWhere = syn::parse2(attr)?;
 
-    // Parse item.
+    // The item needs to be added, as it is consumed by the derive. Parsing
+    // consumes `item` so we do it beforehand to avoid cloning.
+    let mut output = quote! { #item };
+
     let DeriveInput {
         ident,
         generics,
