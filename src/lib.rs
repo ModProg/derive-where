@@ -11,34 +11,53 @@ use core::cmp::Ordering;
 
 use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote, ToTokens};
-use syn::parse::{Parse, ParseStream};
-use syn::punctuated::Punctuated;
-use syn::spanned::Spanned;
 use syn::{
-    Data, DeriveInput, Error, Fields, FieldsNamed, FieldsUnnamed, Result, Token, TraitBound, Type,
+    parse::{discouraged::Speculative, Parse, ParseStream},
+    punctuated::{Punctuated},
+    spanned::Spanned,
+    Data, DeriveInput, Error, Fields, FieldsNamed, FieldsUnnamed, Result, Token, Type,
 };
 
 /// Holds parsed [bounds](TraitBound) and [traits](Traits).
-struct DeriveWhere {
-    /// Parsed [bounds](TraitBound).
-    bounds: Vec<TraitBound>,
-    /// Parsed [traits](Traits).
-    traits: Vec<Traits>,
+enum DeriveWhere {
+    WithBounds(Vec<Type>, Vec<Traits>),
+    OnlyTraits(Vec<Traits>),
+}
+
+impl DeriveWhere {
+    fn traits(&self) -> &[Traits] {
+        match self {
+            Self::WithBounds(_, traits) => traits,
+            Self::OnlyTraits(traits) => traits,
+        }
+    }
 }
 
 impl Parse for DeriveWhere {
-    fn parse(input: ParseStream) -> Result<Self> {
-        let bounds = Punctuated::<TraitBound, Token![,]>::parse_separated_nonempty(input)?
-            .into_iter()
-            .collect();
-
-        <Token![;]>::parse(input)?;
-
-        let traits = Punctuated::<Traits, Token![,]>::parse_terminated(input)?
-            .into_iter()
-            .collect();
-
-        Ok(Self { bounds, traits })
+    /// Parse the macro input this should either be:
+    /// - Comma seperated traits
+    /// - Comma seperated generics `;` comma sperated traits
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let fork = input.fork();
+        // Try to parse input as only a trait list
+        // This should fail fast due to trait names being uncommon as a generic's name
+        match Punctuated::<Traits, Token![,]>::parse_terminated(&fork) {
+            Ok(derive_where) => {
+                // Advance input as if DeriveWhere was parsed on it
+                input.advance_to(&fork);
+                Ok(Self::OnlyTraits(derive_where.into_iter().collect()))
+            }
+            Err(_) => {
+                let bounds = Punctuated::<Type, Token![,]>::parse_separated_nonempty(input)?
+                    .into_iter()
+                    .collect();
+                <Token![;]>::parse(input)?;
+                let traits = Punctuated::<Traits, Token![,]>::parse_terminated(input)?
+                    .into_iter()
+                    .collect();
+                Ok(Self::WithBounds(bounds, traits))
+            }
+        }
     }
 }
 
@@ -545,7 +564,7 @@ fn derive_where_internal(attr: TokenStream, item: TokenStream) -> Result<TokenSt
     } = syn::parse2(item)?;
 
     // Every trait needs a separate implementation.
-    for trait_ in &derive_where.traits {
+    for trait_ in derive_where.traits() {
         let body = trait_.generate_body(&ident, &data)?;
         let trait_ = trait_.type_();
 
@@ -555,15 +574,10 @@ fn derive_where_internal(attr: TokenStream, item: TokenStream) -> Result<TokenSt
         let mut where_clause = where_clause.map(|where_clause| where_clause.into_token_stream());
 
         // If there are any bounds, insert them into the `where` clause.
-        if !derive_where.bounds.is_empty() {
+        if let DeriveWhere::WithBounds(bounds, _) = &derive_where {
             // If there is no `where` clause, make one.
             let where_clause = where_clause.get_or_insert(quote! { where });
-
-            for bound in &derive_where.bounds {
-                where_clause.extend(quote! {
-                    #bound: #trait_,
-                })
-            }
+            *where_clause = quote! { #where_clause #(#bounds: #trait_),* };
         }
 
         // Add implementation item to the output.

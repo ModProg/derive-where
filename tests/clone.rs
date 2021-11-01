@@ -1,12 +1,14 @@
 #![allow(dead_code)]
 
+use core::marker::PhantomData;
+
 use derive_where::derive_where;
 
 // test macro hygiene
 trait Clone {}
 
 #[test]
-fn test_() {
+fn test_path() {
     trait Trait {
         type Type;
     }
@@ -19,6 +21,20 @@ fn test_() {
     }
 
     let test: TestTuple<Test> = TestTuple(String::from("hi"));
+    let cloned = test.clone();
+
+    dbg!(test);
+    dbg!(cloned);
+}
+
+#[test]
+fn test_no_bound() {
+    #[derive_where(Clone, Debug)]
+    struct TestTuple<T>(PhantomData<T>);
+
+    struct NotCloneAble;
+
+    let test = TestTuple::<NotCloneAble>(PhantomData);
     let cloned = test.clone();
 
     dbg!(test);
