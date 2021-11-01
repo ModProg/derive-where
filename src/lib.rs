@@ -15,11 +15,11 @@ use syn::{
     Data, DeriveInput, Error, Fields, FieldsNamed, FieldsUnnamed, Result, Token, TraitBound, Type,
 };
 
-/// Holds parsed [bounds](TraitBound) and [traits][Traits].
+/// Holds parsed [bounds](TraitBound) and [traits](Traits).
 struct DeriveWhere {
     /// Parsed [bounds](TraitBound).
     bounds: Vec<TraitBound>,
-    /// Parsed [traits][Traits].
+    /// Parsed [traits](Traits).
     traits: Vec<Traits>,
 }
 
@@ -157,7 +157,9 @@ impl Traits {
         Ok(self.build_signature(body))
     }
 
-    /// Build `match` arms for [`PartialOrd`] and [`Ord`].
+    /// Build `match` arms for [`PartialOrd`] and [`Ord`]. `skip` is used to
+    /// build a `match` pattern to skip all fields: `{ .. }` for structs,
+    /// `(..)` for tuples and `` for units.
     fn prepare_ord(
         self,
         fields_temp: &[Ident],
