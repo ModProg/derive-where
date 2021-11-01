@@ -133,10 +133,10 @@ impl Parse for Trait {
             "Ord" => Ord,
             "PartialEq" => PartialEq,
             "PartialOrd" => PartialOrd,
-            ident => {
+            _ => {
                 return Err(Error::new(
                     ident.span(),
-                    format!("{} isn't supported", ident),
+                    format!("`{}` isn't a supported trait. If this is a generic type parameter, at least one trait is required.", ident),
                 ))
             }
         })
