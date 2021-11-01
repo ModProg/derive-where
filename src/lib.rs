@@ -211,9 +211,11 @@ impl Trait {
                     })
                     .collect()
             }
-            Data::Union(fields) => {
-                // TODO: this span is probably not ideal.
-                return Err(Error::new(fields.fields.span(), "Unions aren't supported."));
+            Data::Union(data) => {
+                return Err(Error::new(
+                    data.union_token.span(),
+                    "Unions aren't supported.",
+                ));
             }
         };
 
