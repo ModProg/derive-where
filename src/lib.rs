@@ -664,7 +664,7 @@ pub fn derive_where(
     // Redirect to `derive_where_internal`, this only convert the error appropriately.
     match derive_where_internal(attr.into(), item.into()) {
         Ok(output) => output.into(),
-        Err(error) => error.to_compile_error().into(),
+        Err(error) => error.into_compile_error().into(),
     }
 }
 
