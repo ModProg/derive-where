@@ -1,0 +1,7 @@
+error: T isn't supported
+ --> tests/ui/only_generic.rs:1:1
+  |
+1 | #[derive_restricted::derive_where(T)]
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in the attribute macro `derive_restricted::derive_where` (in Nightly builds, run with -Z macro-backtrace for more info)

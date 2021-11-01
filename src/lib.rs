@@ -665,3 +665,41 @@ pub fn derive_where(
         Err(error) => error.to_compile_error().into(),
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use trybuild::TestCases;
+
+    #[test]
+    fn ui() {
+        TestCases::new().compile_fail("tests/ui/*.rs");
+    }
+
+    #[test]
+    fn clone() -> Result<()> {
+        test_derive(
+            quote! { T; Clone },
+            quote! { struct Test<T>(T); },
+            quote! {
+                impl<T> ::core::clone::Clone for Test<T>
+                where T: ::core::clone::Clone,
+                {
+                    fn clone(&self) -> Self {
+                        match self {
+                            Self(__0) => Self(::core::clone::Clone::clone(&__0)),
+                        }
+                    }
+                }
+            },
+        )
+    }
+
+    fn test_derive(attr: TokenStream, item: TokenStream, expected: TokenStream) -> Result<()> {
+        let left = derive_where_internal(attr, item.clone())?.to_string();
+        let right = quote! { #item #expected }.to_string();
+
+        assert_eq!(left, right);
+        Ok(())
+    }
+}
