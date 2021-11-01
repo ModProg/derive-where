@@ -1,7 +1,17 @@
 [package]
-name = "derive-restricted"
+name = "derive-where"
 version = "0.1.0"
 edition = "2021"
+# rust-version
+description = "Deriving with custom trait bounds"
+documentation = "https://docs.rs/derive-where"
+readme = "README.md"
+homepage = "https://github.com/ModProg/derive-where"
+repository = "https://github.com/ModProg/derive-where"
+license = "MIT OR Apache-2.0"
+# keywords
+# categories
+# include
 
 [lib]
 proc-macro = true
