@@ -110,8 +110,8 @@ impl Traits {
                 let pattern = quote! { Self };
 
                 match &data.fields {
-                    Fields::Named(fields) => self.build_struct(debug_name, &pattern, None, fields),
-                    Fields::Unnamed(fields) => self.generate_tuple(debug_name, &pattern, None, fields),
+                    Fields::Named(fields) => self.build_for_struct(debug_name, &pattern, None, fields),
+                    Fields::Unnamed(fields) => self.build_for_tuple(debug_name, &pattern, None, fields),
                     fields @ Fields::Unit => return Err(Error::new(
                         fields.span(),
                         "Using `derive_where` on unit struct is not supported as unit structs don't support generics.")),
@@ -129,20 +129,20 @@ impl Traits {
                         let pattern = quote! { Self::#debug_name };
 
                         match &variant.fields {
-                            Fields::Named(fields) => self.build_struct(
+                            Fields::Named(fields) => self.build_for_struct(
                                 debug_name,
                                 &pattern,
                                 Some((index, &variants)),
                                 fields,
                             ),
-                            Fields::Unnamed(fields) => self.generate_tuple(
+                            Fields::Unnamed(fields) => self.build_for_tuple(
                                 debug_name,
                                 &pattern,
                                 Some((index, &variants)),
                                 fields,
                             ),
                             Fields::Unit => {
-                                self.generate_unit(debug_name, &pattern, Some((index, &variants)))
+                                self.build_for_unit(debug_name, &pattern, Some((index, &variants)))
                             }
                         }
                     })
@@ -288,8 +288,10 @@ impl Traits {
         }
     }
 
-    /// Build method body if type is a structure.
-    fn build_struct(
+    /// Build method body if type is a structure. `pattern` is used to
+    /// generalize over matching against a `struct` or an `enum`: `Self` for
+    /// `struct`s and `Self::Variant` for `enum`s.
+    fn build_for_struct(
         self,
         debug_name: &Ident,
         pattern: &TokenStream,
@@ -371,8 +373,9 @@ impl Traits {
         }
     }
 
-    /// Build method body if type is a tuple.
-    fn generate_tuple(
+    /// Build method body if type is a tuple. See description for `pattern` in
+    /// [`Self::build_for_struct`].
+    fn build_for_tuple(
         self,
         debug_name: &Ident,
         pattern: &TokenStream,
@@ -447,8 +450,9 @@ impl Traits {
         }
     }
 
-    /// Build method body if type is a unit.
-    fn generate_unit(
+    /// Build method body if type is a unit. See description for `pattern` in
+    /// [`Self::build_for_struct`].
+    fn build_for_unit(
         self,
         debug_name: &Ident,
         pattern: &TokenStream,
