@@ -1,0 +1,5 @@
+error: Unions aren't supported.
+ --> tests/ui/union.rs:2:1
+  |
+2 | union Test<T> {}
+  | ^^^^^
