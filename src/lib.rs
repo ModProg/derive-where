@@ -343,14 +343,24 @@ impl Trait {
                 }
             },
             PartialEq => {
-                let body = if let Data::Enum(..) = data {
+                let body = if let Data::Enum(data) = data {
+                    // If there are no unit variants, all comparisons have to
+                    // be made. This follows the standard implementation.
+                    let rest = if data
+                        .variants
+                        .iter()
+                        .any(|variant| matches!(variant.fields, Fields::Unit))
+                    {
+                        quote! { true }
+                    } else {
+                        quote! { unsafe { ::core::hint::unreachable_unchecked() } }
+                    };
+
                     quote! {
                         if ::core::mem::discriminant(self) == ::core::mem::discriminant(__other) {
                             match (self, __other) {
                                 #body
-                                // This should be `unreachable!`, but we are
-                                // following the standard implementation here.
-                                _ => true,
+                                _ => #rest,
                             }
                         } else {
                             false
@@ -620,7 +630,7 @@ impl Trait {
                     }
                 }
             }
-            PartialEq => quote! { (#pattern, #pattern) => true, },
+            PartialEq => quote! {},
             PartialOrd => {
                 let (body, other) = self.prepare_ord(item_ident, &[], &[], variants);
 
@@ -1056,7 +1066,6 @@ mod test {
                                     __cmp &= ::core::cmp::PartialEq::eq(__0, __other_0);
                                     __cmp
                                 }
-                                (Test::C, Test::C) => true,
                                 _ => true,
                             }
                         } else {
