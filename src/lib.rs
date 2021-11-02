@@ -7,44 +7,99 @@
 // To support a lower MSRV.
 extern crate proc_macro;
 
-use core::cmp::Ordering;
+use core::{cmp::Ordering, iter};
 
 use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote, ToTokens};
-use syn::parse::{Parse, ParseStream};
-use syn::punctuated::Punctuated;
-use syn::spanned::Spanned;
 use syn::{
-    Data, DeriveInput, Error, Fields, FieldsNamed, FieldsUnnamed, Result, Token, TraitBound, Type,
+    parse::{discouraged::Speculative, Parse, ParseStream},
+    punctuated::Punctuated,
+    spanned::Spanned,
+    token::{Colon, Where},
+    Data, DeriveInput, Error, Fields, FieldsNamed, FieldsUnnamed, Path, PredicateType, Result,
+    Token, TraitBound, Type, TypeParamBound, WhereClause, WherePredicate,
 };
 
-/// Holds parsed [bounds](TraitBound) and [traits](Traits).
+/// Holds a single generic [type](Type) or [type with bound](PredicateType)
+enum Generic {
+    /// Generic type with custom [specified bounds](PredicateType)
+    CoustomBound(PredicateType),
+    /// Generic [type](Type) which will be bound by the implemented trait
+    NoBound(Type),
+}
+
+impl Parse for Generic {
+    fn parse(input: ParseStream) -> Result<Self> {
+        let fork = input.fork();
+        // Try to parse input as a WherePredicate. The problem is, both expresions
+        // start with a Type, so this is the easiest way of differenciating them.
+        match WherePredicate::parse(&fork) {
+            Ok(where_predicate) => {
+                // Advance input as if `WherePredicate` was parsed on it.
+                input.advance_to(&fork);
+
+                match where_predicate {
+                    WherePredicate::Type(path) => Ok(Self::CoustomBound(path)),
+                    WherePredicate::Lifetime(_) => Err(Error::new(
+                        where_predicate.span(),
+                        "Bounds on lifetimes are not supported",
+                    )),
+                    WherePredicate::Eq(_) => Err(Error::new(
+                        where_predicate.span(),
+                        "Equality predicates are not supported",
+                    )),
+                }
+            }
+            Err(_) => Ok(Self::NoBound(input.parse()?)),
+        }
+    }
+}
+
+/// Holds parsed [generics](Generic) and [traits](Trait).
 struct DeriveWhere {
-    /// Parsed [bounds](TraitBound).
-    bounds: Vec<TraitBound>,
-    /// Parsed [traits](Traits).
-    traits: Vec<Traits>,
+    /// [generics](Generic) for where clause
+    generics: Option<Vec<Generic>>,
+    /// [traits](Trait) to implement
+    traits: Vec<Trait>,
 }
 
 impl Parse for DeriveWhere {
-    fn parse(input: ParseStream) -> Result<Self> {
-        let bounds = Punctuated::<TraitBound, Token![,]>::parse_separated_nonempty(input)?
-            .into_iter()
-            .collect();
+    /// Parse the macro input this should either be:
+    /// - Comma seperated traits
+    /// - Comma seperated generics `;` comma sperated traits
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let fork = input.fork();
+        // Try to parse input as only a trait list. This should fail fast due
+        // to trait names not commonly being used as generic parameters.
+        match Punctuated::<Trait, Token![,]>::parse_terminated(&fork) {
+            Ok(derive_where) => {
+                // Advance input as if `DeriveWhere` was parsed on it.
+                input.advance_to(&fork);
+                Ok(Self {
+                    generics: None,
+                    traits: derive_where.into_iter().collect(),
+                })
+            }
+            Err(_) => {
+                let generics = Some(
+                    Punctuated::<Generic, Token![,]>::parse_separated_nonempty(input)?
+                        .into_iter()
+                        .collect(),
+                );
+                <Token![;]>::parse(input)?;
+                let traits = Punctuated::<Trait, Token![,]>::parse_terminated(input)?
+                    .into_iter()
+                    .collect();
 
-        <Token![;]>::parse(input)?;
-
-        let traits = Punctuated::<Traits, Token![,]>::parse_terminated(input)?
-            .into_iter()
-            .collect();
-
-        Ok(Self { bounds, traits })
+                Ok(Self { generics, traits })
+            }
+        }
     }
 }
 
 /// Trait to implement.
 #[derive(Copy, Clone, Debug)]
-enum Traits {
+enum Trait {
     /// [`Clone`].
     Clone,
     /// [`Copy`].
@@ -63,9 +118,9 @@ enum Traits {
     PartialOrd,
 }
 
-impl Parse for Traits {
+impl Parse for Trait {
     fn parse(input: ParseStream) -> Result<Self> {
-        use Traits::*;
+        use Trait::*;
 
         let ident = Ident::parse(input)?;
 
@@ -88,10 +143,10 @@ impl Parse for Traits {
     }
 }
 
-impl Traits {
+impl Trait {
     /// Returns corresponding fully qualified path to the trait.
-    fn type_(self) -> Type {
-        use Traits::*;
+    fn path(self) -> Path {
+        use Trait::*;
 
         syn::parse_str(match self {
             Clone => "::core::clone::Clone",
@@ -176,9 +231,9 @@ impl Traits {
         variants: Option<(usize, &[&Ident])>,
         skip: &TokenStream,
     ) -> (TokenStream, TokenStream) {
-        use Traits::*;
+        use Trait::*;
 
-        let type_ = self.type_();
+        let path = self.path();
 
         let mut less = quote! { ::core::cmp::Ordering::Less };
         let mut equal = quote! { ::core::cmp::Ordering::Equal };
@@ -202,7 +257,7 @@ impl Traits {
         // Builds `match` arms backwards, using the `match` arm of the field coming afterwards.
         for (field_temp, field_other) in fields_temp.iter().zip(fields_other).rev() {
             body = quote! {
-                match #type_::partial_cmp(#field_temp, #field_other) {
+                match #path::partial_cmp(#field_temp, #field_other) {
                     #equal => #body,
                     __cmp => __cmp,
                 }
@@ -236,9 +291,9 @@ impl Traits {
 
     /// Build method signature of the corresponding trait.
     fn build_signature(self, body: TokenStream) -> TokenStream {
-        use Traits::*;
+        use Trait::*;
 
-        let type_ = self.type_();
+        let path = self.path();
 
         match self {
             Clone => quote! {
@@ -259,7 +314,7 @@ impl Traits {
             Eq => quote! {},
             Hash => quote! {
                 fn hash<__H: ::core::hash::Hasher>(&self, __state: &mut __H) {
-                    #type_::hash(&::core::mem::discriminant(self), __state);
+                    #path::hash(&::core::mem::discriminant(self), __state);
 
                     match self {
                         #body
@@ -308,9 +363,9 @@ impl Traits {
         variants: Option<(usize, &[&Ident])>,
         fields: &FieldsNamed,
     ) -> TokenStream {
-        use Traits::*;
+        use Trait::*;
 
-        let type_ = self.type_();
+        let path = self.path();
         let debug_name = debug_name.to_string();
 
         // Extract `Ident`s from fields.
@@ -335,7 +390,7 @@ impl Traits {
 
         match self {
             Clone => quote! {
-                #pattern { #(#fields: ref #fields_temp),* } => #pattern { #(#fields: #type_::clone(#fields_temp)),* },
+                #pattern { #(#fields: ref #fields_temp),* } => #pattern { #(#fields: #path::clone(#fields_temp)),* },
             },
             Copy => quote! {},
             Debug => quote! {
@@ -347,7 +402,7 @@ impl Traits {
             },
             Eq => quote! {},
             Hash => quote! {
-                #pattern { #(#fields: ref #fields_temp),* } => { #(#type_::hash(#fields_temp, __state);)* }
+                #pattern { #(#fields: ref #fields_temp),* } => { #(#path::hash(#fields_temp, __state);)* }
             },
             Ord => {
                 let (body, other) = self.prepare_ord(
@@ -369,7 +424,7 @@ impl Traits {
             }
             PartialEq => quote! {
                 (#pattern { #(#fields: ref #fields_temp),* }, #pattern { #(#fields: ref #fields_other),* }) => {
-                    #(__cmp &= #type_::eq(#fields_temp, #fields_other);)*
+                    #(__cmp &= #path::eq(#fields_temp, #fields_other);)*
                 }
             },
             PartialOrd => {
@@ -403,9 +458,9 @@ impl Traits {
         variants: Option<(usize, &[&Ident])>,
         fields: &FieldsUnnamed,
     ) -> TokenStream {
-        use Traits::*;
+        use Trait::*;
 
-        let type_ = self.type_();
+        let path = self.path();
         let debug_name = debug_name.to_string();
 
         // Build temporary de-structuring variable names from field indexes.
@@ -423,7 +478,7 @@ impl Traits {
 
         match self {
             Clone => quote! {
-                #pattern(#(ref #fields_temp),*) => #pattern (#(#type_::clone(#fields_temp)),*),
+                #pattern(#(ref #fields_temp),*) => #pattern (#(#path::clone(#fields_temp)),*),
             },
             Copy => quote! {},
             Debug => quote! {
@@ -435,7 +490,7 @@ impl Traits {
             },
             Eq => quote! {},
             Hash => quote! {
-                #pattern(#(ref #fields_temp),*) => { #(#type_::hash(#fields_temp, __state);)* }
+                #pattern(#(ref #fields_temp),*) => { #(#path::hash(#fields_temp, __state);)* }
             },
             Ord => {
                 let (body, other) = self.prepare_ord(
@@ -457,7 +512,7 @@ impl Traits {
             }
             PartialEq => quote! {
                 (#pattern(#(ref #fields_temp),*), #pattern(#(ref #fields_other),*)) => {
-                    #(__cmp &= #type_::eq(#fields_temp, #fields_other);)*
+                    #(__cmp &= #path::eq(#fields_temp, #fields_other);)*
                 }
             },
             PartialOrd => {
@@ -490,7 +545,7 @@ impl Traits {
         pattern: &TokenStream,
         variants: Option<(usize, &[&Ident])>,
     ) -> TokenStream {
-        use Traits::*;
+        use Trait::*;
 
         let debug_name = debug_name.to_string();
 
@@ -544,25 +599,44 @@ fn derive_where_internal(attr: TokenStream, item: TokenStream) -> Result<TokenSt
         ..
     } = syn::parse2(item)?;
 
+    // Build necessary generics to construct the implementation item.
+    let (impl_generics, type_generics, where_clause) = generics.split_for_impl();
+
     // Every trait needs a separate implementation.
-    for trait_ in &derive_where.traits {
+    for trait_ in derive_where.traits {
         let body = trait_.generate_body(&ident, &data)?;
-        let trait_ = trait_.type_();
+        let trait_ = trait_.path();
 
-        // Build necessary generics to construct the implementation item.
-        let (impl_generics, type_generics, where_clause) = generics.split_for_impl();
-        // TODO: don't convert to `TokenStream`, but actually properly insert bounds.
-        let mut where_clause = where_clause.map(|where_clause| where_clause.into_token_stream());
+        // Where clauses on struct definitions are supported.
+        let mut where_clause = where_clause.cloned();
 
-        // If there are any bounds, insert them into the `where` clause.
-        if !derive_where.bounds.is_empty() {
-            // If there is no `where` clause, make one.
-            let where_clause = where_clause.get_or_insert(quote! { where });
+        // Only create a where clause if required
+        if let Some(generics) = &derive_where.generics {
+            // We use the existing where clause or create a new one if required.
+            let where_clause = where_clause.get_or_insert(WhereClause {
+                where_token: Where::default(),
+                predicates: Punctuated::default(),
+            });
 
-            for bound in &derive_where.bounds {
-                where_clause.extend(quote! {
-                    #bound: #trait_,
-                })
+            // Insert bounds into the `where` clause.
+            for generic in generics {
+                where_clause
+                    .predicates
+                    .push(WherePredicate::Type(match generic {
+                        Generic::CoustomBound(type_bound) => type_bound.clone(),
+                        Generic::NoBound(path) => PredicateType {
+                            lifetimes: None,
+                            bounded_ty: path.clone(),
+                            colon_token: Colon::default(),
+                            bounds: iter::once(TypeParamBound::Trait(TraitBound {
+                                paren_token: None,
+                                modifier: syn::TraitBoundModifier::None,
+                                lifetimes: None,
+                                path: trait_.clone(),
+                            }))
+                            .collect(),
+                        },
+                    }));
             }
         }
 
