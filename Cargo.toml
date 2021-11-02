@@ -2,7 +2,7 @@
 name = "derive-where"
 version = "0.1.0"
 edition = "2018"
-rust-version = "1.43.1"
+rust-version = "1.33.0"
 description = "Deriving with custom trait bounds"
 documentation = "https://docs.rs/derive-where"
 readme = "README.md"

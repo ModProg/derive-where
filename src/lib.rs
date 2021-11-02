@@ -4,6 +4,9 @@
 
 //! TODO
 
+// To support a lower MSRV.
+extern crate proc_macro;
+
 use core::cmp::Ordering;
 
 use proc_macro2::{Ident, TokenStream};
@@ -104,14 +107,14 @@ impl Traits {
     }
 
     /// Generate `impl` item body.
-    fn generate_body(self, debug_name: &Ident, data: &Data) -> Result<TokenStream> {
+    fn generate_body(self, name: &Ident, data: &Data) -> Result<TokenStream> {
         let body = match &data {
             Data::Struct(data) => {
-                let pattern = quote! { Self };
+                let pattern = name.into_token_stream();
 
                 match &data.fields {
-                    Fields::Named(fields) => self.build_for_struct(debug_name, &pattern, None, fields),
-                    Fields::Unnamed(fields) => self.build_for_tuple(debug_name, &pattern, None, fields),
+                    Fields::Named(fields) => self.build_for_struct(name, name, &pattern, None, fields),
+                    Fields::Unnamed(fields) => self.build_for_tuple(name, name, &pattern, None, fields),
                     fields @ Fields::Unit => return Err(Error::new(
                         fields.span(),
                         "Using `derive_where` on unit struct is not supported as unit structs don't support generics.")),
@@ -126,24 +129,29 @@ impl Traits {
                     .enumerate()
                     .map(|(index, variant)| {
                         let debug_name = &variant.ident;
-                        let pattern = quote! { Self::#debug_name };
+                        let pattern = quote! { #name::#debug_name };
 
                         match &variant.fields {
                             Fields::Named(fields) => self.build_for_struct(
                                 debug_name,
+                                name,
                                 &pattern,
                                 Some((index, &variants)),
                                 fields,
                             ),
                             Fields::Unnamed(fields) => self.build_for_tuple(
                                 debug_name,
+                                name,
                                 &pattern,
                                 Some((index, &variants)),
                                 fields,
                             ),
-                            Fields::Unit => {
-                                self.build_for_unit(debug_name, &pattern, Some((index, &variants)))
-                            }
+                            Fields::Unit => self.build_for_unit(
+                                debug_name,
+                                name,
+                                &pattern,
+                                Some((index, &variants)),
+                            ),
                         }
                     })
                     .collect()
@@ -162,6 +170,7 @@ impl Traits {
     /// `(..)` for tuples and `` for units.
     fn prepare_ord(
         self,
+        item_ident: &Ident,
         fields_temp: &[Ident],
         fields_other: &[Ident],
         variants: Option<(usize, &[&Ident])>,
@@ -216,7 +225,7 @@ impl Traits {
                     };
 
                     other.extend(quote! {
-                        Self::#variants #skip => #ordering,
+                        #item_ident::#variants #skip => #ordering,
                     })
                 }
             }
@@ -294,6 +303,7 @@ impl Traits {
     fn build_for_struct(
         self,
         debug_name: &Ident,
+        item_ident: &Ident,
         pattern: &TokenStream,
         variants: Option<(usize, &[&Ident])>,
         fields: &FieldsNamed,
@@ -340,8 +350,13 @@ impl Traits {
                 #pattern { #(#fields: ref #fields_temp),* } => { #(#type_::hash(#fields_temp, __state);)* }
             },
             Ord => {
-                let (body, other) =
-                    self.prepare_ord(&fields_temp, &fields_other, variants, &quote! { { .. } });
+                let (body, other) = self.prepare_ord(
+                    item_ident,
+                    &fields_temp,
+                    &fields_other,
+                    variants,
+                    &quote! { { .. } },
+                );
 
                 quote! {
                     #pattern { #(#fields: ref #fields_temp),* } => {
@@ -358,8 +373,13 @@ impl Traits {
                 }
             },
             PartialOrd => {
-                let (body, other) =
-                    self.prepare_ord(&fields_temp, &fields_other, variants, &quote! { { .. } });
+                let (body, other) = self.prepare_ord(
+                    item_ident,
+                    &fields_temp,
+                    &fields_other,
+                    variants,
+                    &quote! { { .. } },
+                );
 
                 quote! {
                     #pattern { #(#fields: ref #fields_temp),* } => {
@@ -378,6 +398,7 @@ impl Traits {
     fn build_for_tuple(
         self,
         debug_name: &Ident,
+        item_ident: &Ident,
         pattern: &TokenStream,
         variants: Option<(usize, &[&Ident])>,
         fields: &FieldsUnnamed,
@@ -417,8 +438,13 @@ impl Traits {
                 #pattern(#(ref #fields_temp),*) => { #(#type_::hash(#fields_temp, __state);)* }
             },
             Ord => {
-                let (body, other) =
-                    self.prepare_ord(&fields_temp, &fields_other, variants, &quote! { (..) });
+                let (body, other) = self.prepare_ord(
+                    item_ident,
+                    &fields_temp,
+                    &fields_other,
+                    variants,
+                    &quote! { (..) },
+                );
 
                 quote! {
                     #pattern (#(ref #fields_temp),*) => {
@@ -435,8 +461,13 @@ impl Traits {
                 }
             },
             PartialOrd => {
-                let (body, other) =
-                    self.prepare_ord(&fields_temp, &fields_other, variants, &quote! { (..) });
+                let (body, other) = self.prepare_ord(
+                    item_ident,
+                    &fields_temp,
+                    &fields_other,
+                    variants,
+                    &quote! { (..) },
+                );
 
                 quote! {
                     #pattern (#(ref #fields_temp),*) => {
@@ -455,6 +486,7 @@ impl Traits {
     fn build_for_unit(
         self,
         debug_name: &Ident,
+        item_ident: &Ident,
         pattern: &TokenStream,
         variants: Option<(usize, &[&Ident])>,
     ) -> TokenStream {
@@ -469,7 +501,7 @@ impl Traits {
             Eq => quote! {},
             Hash => quote! { #pattern => (), },
             Ord => {
-                let (body, other) = self.prepare_ord(&[], &[], variants, &quote! {});
+                let (body, other) = self.prepare_ord(item_ident, &[], &[], variants, &quote! {});
 
                 quote! {
                     #pattern => {
@@ -482,7 +514,7 @@ impl Traits {
             }
             PartialEq => quote! { (#pattern, #pattern) => true, },
             PartialOrd => {
-                let (body, other) = self.prepare_ord(&[], &[], variants, &quote! {});
+                let (body, other) = self.prepare_ord(item_ident, &[], &[], variants, &quote! {});
 
                 quote! {
                     #pattern => {
