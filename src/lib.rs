@@ -591,8 +591,10 @@ fn derive_where_internal(attr: TokenStream, item: TokenStream) -> Result<TokenSt
     let derive_where: DeriveWhere = syn::parse2(attr)?;
 
     // The item needs to be added, as it is consumed by the derive. Parsing
-    // consumes `item` so we do it beforehand to avoid cloning.
+    // consumes `item` so we save any data we can't get afterwards beforehand
+    // to avoid cloning.
     let mut output = quote! { #item };
+    let item_span = item.span();
 
     let DeriveInput {
         ident,
@@ -603,6 +605,10 @@ fn derive_where_internal(attr: TokenStream, item: TokenStream) -> Result<TokenSt
 
     // Build necessary generics to construct the implementation item.
     let (impl_generics, type_generics, where_clause) = generics.split_for_impl();
+
+    if generics.params.is_empty() {
+        return Err(Error::new(item_span, "derive-where doesn't support items without generics, as this can already be handled by standard `#[derive()]`."));
+    }
 
     // Every trait needs a separate implementation.
     for trait_ in derive_where.traits {
