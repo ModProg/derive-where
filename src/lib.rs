@@ -15,13 +15,49 @@ use syn::{
     parse::{discouraged::Speculative, Parse, ParseStream},
     punctuated::Punctuated,
     spanned::Spanned,
-    Data, DeriveInput, Error, Fields, FieldsNamed, FieldsUnnamed, Result, Token, Type,
+    Data, DeriveInput, Error, Fields, FieldsNamed, FieldsUnnamed, PredicateType, Result, Token,
+    Type, WherePredicate,
 };
 
-/// Holds parsed [bounds](TraitBound) and [traits](Traits).
+/// Holds a single generic [type](Type) or [type with bound](PredicateType)
+enum Generic {
+    /// Generic type with custom [specified bounds](PredicateType)
+    CoustomBound(PredicateType),
+    /// Generic [type](Type) which will be bound by the implemented trait
+    NoBound(Type),
+}
+
+impl Parse for Generic {
+    fn parse(input: ParseStream) -> Result<Self> {
+        let fork = input.fork();
+        // Try to parse input as a WherePredicate. The problem is, both expresions
+        // start with a Type, so this is the easiest way of differenciating them.
+        match WherePredicate::parse(&fork) {
+            Ok(where_predicate) => {
+                // Advance input as if `WherePredicate` was parsed on it.
+                input.advance_to(&fork);
+
+                match where_predicate {
+                    WherePredicate::Type(type_) => Ok(Self::CoustomBound(type_)),
+                    WherePredicate::Lifetime(_) => Err(Error::new(
+                        where_predicate.span(),
+                        "Bounds on lifetimes are not supported",
+                    )),
+                    WherePredicate::Eq(_) => Err(Error::new(
+                        where_predicate.span(),
+                        "Equality predicates are not supported",
+                    )),
+                }
+            }
+            Err(_) => Ok(Self::NoBound(input.parse()?)),
+        }
+    }
+}
+
+/// Holds parsed [generics](Generic) and [traits](Traits).
 enum DeriveWhere {
     /// Generic type parameters were defined.
-    WithBounds(Vec<Type>, Vec<Traits>),
+    WithGenerics(Vec<Generic>, Vec<Traits>),
     /// Only traits were set.
     OnlyTraits(Vec<Traits>),
 }
@@ -30,7 +66,7 @@ impl DeriveWhere {
     /// Returns the list of requested [`Traits`] to be implemented.
     fn traits(&self) -> &[Traits] {
         match self {
-            Self::WithBounds(_, traits) => traits,
+            Self::WithGenerics(_, traits) => traits,
             Self::OnlyTraits(traits) => traits,
         }
     }
@@ -51,7 +87,7 @@ impl Parse for DeriveWhere {
                 Ok(Self::OnlyTraits(derive_where.into_iter().collect()))
             }
             Err(_) => {
-                let bounds = Punctuated::<Type, Token![,]>::parse_separated_nonempty(input)?
+                let generics = Punctuated::<Generic, Token![,]>::parse_separated_nonempty(input)?
                     .into_iter()
                     .collect();
                 <Token![;]>::parse(input)?;
@@ -59,7 +95,7 @@ impl Parse for DeriveWhere {
                     .into_iter()
                     .collect();
 
-                Ok(Self::WithBounds(bounds, traits))
+                Ok(Self::WithGenerics(generics, traits))
             }
         }
     }
@@ -578,10 +614,14 @@ fn derive_where_internal(attr: TokenStream, item: TokenStream) -> Result<TokenSt
         let mut where_clause = where_clause.map(|where_clause| where_clause.into_token_stream());
 
         // If there are any bounds, insert them into the `where` clause.
-        if let DeriveWhere::WithBounds(bounds, _) = &derive_where {
+        if let DeriveWhere::WithGenerics(generics, _) = &derive_where {
             // If there is no `where` clause, make one.
             let where_clause = where_clause.get_or_insert(quote! { where });
-            *where_clause = quote! { #where_clause #(#bounds: #trait_),* };
+            let bounds = generics.iter().map(|generic| match generic {
+                Generic::CoustomBound(type_bound) => quote! {#type_bound},
+                Generic::NoBound(type_) => quote! {#type_: #trait_},
+            });
+            *where_clause = quote! { #where_clause #(#bounds),* };
         }
 
         // Add implementation item to the output.

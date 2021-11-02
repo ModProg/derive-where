@@ -42,6 +42,25 @@ fn test_no_bound() {
 }
 
 #[test]
+fn test_custom_bound() {
+    trait Trait{}
+
+    #[derive_where(T: Trait; Clone, Debug)]
+    struct TestTuple<T>(PhantomData<T>);
+
+    struct NotCloneAble;
+    impl Trait for NotCloneAble {
+        
+    }
+
+    let test = TestTuple::<NotCloneAble>(PhantomData);
+    let cloned = test.clone();
+
+    dbg!(test);
+    dbg!(cloned);
+}
+
+#[test]
 fn test_tuple() {
     #[derive_where(T, S; Clone)]
     #[derive(Debug)]
