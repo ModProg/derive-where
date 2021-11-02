@@ -13,18 +13,21 @@ use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote, ToTokens};
 use syn::{
     parse::{discouraged::Speculative, Parse, ParseStream},
-    punctuated::{Punctuated},
+    punctuated::Punctuated,
     spanned::Spanned,
     Data, DeriveInput, Error, Fields, FieldsNamed, FieldsUnnamed, Result, Token, Type,
 };
 
 /// Holds parsed [bounds](TraitBound) and [traits](Traits).
 enum DeriveWhere {
+    /// Generic type parameters were defined.
     WithBounds(Vec<Type>, Vec<Traits>),
+    /// Only traits were set.
     OnlyTraits(Vec<Traits>),
 }
 
 impl DeriveWhere {
+    /// Returns the list of requested [`Traits`] to be implemented.
     fn traits(&self) -> &[Traits] {
         match self {
             Self::WithBounds(_, traits) => traits,
@@ -39,11 +42,11 @@ impl Parse for DeriveWhere {
     /// - Comma seperated generics `;` comma sperated traits
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let fork = input.fork();
-        // Try to parse input as only a trait list
-        // This should fail fast due to trait names being uncommon as a generic's name
+        // Try to parse input as only a trait list. This should fail fast due
+        // to trait names not commonly being used as generic parameters.
         match Punctuated::<Traits, Token![,]>::parse_terminated(&fork) {
             Ok(derive_where) => {
-                // Advance input as if DeriveWhere was parsed on it
+                // Advance input as if `DeriveWhere` was parsed on it.
                 input.advance_to(&fork);
                 Ok(Self::OnlyTraits(derive_where.into_iter().collect()))
             }
@@ -55,6 +58,7 @@ impl Parse for DeriveWhere {
                 let traits = Punctuated::<Traits, Token![,]>::parse_terminated(input)?
                     .into_iter()
                     .collect();
+
                 Ok(Self::WithBounds(bounds, traits))
             }
         }
