@@ -599,13 +599,13 @@ fn derive_where_internal(attr: TokenStream, item: TokenStream) -> Result<TokenSt
         ..
     } = syn::parse2(item)?;
 
+    // Build necessary generics to construct the implementation item.
+    let (impl_generics, type_generics, where_clause) = generics.split_for_impl();
+
     // Every trait needs a separate implementation.
     for trait_ in derive_where.traits {
         let body = trait_.generate_body(&ident, &data)?;
         let trait_ = trait_.path();
-
-        // Build necessary generics to construct the implementation item.
-        let (impl_generics, type_generics, where_clause) = generics.split_for_impl();
 
         // Where clauses on struct definitions are supported.
         let mut where_clause = where_clause.cloned();
