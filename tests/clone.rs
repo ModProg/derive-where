@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use derive_restricted::derive_where;
+use derive_where::derive_where;
 
 // test macro hygiene
 trait Clone {}

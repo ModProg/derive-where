@@ -1,7 +1,21 @@
 [package]
-name = "derive-restricted"
+name = "derive-where"
 version = "0.1.0"
-edition = "2021"
+edition = "2018"
+rust-version = "1.43.1"
+description = "Deriving with custom trait bounds"
+documentation = "https://docs.rs/derive-where"
+readme = "README.md"
+repository = "https://github.com/ModProg/derive-where"
+license = "MIT OR Apache-2.0"
+keywords = ["derive", "macro"]
+categories = ["rust-patterns", "no-std"]
+include = [
+	"src/**/*",
+	"Cargo.toml",
+	"LICENSE-*",
+	"README.md"
+]
 
 [lib]
 proc-macro = true
