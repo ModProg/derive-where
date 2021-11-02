@@ -86,7 +86,12 @@ impl Parse for DeriveWhere {
                         .into_iter()
                         .collect(),
                 );
-                <Token![;]>::parse(input)?;
+                <Token![;]>::parse(input).map_err(|_| {
+                    Error::new(
+                        input.span(),
+                        "No supported traits found. At least one trait is required.",
+                    )
+                })?;
                 let traits = Punctuated::<Trait, Token![,]>::parse_terminated(input)?
                     .into_iter()
                     .collect();
@@ -136,7 +141,7 @@ impl Parse for Trait {
             _ => {
                 return Err(Error::new(
                     ident.span(),
-                    format!("`{}` isn't a supported trait. If this is a generic type parameter, at least one trait is required.", ident),
+                    format!("`{}` isn't a supported trait.", ident),
                 ))
             }
         })
@@ -178,6 +183,11 @@ impl Trait {
             Data::Enum(data) => {
                 // Collect all variants to build `PartialOrd` and `Ord`.
                 let variants: Vec<_> = data.variants.iter().map(|variant| &variant.ident).collect();
+                let variants_type: Vec<_> = data
+                    .variants
+                    .iter()
+                    .map(|variant| &variant.fields)
+                    .collect();
 
                 data.variants
                     .iter()
@@ -191,21 +201,21 @@ impl Trait {
                                 debug_name,
                                 name,
                                 &pattern,
-                                Some((index, &variants)),
+                                Some((index, &variants, &variants_type)),
                                 fields,
                             ),
                             Fields::Unnamed(fields) => self.build_for_tuple(
                                 debug_name,
                                 name,
                                 &pattern,
-                                Some((index, &variants)),
+                                Some((index, &variants, &variants_type)),
                                 fields,
                             ),
                             Fields::Unit => self.build_for_unit(
                                 debug_name,
                                 name,
                                 &pattern,
-                                Some((index, &variants)),
+                                Some((index, &variants, &variants_type)),
                             ),
                         }
                     })
@@ -219,7 +229,7 @@ impl Trait {
             }
         };
 
-        Ok(self.build_signature(body))
+        Ok(self.build_signature(data, body))
     }
 
     /// Build `match` arms for [`PartialOrd`] and [`Ord`]. `skip` is used to
@@ -230,8 +240,7 @@ impl Trait {
         item_ident: &Ident,
         fields_temp: &[Ident],
         fields_other: &[Ident],
-        variants: Option<(usize, &[&Ident])>,
-        skip: &TokenStream,
+        variants: Option<(usize, &[&Ident], &[&Fields])>,
     ) -> (TokenStream, TokenStream) {
         use Trait::*;
 
@@ -271,14 +280,21 @@ impl Trait {
         // Build separate `match` arms to compare different variants to each
         // other. The index for these variants is used to determine which
         // `Ordering` to return.
-        if let Some((variant, variants)) = variants {
-            for (index, variants) in variants.iter().enumerate() {
+        if let Some((variant, variants, variants_type)) = variants {
+            for (index, (variants, variants_type)) in variants.iter().zip(variants_type).enumerate()
+            {
                 // Make sure we aren't comparing the same variant with itself.
                 if variant != index {
                     let ordering = match variant.cmp(&index) {
                         Ordering::Less => &less,
                         Ordering::Equal => &equal,
                         Ordering::Greater => &greater,
+                    };
+
+                    let skip = match variants_type {
+                        Fields::Named(_) => quote! { { .. } },
+                        Fields::Unnamed(_) => quote! { (..) },
+                        Fields::Unit => quote! {},
                     };
 
                     other.extend(quote! {
@@ -292,10 +308,8 @@ impl Trait {
     }
 
     /// Build method signature of the corresponding trait.
-    fn build_signature(self, body: TokenStream) -> TokenStream {
+    fn build_signature(self, data: &Data, body: TokenStream) -> TokenStream {
         use Trait::*;
-
-        let path = self.path();
 
         match self {
             Clone => quote! {
@@ -316,8 +330,6 @@ impl Trait {
             Eq => quote! {},
             Hash => quote! {
                 fn hash<__H: ::core::hash::Hasher>(&self, __state: &mut __H) {
-                    #path::hash(&::core::mem::discriminant(self), __state);
-
                     match self {
                         #body
                     }
@@ -325,25 +337,39 @@ impl Trait {
             },
             Ord => quote! {
                 fn cmp(&self, __other: &Self) -> ::core::cmp::Ordering {
-                    match (self, __other) {
+                    match self {
                         #body
                     }
                 }
             },
-            PartialEq => quote! {
-                fn eq(&self, __other: &Self) -> bool {
-                    if ::core::mem::discriminant(self) == ::core::mem::discriminant(__other) {
-                        let mut __cmp = true;
-
+            PartialEq => {
+                let body = if let Data::Enum(..) = data {
+                    quote! {
+                        if ::core::mem::discriminant(self) == ::core::mem::discriminant(__other) {
+                            match (self, __other) {
+                                #body
+                                // This should be `unreachable!`, but we are
+                                // following the standard implementation here.
+                                _ => true,
+                            }
+                        } else {
+                            false
+                        }
+                    }
+                } else {
+                    quote! {
                         match (self, __other) {
                             #body
-                            _ => ::core::unreachable("Comparing discriminants failed")
                         }
-                    } else {
-                        false
+                    }
+                };
+
+                quote! {
+                    fn eq(&self, __other: &Self) -> bool {
+                        #body
                     }
                 }
-            },
+            }
             PartialOrd => quote! {
                 fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
                     match self {
@@ -362,13 +388,12 @@ impl Trait {
         debug_name: &Ident,
         item_ident: &Ident,
         pattern: &TokenStream,
-        variants: Option<(usize, &[&Ident])>,
+        variants: Option<(usize, &[&Ident], &[&Fields])>,
         fields: &FieldsNamed,
     ) -> TokenStream {
         use Trait::*;
 
         let path = self.path();
-        let debug_name = debug_name.to_string();
 
         // Extract `Ident`s from fields.
         let fields: Vec<_> = fields
@@ -395,25 +420,37 @@ impl Trait {
                 #pattern { #(#fields: ref #fields_temp),* } => #pattern { #(#fields: #path::clone(#fields_temp)),* },
             },
             Copy => quote! {},
-            Debug => quote! {
-                #pattern { #(#fields: ref #fields_temp),* } => {
-                    let mut __builder = ::core::fmt::Formatter::debug_struct(__f, #debug_name);
-                    #(::core::fmt::DebugStruct::field(&mut __builder, #fields, #fields_temp);)*
-                    ::core::fmt::DebugStruct::finish(&mut __builder)
+            Debug => {
+                let debug_name = debug_name.to_string();
+                let debug_fields = fields.iter().map(|field| field.to_string());
+
+                quote! {
+                    #pattern { #(#fields: ref #fields_temp),* } => {
+                        let mut __builder = ::core::fmt::Formatter::debug_struct(__f, #debug_name);
+                        #(::core::fmt::DebugStruct::field(&mut __builder, #debug_fields, #fields_temp);)*
+                        ::core::fmt::DebugStruct::finish(&mut __builder)
+                    }
                 }
-            },
+            }
             Eq => quote! {},
-            Hash => quote! {
-                #pattern { #(#fields: ref #fields_temp),* } => { #(#path::hash(#fields_temp, __state);)* }
-            },
+            Hash => {
+                // Add hashing the variant if this is an `enum`.
+                let discriminant = if variants.is_some() {
+                    Some(quote! { #path::hash(&::core::mem::discriminant(self), __state); })
+                } else {
+                    None
+                };
+
+                quote! {
+                    #pattern { #(#fields: ref #fields_temp),* } => {
+                        #discriminant
+                        #(#path::hash(#fields_temp, __state);)*
+                    }
+                }
+            }
             Ord => {
-                let (body, other) = self.prepare_ord(
-                    item_ident,
-                    &fields_temp,
-                    &fields_other,
-                    variants,
-                    &quote! { { .. } },
-                );
+                let (body, other) =
+                    self.prepare_ord(item_ident, &fields_temp, &fields_other, variants);
 
                 quote! {
                     #pattern { #(#fields: ref #fields_temp),* } => {
@@ -426,17 +463,14 @@ impl Trait {
             }
             PartialEq => quote! {
                 (#pattern { #(#fields: ref #fields_temp),* }, #pattern { #(#fields: ref #fields_other),* }) => {
+                    let mut __cmp = true;
                     #(__cmp &= #path::eq(#fields_temp, #fields_other);)*
+                    __cmp
                 }
             },
             PartialOrd => {
-                let (body, other) = self.prepare_ord(
-                    item_ident,
-                    &fields_temp,
-                    &fields_other,
-                    variants,
-                    &quote! { { .. } },
-                );
+                let (body, other) =
+                    self.prepare_ord(item_ident, &fields_temp, &fields_other, variants);
 
                 quote! {
                     #pattern { #(#fields: ref #fields_temp),* } => {
@@ -457,7 +491,7 @@ impl Trait {
         debug_name: &Ident,
         item_ident: &Ident,
         pattern: &TokenStream,
-        variants: Option<(usize, &[&Ident])>,
+        variants: Option<(usize, &[&Ident], &[&Fields])>,
         fields: &FieldsUnnamed,
     ) -> TokenStream {
         use Trait::*;
@@ -491,17 +525,24 @@ impl Trait {
                 }
             },
             Eq => quote! {},
-            Hash => quote! {
-                #pattern(#(ref #fields_temp),*) => { #(#path::hash(#fields_temp, __state);)* }
-            },
+            Hash => {
+                // Add hashing the variant if this is an `enum`.
+                let discriminant = if variants.is_some() {
+                    Some(quote! { #path::hash(&::core::mem::discriminant(self), __state); })
+                } else {
+                    None
+                };
+
+                quote! {
+                    #pattern(#(ref #fields_temp),*) => {
+                        #discriminant
+                        #(#path::hash(#fields_temp, __state);)*
+                    }
+                }
+            }
             Ord => {
-                let (body, other) = self.prepare_ord(
-                    item_ident,
-                    &fields_temp,
-                    &fields_other,
-                    variants,
-                    &quote! { (..) },
-                );
+                let (body, other) =
+                    self.prepare_ord(item_ident, &fields_temp, &fields_other, variants);
 
                 quote! {
                     #pattern (#(ref #fields_temp),*) => {
@@ -514,17 +555,14 @@ impl Trait {
             }
             PartialEq => quote! {
                 (#pattern(#(ref #fields_temp),*), #pattern(#(ref #fields_other),*)) => {
+                    let mut __cmp = true;
                     #(__cmp &= #path::eq(#fields_temp, #fields_other);)*
+                    __cmp
                 }
             },
             PartialOrd => {
-                let (body, other) = self.prepare_ord(
-                    item_ident,
-                    &fields_temp,
-                    &fields_other,
-                    variants,
-                    &quote! { (..) },
-                );
+                let (body, other) =
+                    self.prepare_ord(item_ident, &fields_temp, &fields_other, variants);
 
                 quote! {
                     #pattern (#(ref #fields_temp),*) => {
@@ -545,7 +583,7 @@ impl Trait {
         debug_name: &Ident,
         item_ident: &Ident,
         pattern: &TokenStream,
-        variants: Option<(usize, &[&Ident])>,
+        variants: Option<(usize, &[&Ident], &[&Fields])>,
     ) -> TokenStream {
         use Trait::*;
 
@@ -556,9 +594,22 @@ impl Trait {
             Copy => quote! {},
             Debug => quote! { #pattern => ::core::fmt::Formatter::write_str(__f, #debug_name), },
             Eq => quote! {},
-            Hash => quote! { #pattern => (), },
+            Hash => {
+                // Add hashing the variant if this is an `enum`.
+                let discriminant = if variants.is_some() {
+                    let type_ = self.path();
+                    Some(quote! { #type_::hash(&::core::mem::discriminant(self), __state); })
+                } else {
+                    None
+                };
+
+                quote! { #pattern => {
+                    #discriminant
+                    ()
+                } }
+            }
             Ord => {
-                let (body, other) = self.prepare_ord(item_ident, &[], &[], variants, &quote! {});
+                let (body, other) = self.prepare_ord(item_ident, &[], &[], variants);
 
                 quote! {
                     #pattern => {
@@ -571,7 +622,7 @@ impl Trait {
             }
             PartialEq => quote! { (#pattern, #pattern) => true, },
             PartialOrd => {
-                let (body, other) = self.prepare_ord(item_ident, &[], &[], variants, &quote! {});
+                let (body, other) = self.prepare_ord(item_ident, &[], &[], variants);
 
                 quote! {
                     #pattern => {
@@ -685,17 +736,367 @@ mod test {
     }
 
     #[test]
-    fn clone() -> Result<()> {
+    fn struct_() -> Result<()> {
         test_derive(
-            quote! { T; Clone },
-            quote! { struct Test<T>(T); },
+            quote! { T; Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd },
+            quote! { struct Test<T> { field: T } },
             quote! {
                 impl<T> ::core::clone::Clone for Test<T>
-                where T: ::core::clone::Clone,
+                where T: ::core::clone::Clone
                 {
                     fn clone(&self) -> Self {
                         match self {
-                            Self(__0) => Self(::core::clone::Clone::clone(&__0)),
+                            Test { field: ref __field } => Test { field: ::core::clone::Clone::clone(__field) },
+                        }
+                    }
+                }
+
+                impl<T> ::core::copy::Copy for Test<T>
+                where T: ::core::copy::Copy
+                { }
+
+                impl<T> ::core::fmt::Debug for Test<T>
+                where T: ::core::fmt::Debug
+                {
+                    fn fmt(&self, __f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+                        match self {
+                            Test { field: ref __field } => {
+                                let mut __builder = ::core::fmt::Formatter::debug_struct(__f, "Test");
+                                ::core::fmt::DebugStruct::field(&mut __builder, "field", __field);
+                                ::core::fmt::DebugStruct::finish(&mut __builder)
+                            }
+                        }
+                    }
+                }
+
+                impl<T> ::core::cmp::Eq for Test<T>
+                where T: ::core::cmp::Eq
+                { }
+
+                impl<T> ::core::hash::Hash for Test<T>
+                where T: ::core::hash::Hash
+                {
+                    fn hash<__H: ::core::hash::Hasher>(&self, __state: &mut __H) {
+                        match self {
+                            Test { field: ref __field } => { ::core::hash::Hash::hash(__field, __state); }
+                        }
+                    }
+                }
+
+                impl<T> ::core::cmp::Ord for Test<T>
+                where T: ::core::cmp::Ord
+                {
+                    fn cmp(&self, __other: &Self) -> ::core::cmp::Ordering {
+                        match self {
+                            Test { field: ref __field } => {
+                                match __other {
+                                    Test { field: ref __other_field } => match ::core::cmp::Ord::partial_cmp(__field, __other_field) {
+                                        ::core::cmp::Ordering::Equal => ::core::cmp::Ordering::Equal,
+                                        __cmp => __cmp,
+                                    },
+                                }
+                            }
+                        }
+                    }
+                }
+
+                impl<T> ::core::cmp::PartialEq for Test<T>
+                where T: ::core::cmp::PartialEq
+                {
+                    fn eq(&self, __other: &Self) -> bool {
+                        match (self, __other) {
+                            (Test { field: ref __field }, Test { field: ref __other_field }) => {
+                                let mut __cmp = true;
+                                __cmp &= ::core::cmp::PartialEq::eq(__field, __other_field);
+                                __cmp
+                            }
+                        }
+                    }
+                }
+
+                impl<T> ::core::cmp::PartialOrd for Test<T>
+                where T: ::core::cmp::PartialOrd
+                {
+                    fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
+                        match self {
+                            Test { field: ref __field } => {
+                                match __other {
+                                    Test { field: ref __other_field } => match ::core::cmp::PartialOrd::partial_cmp(__field, __other_field) {
+                                        ::core::option::Option::Some(::core::cmp::Ordering::Equal) => ::core::option::Option::Some(::core::cmp::Ordering::Equal),
+                                        __cmp => __cmp,
+                                    },
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+        )
+    }
+
+    #[test]
+    fn tuple() -> Result<()> {
+        test_derive(
+            quote! { T; Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd },
+            quote! { struct Test<T>(T); },
+            quote! {
+                impl<T> ::core::clone::Clone for Test<T>
+                where T: ::core::clone::Clone
+                {
+                    fn clone(&self) -> Self {
+                        match self {
+                            Test(ref __0) => Test(::core::clone::Clone::clone(__0)),
+                        }
+                    }
+                }
+
+                impl<T> ::core::copy::Copy for Test<T>
+                where T: ::core::copy::Copy
+                { }
+
+                impl<T> ::core::fmt::Debug for Test<T>
+                where T: ::core::fmt::Debug
+                {
+                    fn fmt(&self, __f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+                        match self {
+                            Test(ref __0) => {
+                                let mut __builder = ::core::fmt::Formatter::debug_tuple(__f, "Test");
+                                ::core::fmt::DebugTuple::field(&mut __builder, __0);
+                                ::core::fmt::DebugTuple::finish(&mut __builder)
+                            }
+                        }
+                    }
+                }
+
+                impl<T> ::core::cmp::Eq for Test<T>
+                where T: ::core::cmp::Eq
+                { }
+
+                impl<T> ::core::hash::Hash for Test<T>
+                where T: ::core::hash::Hash
+                {
+                    fn hash<__H: ::core::hash::Hasher>(&self, __state: &mut __H) {
+                        match self {
+                            Test(ref __0) => { ::core::hash::Hash::hash(__0, __state); }
+                        }
+                    }
+                }
+
+                impl<T> ::core::cmp::Ord for Test<T>
+                where T: ::core::cmp::Ord
+                {
+                    fn cmp(&self, __other: &Self) -> ::core::cmp::Ordering {
+                        match self {
+                            Test(ref __0) => {
+                                match __other {
+                                    Test(ref __other_0) => match ::core::cmp::Ord::partial_cmp(__0, __other_0) {
+                                        ::core::cmp::Ordering::Equal => ::core::cmp::Ordering::Equal,
+                                        __cmp => __cmp,
+                                    },
+                                }
+                            }
+                        }
+                    }
+                }
+
+                impl<T> ::core::cmp::PartialEq for Test<T>
+                where T: ::core::cmp::PartialEq
+                {
+                    fn eq(&self, __other: &Self) -> bool {
+                        match (self, __other) {
+                            (Test(ref __0), Test(ref __other_0)) => {
+                                let mut __cmp = true;
+                                __cmp &= ::core::cmp::PartialEq::eq(__0, __other_0);
+                                __cmp
+                            }
+                        }
+                    }
+                }
+
+                impl<T> ::core::cmp::PartialOrd for Test<T>
+                where T: ::core::cmp::PartialOrd
+                {
+                    fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
+                        match self {
+                            Test(ref __0) => {
+                                match __other {
+                                    Test(ref __other_0) => match ::core::cmp::PartialOrd::partial_cmp(__0, __other_0) {
+                                        ::core::option::Option::Some(::core::cmp::Ordering::Equal) => ::core::option::Option::Some(::core::cmp::Ordering::Equal),
+                                        __cmp => __cmp,
+                                    },
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+        )
+    }
+
+    #[test]
+    fn enum_() -> Result<()> {
+        test_derive(
+            quote! { T; Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd },
+            quote! { enum Test<T> {
+                A { field: T},
+                B(T),
+                C,
+            } },
+            quote! {
+                impl<T> ::core::clone::Clone for Test<T>
+                where T: ::core::clone::Clone
+                {
+                    fn clone(&self) -> Self {
+                        match self {
+                            Test::A { field: ref __field } => Test::A { field: ::core::clone::Clone::clone(__field) },
+                            Test::B(ref __0) => Test::B(::core::clone::Clone::clone(__0)),
+                            Test::C => Test::C,
+                        }
+                    }
+                }
+
+                impl<T> ::core::copy::Copy for Test<T>
+                where T: ::core::copy::Copy
+                { }
+
+                impl<T> ::core::fmt::Debug for Test<T>
+                where T: ::core::fmt::Debug
+                {
+                    fn fmt(&self, __f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+                        match self {
+                            Test::A { field: ref __field } => {
+                                let mut __builder = ::core::fmt::Formatter::debug_struct(__f, "A");
+                                ::core::fmt::DebugStruct::field(&mut __builder, "field", __field);
+                                ::core::fmt::DebugStruct::finish(&mut __builder)
+                            }
+                            Test::B(ref __0) => {
+                                let mut __builder = ::core::fmt::Formatter::debug_tuple(__f, "B");
+                                ::core::fmt::DebugTuple::field(&mut __builder, __0);
+                                ::core::fmt::DebugTuple::finish(&mut __builder)
+                            }
+                            Test::C => ::core::fmt::Formatter::write_str(__f, "C"),
+                        }
+                    }
+                }
+
+                impl<T> ::core::cmp::Eq for Test<T>
+                where T: ::core::cmp::Eq
+                { }
+
+                impl<T> ::core::hash::Hash for Test<T>
+                where T: ::core::hash::Hash
+                {
+                    fn hash<__H: ::core::hash::Hasher>(&self, __state: &mut __H) {
+                        match self {
+                            Test::A { field: ref __field } => {
+                                ::core::hash::Hash::hash(&::core::mem::discriminant(self), __state);
+                                ::core::hash::Hash::hash(__field, __state);
+                            }
+                            Test::B(ref __0) => {
+                                ::core::hash::Hash::hash(&::core::mem::discriminant(self), __state);
+                                ::core::hash::Hash::hash(__0, __state);
+                            }
+                            Test::C => {
+                                ::core::hash::Hash::hash(&::core::mem::discriminant(self), __state);
+                                ()
+                            }
+                        }
+                    }
+                }
+
+                impl<T> ::core::cmp::Ord for Test<T>
+                where T: ::core::cmp::Ord
+                {
+                    fn cmp(&self, __other: &Self) -> ::core::cmp::Ordering {
+                        match self {
+                            Test::A { field: ref __field } => {
+                                match __other {
+                                    Test::A { field: ref __other_field } => match ::core::cmp::Ord::partial_cmp(__field, __other_field) {
+                                        ::core::cmp::Ordering::Equal => ::core::cmp::Ordering::Equal,
+                                        __cmp => __cmp,
+                                    },
+                                    Test::B(..) => ::core::cmp::Ordering::Less,
+                                    Test::C => ::core::cmp::Ordering::Less,
+                                }
+                            }
+                            Test::B(ref __0) => {
+                                match __other {
+                                    Test::B(ref __other_0) => match ::core::cmp::Ord::partial_cmp(__0, __other_0) {
+                                        ::core::cmp::Ordering::Equal => ::core::cmp::Ordering::Equal,
+                                        __cmp => __cmp,
+                                    },
+                                    Test::A { .. } => ::core::cmp::Ordering::Greater,
+                                    Test::C => ::core::cmp::Ordering::Less,
+                                }
+                            }
+                            Test::C => {
+                                match __other {
+                                    Test::C => ::core::cmp::Ordering::Equal,
+                                    Test::A { .. } => ::core::cmp::Ordering::Greater,
+                                    Test::B(..) => ::core::cmp::Ordering::Greater,
+                                }
+                            }
+                        }
+                    }
+                }
+
+                impl<T> ::core::cmp::PartialEq for Test<T>
+                where T: ::core::cmp::PartialEq
+                {
+                    fn eq(&self, __other: &Self) -> bool {
+                        if ::core::mem::discriminant(self) == ::core::mem::discriminant(__other) {
+                            match (self, __other) {
+                                (Test::A { field: ref __field }, Test::A { field: ref __other_field }) => {
+                                    let mut __cmp = true;
+                                    __cmp &= ::core::cmp::PartialEq::eq(__field, __other_field);
+                                    __cmp
+                                }
+                                (Test::B(ref __0), Test::B(ref __other_0)) => {
+                                    let mut __cmp = true;
+                                    __cmp &= ::core::cmp::PartialEq::eq(__0, __other_0);
+                                    __cmp
+                                }
+                                (Test::C, Test::C) => true,
+                                _ => true,
+                            }
+                        } else {
+                            false
+                        }
+                    }
+                }
+
+                impl<T> ::core::cmp::PartialOrd for Test<T>
+                where T: ::core::cmp::PartialOrd
+                {
+                    fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
+                        match self {
+                            Test::A { field: ref __field } => {
+                                match __other {
+                                    Test::A { field: ref __other_field } => match ::core::cmp::PartialOrd::partial_cmp(__field, __other_field) {
+                                        ::core::option::Option::Some(::core::cmp::Ordering::Equal) => ::core::option::Option::Some(::core::cmp::Ordering::Equal),
+                                        __cmp => __cmp,
+                                    },
+                                    Test::B(..) => ::core::option::Option::Some(::core::cmp::Ordering::Less),
+                                    Test::C => ::core::option::Option::Some(::core::cmp::Ordering::Less),
+                                }
+                            }
+                            Test::B(ref __0) => {
+                                match __other {
+                                    Test::B(ref __other_0) => match ::core::cmp::PartialOrd::partial_cmp(__0, __other_0) {
+                                        ::core::option::Option::Some(::core::cmp::Ordering::Equal) => ::core::option::Option::Some(::core::cmp::Ordering::Equal),
+                                        __cmp => __cmp,
+                                    },
+                                    Test::A { .. } => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
+                                    Test::C => ::core::option::Option::Some(::core::cmp::Ordering::Less),
+                                }
+                            }
+                            Test::C => {
+                                match __other {
+                                    Test::C => ::core::option::Option::Some(::core::cmp::Ordering::Equal),
+                                    Test::A { .. } => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
+                                    Test::B(..) => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
+                                }
+                            }
                         }
                     }
                 }
