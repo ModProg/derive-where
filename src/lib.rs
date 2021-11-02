@@ -193,7 +193,7 @@ impl Traits {
         // Builds `match` arms backwards, using the `match` arm of the field coming afterwards.
         for (field_temp, field_other) in fields_temp.iter().zip(fields_other).rev() {
             body = quote! {
-                match #type_::partial_cmp(&#field_temp, &#field_other) {
+                match #type_::partial_cmp(#field_temp, #field_other) {
                     #equal => #body,
                     __cmp => __cmp,
                 }
@@ -325,36 +325,36 @@ impl Traits {
 
         match self {
             Clone => quote! {
-                #pattern { #(#fields: #fields_temp),* } => #pattern { #(#fields: #type_::clone(&#fields_temp)),* },
+                #pattern { #(#fields: ref #fields_temp),* } => #pattern { #(#fields: #type_::clone(#fields_temp)),* },
             },
             Copy => quote! {},
             Debug => quote! {
-                #pattern { #(#fields: #fields_temp),* } => {
+                #pattern { #(#fields: ref #fields_temp),* } => {
                     let mut __builder = ::core::fmt::Formatter::debug_struct(__f, #debug_name);
-                    #(::core::fmt::DebugStruct::field(&mut __builder, #fields, &#fields_temp);)*
+                    #(::core::fmt::DebugStruct::field(&mut __builder, #fields, #fields_temp);)*
                     ::core::fmt::DebugStruct::finish(&mut __builder)
                 }
             },
             Eq => quote! {},
             Hash => quote! {
-                #pattern { #(#fields: #fields_temp),* } => { #(#type_::hash(&#fields_temp, __state);)* }
+                #pattern { #(#fields: ref #fields_temp),* } => { #(#type_::hash(#fields_temp, __state);)* }
             },
             Ord => {
                 let (body, other) =
                     self.prepare_ord(&fields_temp, &fields_other, variants, &quote! { { .. } });
 
                 quote! {
-                    #pattern { #(#fields: #fields_temp),* } => {
+                    #pattern { #(#fields: ref #fields_temp),* } => {
                         match __other {
-                            #pattern { #(#fields: #fields_other),* } => #body,
+                            #pattern { #(#fields: ref #fields_other),* } => #body,
                             #other
                         }
                     }
                 }
             }
             PartialEq => quote! {
-                (#pattern { #(#fields: #fields_temp),* }, #pattern { #(#fields: #fields_other),* }) => {
-                    #(__cmp &= #type_::eq(&#fields_temp, &#fields_other);)*
+                (#pattern { #(#fields: ref #fields_temp),* }, #pattern { #(#fields: ref #fields_other),* }) => {
+                    #(__cmp &= #type_::eq(#fields_temp, #fields_other);)*
                 }
             },
             PartialOrd => {
@@ -362,9 +362,9 @@ impl Traits {
                     self.prepare_ord(&fields_temp, &fields_other, variants, &quote! { { .. } });
 
                 quote! {
-                    #pattern { #(#fields: #fields_temp),* } => {
+                    #pattern { #(#fields: ref #fields_temp),* } => {
                         match __other {
-                            #pattern { #(#fields: #fields_other),* } => #body,
+                            #pattern { #(#fields: ref #fields_other),* } => #body,
                             #other
                         }
                     }
@@ -402,36 +402,36 @@ impl Traits {
 
         match self {
             Clone => quote! {
-                #pattern(#(#fields_temp),*) => #pattern (#(#type_::clone(&#fields_temp)),*),
+                #pattern(#(ref #fields_temp),*) => #pattern (#(#type_::clone(#fields_temp)),*),
             },
             Copy => quote! {},
             Debug => quote! {
-                #pattern(#(#fields_temp),*) => {
+                #pattern(#(ref #fields_temp),*) => {
                     let mut __builder = ::core::fmt::Formatter::debug_tuple(__f, #debug_name);
-                    #(::core::fmt::DebugTuple::field(&mut __builder, &#fields_temp);)*
+                    #(::core::fmt::DebugTuple::field(&mut __builder, #fields_temp);)*
                     ::core::fmt::DebugTuple::finish(&mut __builder)
                 }
             },
             Eq => quote! {},
             Hash => quote! {
-                #pattern(#(#fields_temp),*) => { #(#type_::hash(&#fields_temp, __state);)* }
+                #pattern(#(ref #fields_temp),*) => { #(#type_::hash(#fields_temp, __state);)* }
             },
             Ord => {
                 let (body, other) =
                     self.prepare_ord(&fields_temp, &fields_other, variants, &quote! { (..) });
 
                 quote! {
-                    #pattern (#(#fields_other),*) => {
+                    #pattern (#(ref #fields_temp),*) => {
                         match __other {
-                            #pattern (#(#fields_other),*) => #body,
+                            #pattern (#(ref #fields_other),*) => #body,
                             #other
                         }
                     }
                 }
             }
             PartialEq => quote! {
-                (#pattern(#(#fields_temp),*), #pattern(#(#fields_other),*)) => {
-                    #(__cmp &= #type_::eq(&#fields_temp, &#fields_other);)*
+                (#pattern(#(ref #fields_temp),*), #pattern(#(ref #fields_other),*)) => {
+                    #(__cmp &= #type_::eq(#fields_temp, #fields_other);)*
                 }
             },
             PartialOrd => {
@@ -439,9 +439,9 @@ impl Traits {
                     self.prepare_ord(&fields_temp, &fields_other, variants, &quote! { (..) });
 
                 quote! {
-                    #pattern (#(#fields_other),*) => {
+                    #pattern (#(ref #fields_temp),*) => {
                         match __other {
-                            #pattern (#(#fields_other),*) => #body,
+                            #pattern (#(ref #fields_other),*) => #body,
                             #other
                         }
                     }
