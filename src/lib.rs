@@ -10,13 +10,14 @@ extern crate proc_macro;
 use core::cmp::Ordering;
 
 use proc_macro2::{Ident, TokenStream};
-use quote::{format_ident, quote, ToTokens};
+use quote::{format_ident, quote};
 use syn::{
     parse::{discouraged::Speculative, Parse, ParseStream},
     punctuated::Punctuated,
     spanned::Spanned,
-    Data, DeriveInput, Error, Fields, FieldsNamed, FieldsUnnamed, PredicateType, Result, Token,
-    Type, WherePredicate,
+    token::{Colon, Where},
+    Data, DeriveInput, Error, Fields, FieldsNamed, FieldsUnnamed, Path, PredicateType, Result,
+    Token, TraitBound, Type, TypeParamBound, WhereClause, WherePredicate,
 };
 
 /// Holds a single generic [type](Type) or [type with bound](PredicateType)
@@ -54,22 +55,12 @@ impl Parse for Generic {
     }
 }
 
-/// Holds parsed [generics](Generic) and [traits](Traits).
-enum DeriveWhere {
-    /// Generic type parameters were defined.
-    WithGenerics(Vec<Generic>, Vec<Traits>),
-    /// Only traits were set.
-    OnlyTraits(Vec<Traits>),
-}
-
-impl DeriveWhere {
-    /// Returns the list of requested [`Traits`] to be implemented.
-    fn traits(&self) -> &[Traits] {
-        match self {
-            Self::WithGenerics(_, traits) => traits,
-            Self::OnlyTraits(traits) => traits,
-        }
-    }
+/// Holds parsed [generics](Generic) and [traits](Trait).
+struct DeriveWhere {
+    /// [generics](Generic) for where clause
+    generics: Vec<Generic>,
+    /// [traits](Trait) to implement
+    traits: Vec<Trait>,
 }
 
 impl Parse for DeriveWhere {
@@ -80,22 +71,25 @@ impl Parse for DeriveWhere {
         let fork = input.fork();
         // Try to parse input as only a trait list. This should fail fast due
         // to trait names not commonly being used as generic parameters.
-        match Punctuated::<Traits, Token![,]>::parse_terminated(&fork) {
+        match Punctuated::<Trait, Token![,]>::parse_terminated(&fork) {
             Ok(derive_where) => {
                 // Advance input as if `DeriveWhere` was parsed on it.
                 input.advance_to(&fork);
-                Ok(Self::OnlyTraits(derive_where.into_iter().collect()))
+                Ok(Self {
+                    generics: Vec::new(),
+                    traits: derive_where.into_iter().collect(),
+                })
             }
             Err(_) => {
                 let generics = Punctuated::<Generic, Token![,]>::parse_separated_nonempty(input)?
                     .into_iter()
                     .collect();
                 <Token![;]>::parse(input)?;
-                let traits = Punctuated::<Traits, Token![,]>::parse_terminated(input)?
+                let traits = Punctuated::<Trait, Token![,]>::parse_terminated(input)?
                     .into_iter()
                     .collect();
 
-                Ok(Self::WithGenerics(generics, traits))
+                Ok(Self { generics, traits })
             }
         }
     }
@@ -103,7 +97,7 @@ impl Parse for DeriveWhere {
 
 /// Trait to implement.
 #[derive(Copy, Clone, Debug)]
-enum Traits {
+enum Trait {
     /// [`Clone`].
     Clone,
     /// [`Copy`].
@@ -122,9 +116,9 @@ enum Traits {
     PartialOrd,
 }
 
-impl Parse for Traits {
+impl Parse for Trait {
     fn parse(input: ParseStream) -> Result<Self> {
-        use Traits::*;
+        use Trait::*;
 
         let ident = Ident::parse(input)?;
 
@@ -147,10 +141,10 @@ impl Parse for Traits {
     }
 }
 
-impl Traits {
+impl Trait {
     /// Returns corresponding fully qualified path to the trait.
-    fn type_(self) -> Type {
-        use Traits::*;
+    fn path(self) -> Path {
+        use Trait::*;
 
         syn::parse_str(match self {
             Clone => "::core::clone::Clone",
@@ -235,9 +229,9 @@ impl Traits {
         variants: Option<(usize, &[&Ident])>,
         skip: &TokenStream,
     ) -> (TokenStream, TokenStream) {
-        use Traits::*;
+        use Trait::*;
 
-        let type_ = self.type_();
+        let type_ = self.path();
 
         let mut less = quote! { ::core::cmp::Ordering::Less };
         let mut equal = quote! { ::core::cmp::Ordering::Equal };
@@ -295,9 +289,9 @@ impl Traits {
 
     /// Build method signature of the corresponding trait.
     fn build_signature(self, body: TokenStream) -> TokenStream {
-        use Traits::*;
+        use Trait::*;
 
-        let type_ = self.type_();
+        let type_ = self.path();
 
         match self {
             Clone => quote! {
@@ -367,9 +361,9 @@ impl Traits {
         variants: Option<(usize, &[&Ident])>,
         fields: &FieldsNamed,
     ) -> TokenStream {
-        use Traits::*;
+        use Trait::*;
 
-        let type_ = self.type_();
+        let type_ = self.path();
         let debug_name = debug_name.to_string();
 
         // Extract `Ident`s from fields.
@@ -462,9 +456,9 @@ impl Traits {
         variants: Option<(usize, &[&Ident])>,
         fields: &FieldsUnnamed,
     ) -> TokenStream {
-        use Traits::*;
+        use Trait::*;
 
-        let type_ = self.type_();
+        let type_ = self.path();
         let debug_name = debug_name.to_string();
 
         // Build temporary de-structuring variable names from field indexes.
@@ -549,7 +543,7 @@ impl Traits {
         pattern: &TokenStream,
         variants: Option<(usize, &[&Ident])>,
     ) -> TokenStream {
-        use Traits::*;
+        use Trait::*;
 
         let debug_name = debug_name.to_string();
 
@@ -604,24 +598,44 @@ fn derive_where_internal(attr: TokenStream, item: TokenStream) -> Result<TokenSt
     } = syn::parse2(item)?;
 
     // Every trait needs a separate implementation.
-    for trait_ in derive_where.traits() {
+    for trait_ in derive_where.traits {
         let body = trait_.generate_body(&ident, &data)?;
-        let trait_ = trait_.type_();
+        let trait_ = trait_.path();
 
         // Build necessary generics to construct the implementation item.
-        let (impl_generics, type_generics, where_clause) = generics.split_for_impl();
-        // TODO: don't convert to `TokenStream`, but actually properly insert bounds.
-        let mut where_clause = where_clause.map(|where_clause| where_clause.into_token_stream());
+        let (impl_generics, type_generics, mut where_clause) = generics.split_for_impl();
+
+        let default_where = &WhereClause {
+            where_token: Where::default(),
+            predicates: Punctuated::default(),
+        };
+
+        let mut where_clause = where_clause.get_or_insert(default_where).clone();
 
         // If there are any bounds, insert them into the `where` clause.
-        if let DeriveWhere::WithGenerics(generics, _) = &derive_where {
-            // If there is no `where` clause, make one.
-            let where_clause = where_clause.get_or_insert(quote! { where });
-            let bounds = generics.iter().map(|generic| match generic {
-                Generic::CoustomBound(type_bound) => quote! {#type_bound},
-                Generic::NoBound(type_) => quote! {#type_: #trait_},
-            });
-            *where_clause = quote! { #where_clause #(#bounds),* };
+        for generic in &derive_where.generics {
+            where_clause
+                .predicates
+                .push(WherePredicate::Type(match generic {
+                    Generic::CoustomBound(type_bound) => type_bound.clone(),
+                    Generic::NoBound(type_) => {
+                        let mut bounds = Punctuated::default();
+
+                        bounds.push(TypeParamBound::Trait(TraitBound {
+                            paren_token: None,
+                            modifier: syn::TraitBoundModifier::None,
+                            lifetimes: None,
+                            path: trait_.clone(),
+                        }));
+
+                        PredicateType {
+                            lifetimes: None,
+                            bounded_ty: type_.clone(),
+                            colon_token: Colon::default(),
+                            bounds,
+                        }
+                    }
+                }));
         }
 
         // Add implementation item to the output.
