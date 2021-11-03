@@ -616,8 +616,8 @@ impl Trait {
             Hash => {
                 // Add hashing the variant if this is an `enum`.
                 let discriminant = if variants.is_some() {
-                    let type_ = self.path();
-                    Some(quote! { #type_::hash(&::core::mem::discriminant(self), __state); })
+                    let path = self.path();
+                    Some(quote! { #path::hash(&::core::mem::discriminant(self), __state); })
                 } else {
                     None
                 };
