@@ -40,7 +40,7 @@ impl Parse for Generic {
                 input.advance_to(&fork);
 
                 match where_predicate {
-                    WherePredicate::Type(path) => Ok(Self::CoustomBound(path)),
+                    WherePredicate::Type(path) => Ok(Generic::CoustomBound(path)),
                     WherePredicate::Lifetime(_) => Err(Error::new(
                         where_predicate.span(),
                         "bounds on lifetimes are not supported",
@@ -52,7 +52,7 @@ impl Parse for Generic {
                 }
             }
             Err(_) => match Type::parse(input) {
-                Ok(type_) => Ok(Self::NoBound(type_)),
+                Ok(type_) => Ok(Generic::NoBound(type_)),
                 Err(error) => Err(Error::new(
                     error.span(),
                     &format!("expected type to bind to, {}", error),
@@ -351,11 +351,15 @@ impl Trait {
                 let body = if let Data::Enum(data) = data {
                     // If there are no unit variants, all comparisons have to
                     // be made. This follows the standard implementation.
-                    let rest = if data
-                        .variants
-                        .iter()
-                        .any(|variant| matches!(variant.fields, Fields::Unit))
-                    {
+                    // `matches!` was added in 1.42.0.
+                    #[allow(clippy::match_like_matches_macro)]
+                    let rest = if data.variants.iter().any(|variant| {
+                        if let Fields::Unit = variant.fields {
+                            true
+                        } else {
+                            false
+                        }
+                    }) {
                         quote! { true }
                     } else {
                         quote! { unsafe { ::core::hint::unreachable_unchecked() } }
@@ -759,6 +763,13 @@ mod test {
 
     #[test]
     fn ui() {
+        // Skip UI tests when we are tesing MSRV.
+        if let Ok(var) = std::env::var("DERIVE_WHERE_SKIP_UI") {
+            if var == "1" {
+                return;
+            }
+        }
+
         TestCases::new().compile_fail("tests/ui/*.rs");
     }
 

@@ -2,7 +2,7 @@
 name = "derive-where"
 version = "0.1.0"
 edition = "2018"
-rust-version = "1.33.0"
+rust-version = "1.36.0"
 description = "Deriving with custom trait bounds"
 documentation = "https://docs.rs/derive-where"
 readme = "README.md"
@@ -21,9 +21,9 @@ include = [
 proc-macro = true
 
 [dependencies]
-proc-macro2 = "1"
-quote = "1"
-syn = "1"
+proc-macro2 = { version = "1", default-features = false, features = ["proc-macro"] }
+quote = { version = "1", default-features = false }
+syn = { version = "1", default-features = false, features = ["clone-impls", "derive", "parsing", "printing"] }
 
 [dev-dependencies]
-trybuild = "1"
+trybuild = { version = "1", default-features = false }
