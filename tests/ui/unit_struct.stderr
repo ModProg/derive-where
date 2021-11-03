@@ -1,5 +1,0 @@
-error: derive-where doesn't support items without generics, as this can already be handled by standard `#[derive()]`.
- --> tests/ui/unit_struct.rs:2:1
-  |
-2 | struct Test();
-  | ^^^^^^^^^^^^^^

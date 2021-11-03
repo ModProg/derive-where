@@ -31,6 +31,7 @@ enum Generic {
 impl Parse for Generic {
     fn parse(input: ParseStream) -> Result<Self> {
         let fork = input.fork();
+
         // Try to parse input as a WherePredicate. The problem is, both expresions
         // start with a Type, so this is the easiest way of differenciating them.
         match WherePredicate::parse(&fork) {
@@ -42,63 +43,63 @@ impl Parse for Generic {
                     WherePredicate::Type(path) => Ok(Self::CoustomBound(path)),
                     WherePredicate::Lifetime(_) => Err(Error::new(
                         where_predicate.span(),
-                        "Bounds on lifetimes are not supported",
+                        "bounds on lifetimes are not supported",
                     )),
                     WherePredicate::Eq(_) => Err(Error::new(
                         where_predicate.span(),
-                        "Equality predicates are not supported",
+                        "equality predicates are not supported",
                     )),
                 }
             }
-            Err(_) => Ok(Self::NoBound(input.parse()?)),
+            Err(_) => match Type::parse(input) {
+                Ok(type_) => Ok(Self::NoBound(type_)),
+                Err(error) => Err(Error::new(error.span(), &format!("expected type to bind to, {}", error))),
+            },
         }
     }
 }
 
 /// Holds parsed [generics](Generic) and [traits](Trait).
 struct DeriveWhere {
-    /// [generics](Generic) for where clause
-    generics: Option<Vec<Generic>>,
-    /// [traits](Trait) to implement
+    /// [traits](Trait) to implement.
     traits: Vec<Trait>,
+    /// [generics](Generic) for where clause.
+    generics: Option<Vec<Generic>>,
 }
 
 impl Parse for DeriveWhere {
-    /// Parse the macro input this should either be:
-    /// - Comma seperated traits
-    /// - Comma seperated generics `;` comma sperated traits
+    /// Parse the macro input, this should either be:
+    /// - Comma separated traits
+    /// - Comma separated traits `;` Comma separated generics
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let fork = input.fork();
-        // Try to parse input as only a trait list. This should fail fast due
-        // to trait names not commonly being used as generic parameters.
-        match Punctuated::<Trait, Token![,]>::parse_terminated(&fork) {
-            Ok(derive_where) => {
-                // Advance input as if `DeriveWhere` was parsed on it.
-                input.advance_to(&fork);
-                Ok(Self {
-                    generics: None,
-                    traits: derive_where.into_iter().collect(),
-                })
-            }
-            Err(_) => {
-                let generics = Some(
-                    Punctuated::<Generic, Token![,]>::parse_separated_nonempty(input)?
-                        .into_iter()
-                        .collect(),
-                );
-                <Token![;]>::parse(input).map_err(|_| {
-                    Error::new(
-                        input.span(),
-                        "No supported traits found. At least one trait is required.",
-                    )
-                })?;
-                let traits = Punctuated::<Trait, Token![,]>::parse_terminated(input)?
-                    .into_iter()
-                    .collect();
+        let mut traits = Vec::new();
+        let mut generics = None;
 
-                Ok(Self { generics, traits })
+        // Start parsing traits.
+        while !input.is_empty() {
+            traits.push(Trait::parse(input)?);
+
+            if !input.is_empty() {
+                let fork = input.fork();
+
+                if <Token![;]>::parse(&fork).is_ok() {
+                    input.advance_to(&fork);
+
+                    // If we found a semi-colon, start parsing generics.
+                    if !input.is_empty() {
+                        generics = Some(
+                            Punctuated::<Generic, Token![,]>::parse_terminated(input)?
+                                .into_iter()
+                                .collect(),
+                        );
+                    }
+                } else if let Err(error) = <Token![,]>::parse(input) {
+                    return Err(Error::new(error.span(), "expected `;` or `,"));
+                }
             }
         }
+
+        Ok(Self { generics, traits })
     }
 }
 
@@ -127,24 +128,25 @@ impl Parse for Trait {
     fn parse(input: ParseStream) -> Result<Self> {
         use Trait::*;
 
-        let ident = Ident::parse(input)?;
-
-        Ok(match ident.to_string().as_str() {
-            "Clone" => Clone,
-            "Copy" => Copy,
-            "Debug" => Debug,
-            "Eq" => Eq,
-            "Hash" => Hash,
-            "Ord" => Ord,
-            "PartialEq" => PartialEq,
-            "PartialOrd" => PartialOrd,
-            _ => {
-                return Err(Error::new(
-                    ident.span(),
-                    format!("`{}` isn't a supported trait.", ident),
-                ))
-            }
-        })
+        match Ident::parse(input) {
+            Ok(ident) => Ok(match ident.to_string().as_str() {
+                "Clone" => Clone,
+                "Copy" => Copy,
+                "Debug" => Debug,
+                "Eq" => Eq,
+                "Hash" => Hash,
+                "Ord" => Ord,
+                "PartialEq" => PartialEq,
+                "PartialOrd" => PartialOrd,
+                _ => {
+                    return Err(Error::new(
+                        ident.span(),
+                        format!("`{}` isn't a supported trait", ident),
+                    ))
+                }
+            }),
+            Err(error) => Err(Error::new(error.span(), "expected a trait")),
+        }
     }
 }
 
@@ -173,11 +175,13 @@ impl Trait {
                 let pattern = name.into_token_stream();
 
                 match &data.fields {
-                    Fields::Named(fields) => self.build_for_struct(name, name, &pattern, None, fields),
-                    Fields::Unnamed(fields) => self.build_for_tuple(name, name, &pattern, None, fields),
-                    fields @ Fields::Unit => return Err(Error::new(
-                        fields.span(),
-                        "Using `derive_where` on unit struct is not supported as unit structs don't support generics.")),
+                    Fields::Named(fields) => {
+                        self.build_for_struct(name, name, &pattern, None, fields)
+                    }
+                    Fields::Unnamed(fields) => {
+                        self.build_for_tuple(name, name, &pattern, None, fields)
+                    }
+                    Fields::Unit => unreachable!("unexpected unit `struct` with generics"),
                 }
             }
             Data::Enum(data) => {
@@ -224,7 +228,7 @@ impl Trait {
             Data::Union(data) => {
                 return Err(Error::new(
                     data.union_token.span(),
-                    "Unions aren't supported.",
+                    "unions aren't supported",
                 ));
             }
         };
@@ -232,9 +236,7 @@ impl Trait {
         Ok(self.build_signature(data, body))
     }
 
-    /// Build `match` arms for [`PartialOrd`] and [`Ord`]. `skip` is used to
-    /// build a `match` pattern to skip all fields: `{ .. }` for structs,
-    /// `(..)` for tuples and `` for units.
+    /// Build `match` arms for [`PartialOrd`] and [`Ord`].
     fn prepare_ord(
         self,
         item_ident: &Ident,
@@ -258,7 +260,7 @@ impl Trait {
                 greater = quote! { ::core::option::Option::Some(#greater) };
             }
             Ord => (),
-            _ => unreachable!("Unsupported trait in `prepare_ord`."),
+            _ => unreachable!("unsupported trait in `prepare_ord`"),
         };
 
         // The match arm starts with `Ordering::Equal`. This will become the
@@ -664,12 +666,12 @@ fn derive_where_internal(attr: TokenStream, item: TokenStream) -> Result<TokenSt
         ..
     } = syn::parse2(item)?;
 
+    if generics.params.is_empty() {
+        return Err(Error::new(item_span, "derive-where doesn't support items without generics, as this can already be handled by standard `#[derive()]`"));
+    }
+
     // Build necessary generics to construct the implementation item.
     let (impl_generics, type_generics, where_clause) = generics.split_for_impl();
-
-    if generics.params.is_empty() {
-        return Err(Error::new(item_span, "derive-where doesn't support items without generics, as this can already be handled by standard `#[derive()]`."));
-    }
 
     // Every trait needs a separate implementation.
     for trait_ in derive_where.traits {
@@ -728,10 +730,22 @@ pub fn derive_where(
     attr: proc_macro::TokenStream,
     item: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
-    // Redirect to `derive_where_internal`, this only convert the error appropriately.
-    match derive_where_internal(attr.into(), item.into()) {
+    let item: TokenStream = item.into();
+
+    // Redirect to `derive_where_internal`, this only convert the error
+    // appropriately.
+    match derive_where_internal(attr.into(), item.clone()) {
         Ok(output) => output.into(),
-        Err(error) => error.into_compile_error().into(),
+        Err(error) => {
+            // When an error happens, we still want to emit the item, as it
+            // get's consumed otherwise.
+            let error = error.into_compile_error();
+            let output = quote! {
+                #error
+                #item
+            };
+            output.into()
+        }
     }
 }
 
@@ -748,7 +762,7 @@ mod test {
     #[test]
     fn struct_() -> Result<()> {
         test_derive(
-            quote! { T; Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd },
+            quote! { Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd; T },
             quote! { struct Test<T> { field: T } },
             quote! {
                 impl<T> ::core::clone::Clone for Test<T>
@@ -847,7 +861,7 @@ mod test {
     #[test]
     fn tuple() -> Result<()> {
         test_derive(
-            quote! { T; Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd },
+            quote! { Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd; T },
             quote! { struct Test<T>(T); },
             quote! {
                 impl<T> ::core::clone::Clone for Test<T>
@@ -946,7 +960,7 @@ mod test {
     #[test]
     fn enum_() -> Result<()> {
         test_derive(
-            quote! { T; Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd },
+            quote! { Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd; T },
             quote! { enum Test<T> {
                 A { field: T},
                 B(T),
