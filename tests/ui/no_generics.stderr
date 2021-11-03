@@ -1,0 +1,11 @@
+error: derive-where doesn't support items without generics, as this can already be handled by standard `#[derive()]`
+ --> tests/ui/no_generics.rs:2:1
+  |
+2 | struct Test1(u8);
+  | ^^^^^^^^^^^^^^^^^
+
+error: derive-where doesn't support items without generics, as this can already be handled by standard `#[derive()]`
+ --> tests/ui/no_generics.rs:7:1
+  |
+7 | struct Test2();
+  | ^^^^^^^^^^^^^^^

@@ -1,0 +1,5 @@
+error: `T` isn't a supported trait
+ --> tests/ui/no_trait.rs:1:30
+  |
+1 | #[derive_where::derive_where(T)]
+  |                              ^

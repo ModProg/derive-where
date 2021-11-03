@@ -12,7 +12,7 @@ fn test_path() {
     trait Trait {
         type Type;
     }
-    #[derive_where(T::Type; Clone, Debug)]
+    #[derive_where(Clone, Debug; T::Type)]
     struct TestTuple<T: Trait>(T::Type);
 
     struct Test;
@@ -45,7 +45,7 @@ fn test_no_bound() {
 fn test_custom_bound() {
     trait Trait {}
 
-    #[derive_where(T: Trait; Clone, Debug)]
+    #[derive_where(Clone, Debug; T: Trait)]
     struct TestTuple<T>(PhantomData<T>);
 
     struct NotCloneAble;
@@ -60,7 +60,7 @@ fn test_custom_bound() {
 
 #[test]
 fn test_tuple() {
-    #[derive_where(T, S; Clone)]
+    #[derive_where(Clone; T, S)]
     #[derive(Debug)]
     struct TestTuple<T, S>(T, S);
 
@@ -77,7 +77,7 @@ fn test_struct() {
     #[allow(non_upper_case_globals)]
     const a: usize = 0;
 
-    #[derive_where(T, S; Clone)]
+    #[derive_where(Clone; T, S)]
     #[derive(Debug)]
     struct TestStruct<T, S> {
         a: T,
@@ -96,7 +96,7 @@ fn test_struct() {
 
 #[test]
 fn test_enum() {
-    #[derive_where(T, S; Clone)]
+    #[derive_where(Clone; T, S)]
     #[derive(Debug)]
     enum TestEnum<T, S> {
         VariantStruct { field: T },

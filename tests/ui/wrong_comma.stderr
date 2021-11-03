@@ -1,0 +1,23 @@
+error: expected a trait
+ --> tests/ui/wrong_comma.rs:1:36
+  |
+1 | #[derive_where::derive_where(Clone,; T)]
+  |                                    ^
+
+error: expected a trait
+ --> tests/ui/wrong_comma.rs:4:36
+  |
+4 | #[derive_where::derive_where(Clone,,)]
+  |                                    ^
+
+error: expected `,`
+ --> tests/ui/wrong_comma.rs:7:38
+  |
+7 | #[derive_where::derive_where(Clone; T;)]
+  |                                      ^
+
+error: expected type to bind to, expected one of: `for`, parentheses, `fn`, `unsafe`, `extern`, identifier, `::`, `<`, square brackets, `*`, `&`, `!`, `impl`, `_`, lifetime
+  --> tests/ui/wrong_comma.rs:10:39
+   |
+10 | #[derive_where::derive_where(Clone; T,,)]
+   |                                       ^

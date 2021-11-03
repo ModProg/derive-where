@@ -1,4 +1,4 @@
-error: Unions aren't supported.
+error: unions aren't supported
  --> tests/ui/union.rs:5:1
   |
 5 | union Test<T> {
