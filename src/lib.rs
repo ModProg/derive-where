@@ -53,7 +53,10 @@ impl Parse for Generic {
             }
             Err(_) => match Type::parse(input) {
                 Ok(type_) => Ok(Self::NoBound(type_)),
-                Err(error) => Err(Error::new(error.span(), &format!("expected type to bind to, {}", error))),
+                Err(error) => Err(Error::new(
+                    error.span(),
+                    &format!("expected type to bind to, {}", error),
+                )),
             },
         }
     }
