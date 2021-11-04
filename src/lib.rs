@@ -1147,7 +1147,7 @@ mod test {
     }
 
     #[test]
-    fn enum_one_data() -> Result<()> {
+    fn enum_eq_one_data() -> Result<()> {
         test_derive(
             quote! { PartialEq; T },
             quote! { enum Test<T> { A(T) } },
@@ -1170,7 +1170,7 @@ mod test {
     }
 
     #[test]
-    fn enum_two_data() -> Result<()> {
+    fn enum_eq_two_data() -> Result<()> {
         test_derive(
             quote! { PartialEq; T },
             quote! { enum Test<T> { A(T), B(T) } },
@@ -1203,7 +1203,7 @@ mod test {
     }
 
     #[test]
-    fn enum_unit() -> Result<()> {
+    fn enum_eq_unit() -> Result<()> {
         test_derive(
             quote! { PartialEq; T },
             quote! { enum Test<T> { A(T), B } },
@@ -1223,6 +1223,102 @@ mod test {
                             }
                         } else {
                             false
+                        }
+                    }
+                }
+            },
+        )
+    }
+
+    #[test]
+    fn no_bound() -> Result<()> {
+        test_derive(
+            quote! { Clone },
+            quote! { struct Test<T>(u8, core::marker::PhantomData<T>); },
+            quote! {
+                impl<T> ::core::clone::Clone for Test<T>
+                {
+                    fn clone(&self) -> Self {
+                        match self {
+                            Test(ref __0, ref __1) => Test(::core::clone::Clone::clone(__0), ::core::clone::Clone::clone(__1)),
+                        }
+                    }
+                }
+            },
+        )
+    }
+
+    #[test]
+    fn custom_bound() -> Result<()> {
+        test_derive(
+            quote! { Clone; T: Copy },
+            quote! { struct Test<T>(T); },
+            quote! {
+                impl<T> ::core::clone::Clone for Test<T>
+                where T: Copy
+                {
+                    fn clone(&self) -> Self {
+                        match self {
+                            Test(ref __0) => Test(::core::clone::Clone::clone(__0)),
+                        }
+                    }
+                }
+            },
+        )
+    }
+
+    #[test]
+    fn where_() -> Result<()> {
+        test_derive(
+            quote! { Clone; T },
+            quote! { struct Test<T>(T) where T: core::fmt::Debug; },
+            quote! {
+                impl<T> ::core::clone::Clone for Test<T>
+                where
+                    T: core::fmt::Debug,
+                    T: ::core::clone::Clone
+                {
+                    fn clone(&self) -> Self {
+                        match self {
+                            Test(ref __0) => Test(::core::clone::Clone::clone(__0)),
+                        }
+                    }
+                }
+            },
+        )
+    }
+
+    #[test]
+    fn associated_type() -> Result<()> {
+        test_derive(
+            quote! { Clone; <T as core::ops::Deref>::Target },
+            quote! { struct Test<T>(<T as core::ops::Deref>::Target); },
+            quote! {
+                impl<T> ::core::clone::Clone for Test<T>
+                where <T as core::ops::Deref>::Target: ::core::clone::Clone
+                {
+                    fn clone(&self) -> Self {
+                        match self {
+                            Test(ref __0) => Test(::core::clone::Clone::clone(__0)),
+                        }
+                    }
+                }
+            },
+        )
+    }
+
+    #[test]
+    fn associated_type_custom_bound() -> Result<()> {
+        test_derive(
+            quote! { Clone; <T as core::ops::Deref>::Target: Copy },
+            quote! { struct Test<T>(<T as core::ops::Deref>::Target); },
+            quote! {
+                impl<T> ::core::clone::Clone for Test<T>
+                where <T as core::ops::Deref>::Target: Copy
+                {
+                    fn clone(&self) -> Self {
+                        match self {
+                            Test(ref __0) => Test(::core::clone::Clone::clone(__0)),
                         }
                     }
                 }
