@@ -5,7 +5,19 @@ error: derive-where doesn't support items without generics, as this can already 
   | ^^^^^^^^^^^^^^^^^
 
 error: derive-where doesn't support items without generics, as this can already be handled by standard `#[derive()]`
- --> tests/ui/no_generics.rs:7:1
+ --> tests/ui/no_generics.rs:5:1
   |
-7 | struct Test2();
-  | ^^^^^^^^^^^^^^^
+5 | enum Test2 { A }
+  | ^^^^^^^^^^^^^^^^
+
+error: derive-where doesn't support items without generics, as this can already be handled by standard `#[derive()]`
+  --> tests/ui/no_generics.rs:10:1
+   |
+10 | struct Test3();
+   | ^^^^^^^^^^^^^^^
+
+error: derive-where doesn't support items without generics, as this can already be handled by standard `#[derive()]`
+  --> tests/ui/no_generics.rs:13:1
+   |
+13 | enum Test4 { }
+   | ^^^^^^^^^^^^^^

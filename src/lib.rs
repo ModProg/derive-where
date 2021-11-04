@@ -348,37 +348,42 @@ impl Trait {
                 }
             },
             PartialEq => {
-                let body = if let Data::Enum(data) = data {
-                    // If there are no unit variants, all comparisons have to
-                    // be made. This follows the standard implementation.
-                    // `matches!` was added in 1.42.0.
-                    #[allow(clippy::match_like_matches_macro)]
-                    let rest = if data.variants.iter().any(|variant| {
-                        if let Fields::Unit = variant.fields {
-                            true
-                        } else {
-                            false
-                        }
-                    }) {
-                        quote! { true }
-                    } else {
-                        quote! { unsafe { ::core::hint::unreachable_unchecked() } }
-                    };
-
-                    quote! {
-                        if ::core::mem::discriminant(self) == ::core::mem::discriminant(__other) {
-                            match (self, __other) {
-                                #body
-                                _ => #rest,
+                let body = match data {
+                    // Only check for discriminants if there is more then one variant.
+                    Data::Enum(data) if data.variants.len() > 1 => {
+                        // If there are no unit variants, all comparisons have to
+                        // be made.
+                        // `matches!` was added in 1.42.0.
+                        #[allow(clippy::match_like_matches_macro)]
+                        let rest = if data.variants.iter().any(|variant| {
+                            if let Fields::Unit = variant.fields {
+                                true
+                            } else {
+                                false
                             }
+                        }) {
+                            quote! { true }
                         } else {
-                            false
+                            // This follows the standard implementation.
+                            quote! { unsafe { ::core::hint::unreachable_unchecked() } }
+                        };
+
+                        quote! {
+                            if ::core::mem::discriminant(self) == ::core::mem::discriminant(__other) {
+                                match (self, __other) {
+                                    #body
+                                    _ => #rest,
+                                }
+                            } else {
+                                false
+                            }
                         }
                     }
-                } else {
-                    quote! {
-                        match (self, __other) {
-                            #body
+                    _ => {
+                        quote! {
+                            match (self, __other) {
+                                #body
+                            }
                         }
                     }
                 };
@@ -1134,6 +1139,90 @@ mod test {
                                     Test::B(..) => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
                                 }
                             }
+                        }
+                    }
+                }
+            },
+        )
+    }
+
+    #[test]
+    fn enum_one_data() -> Result<()> {
+        test_derive(
+            quote! { PartialEq; T },
+            quote! { enum Test<T> { A(T) } },
+            quote! {
+                impl<T> ::core::cmp::PartialEq for Test<T>
+                where T: ::core::cmp::PartialEq
+                {
+                    fn eq(&self, __other: &Self) -> bool {
+                        match (self, __other) {
+                            (Test::A(ref __0), Test::A(ref __other_0)) => {
+                                let mut __cmp = true;
+                                __cmp &= ::core::cmp::PartialEq::eq(__0, __other_0);
+                                __cmp
+                            }
+                        }
+                    }
+                }
+            },
+        )
+    }
+
+    #[test]
+    fn enum_two_data() -> Result<()> {
+        test_derive(
+            quote! { PartialEq; T },
+            quote! { enum Test<T> { A(T), B(T) } },
+            quote! {
+                impl<T> ::core::cmp::PartialEq for Test<T>
+                where T: ::core::cmp::PartialEq
+                {
+                    fn eq(&self, __other: &Self) -> bool {
+                        if ::core::mem::discriminant(self) == ::core::mem::discriminant(__other) {
+                            match (self, __other) {
+                                (Test::A(ref __0), Test::A(ref __other_0)) => {
+                                    let mut __cmp = true;
+                                    __cmp &= ::core::cmp::PartialEq::eq(__0, __other_0);
+                                    __cmp
+                                }
+                                (Test::B(ref __0), Test::B(ref __other_0)) => {
+                                    let mut __cmp = true;
+                                    __cmp &= ::core::cmp::PartialEq::eq(__0, __other_0);
+                                    __cmp
+                                }
+                                _ => unsafe { ::core::hint::unreachable_unchecked() },
+                            }
+                        } else {
+                            false
+                        }
+                    }
+                }
+            },
+        )
+    }
+
+    #[test]
+    fn enum_unit() -> Result<()> {
+        test_derive(
+            quote! { PartialEq; T },
+            quote! { enum Test<T> { A(T), B } },
+            quote! {
+                impl<T> ::core::cmp::PartialEq for Test<T>
+                where T: ::core::cmp::PartialEq
+                {
+                    fn eq(&self, __other: &Self) -> bool {
+                        if ::core::mem::discriminant(self) == ::core::mem::discriminant(__other) {
+                            match (self, __other) {
+                                (Test::A(ref __0), Test::A(ref __other_0)) => {
+                                    let mut __cmp = true;
+                                    __cmp &= ::core::cmp::PartialEq::eq(__0, __other_0);
+                                    __cmp
+                                }
+                                _ => true,
+                            }
+                        } else {
+                            false
                         }
                     }
                 }
