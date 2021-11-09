@@ -768,7 +768,6 @@ impl Trait {
 
                 quote! { #pattern => {
                     #discriminant
-                    ()
                 } }
             }
             Ord => quote! {},
@@ -1230,7 +1229,6 @@ mod test {
                             }
                             Test::C => {
                                 ::core::hash::Hash::hash(&::core::mem::discriminant(self), __state);
-                                ()
                             }
                         }
                     }
