@@ -313,8 +313,7 @@ impl Trait {
 
         // Rust 1.36.0 doesn't support attributes on parameters.
         #[cfg(any(feature = "nightly", not(feature = "safe")))]
-        #[allow(clippy::drop_ref)]
-        core::mem::drop(name);
+        let _ = name;
 
         /// Generate [`TokenStream`] for a pattern skipping all fields.
         #[cfg(all(not(feature = "nightly"), feature = "safe"))]
