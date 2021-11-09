@@ -98,6 +98,7 @@ fn test_struct() {
 fn test_enum() {
     #[derive_where(Clone; T, S)]
     #[derive(Debug)]
+    #[allow(clippy::enum_variant_names)]
     enum TestEnum<T, S> {
         VariantStruct { field: T },
         VariantTupel(S),
@@ -122,4 +123,23 @@ fn test_enum() {
     let cloned = test.clone();
     dbg!(test);
     dbg!(cloned);
+}
+
+#[test]
+fn test_all() {
+    #[derive_where(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd; T, S)]
+    #[allow(clippy::enum_variant_names)]
+    enum TestEnum<T, S> {
+        VariantStruct { field: T },
+        VariantTupel(S),
+        Variant,
+    }
+
+    let test1 = TestEnum::<u8, &str>::VariantStruct { field: 42 };
+    let test2 = TestEnum::<u8, &str>::VariantTupel("test");
+    let test3 = TestEnum::<u8, &str>::Variant;
+
+    assert_eq!(test1.clone(), test1);
+    assert_eq!(test2.clone(), test2);
+    assert_eq!(test3.clone(), test3);
 }
