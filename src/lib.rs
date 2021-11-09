@@ -173,15 +173,17 @@ impl Trait {
 
     /// Generate `impl` item body.
     fn generate_body(self, name: &Ident, data: &Data) -> Result<TokenStream> {
-        let body = match &data {
+        match data {
             Data::Struct(data) => {
                 let pattern = name.into_token_stream();
 
-                match &data.fields {
+                let body = match &data.fields {
                     Fields::Named(fields) => self.build_for_struct(name, &pattern, None, fields),
                     Fields::Unnamed(fields) => self.build_for_tuple(name, &pattern, None, fields),
                     Fields::Unit => unreachable!("unexpected unit `struct` with generics"),
-                }
+                };
+
+                Ok(self.build_signature(name, None, body))
             }
             Data::Enum(data) => {
                 // Collect all variants to build `PartialOrd` and `Ord`.
@@ -192,7 +194,8 @@ impl Trait {
                     .map(|variant| &variant.fields)
                     .collect();
 
-                data.variants
+                let body = data
+                    .variants
                     .iter()
                     .enumerate()
                     .map(|(index, variant)| {
@@ -219,30 +222,31 @@ impl Trait {
                             ),
                         }
                     })
-                    .collect()
-            }
-            Data::Union(data) => {
-                return Err(Error::new(
-                    data.union_token.span(),
-                    "unions aren't supported",
-                ));
-            }
-        };
+                    .collect();
 
-        Ok(self.build_signature(name, data, body))
+                Ok(self.build_signature(name, Some((&variants, &variants_type)), body))
+            }
+            Data::Union(data) => Err(Error::new(
+                data.union_token.span(),
+                "unions aren't supported",
+            )),
+        }
     }
 
     /// Build signature for [`PartialEq`].
-    fn build_partial_eq_signature(self, data: &Data, body: TokenStream) -> TokenStream {
-        match data {
+    fn build_partial_eq_signature(
+        self,
+        variants: Option<(&[&Ident], &[&Fields])>,
+        body: TokenStream,
+    ) -> TokenStream {
+        match variants {
             // Only check for discriminants if there is more then one variant.
-            Data::Enum(data) if data.variants.len() > 1 => {
-                // If there are no unit variants, all comparisons have to
-                // be made.
+            Some((variants, fields)) if variants.len() > 1 => {
+                // If there is any unit variant, return `true` in the `_` pattern.
                 // `matches!` was added in 1.42.0.
                 #[allow(clippy::match_like_matches_macro)]
-                let rest = if data.variants.iter().any(|variant| {
-                    if let Fields::Unit = variant.fields {
+                let rest = if fields.iter().any(|field| {
+                    if let Fields::Unit = field {
                         true
                     } else {
                         false
@@ -276,7 +280,12 @@ impl Trait {
     }
 
     /// Build signature for [`PartialOrd`] and [`Ord`].
-    fn build_ord_signature(self, name: &Ident, data: &Data, body: TokenStream) -> TokenStream {
+    fn build_ord_signature(
+        self,
+        name: &Ident,
+        variants: Option<(&[&Ident], &[&Fields])>,
+        body: TokenStream,
+    ) -> TokenStream {
         use Trait::*;
 
         /// Generate [`TokenStream`] for a pattern skipping all fields.
@@ -303,15 +312,14 @@ impl Trait {
             _ => unreachable!("unsupported trait in `prepare_ord`"),
         };
 
-        match data {
+        match variants {
             // Only check for discriminants if there is more then one variant.
-            Data::Enum(data) if data.variants.len() > 1 => {
-                // If there are no unit variants, all comparisons have to
-                // be made.
+            Some((variants, fields)) if variants.len() > 1 => {
+                // If there is any unit variant, return `Ordering::Equal` in the `_` pattern.
                 // `matches!` was added in 1.42.0.
                 #[allow(clippy::match_like_matches_macro)]
-                let rest = if data.variants.iter().any(|variant| {
-                    if let Fields::Unit = variant.fields {
+                let rest = if fields.iter().any(|field| {
+                    if let Fields::Unit = field {
                         true
                     } else {
                         false
@@ -323,15 +331,17 @@ impl Trait {
                     quote! { unsafe { ::core::hint::unreachable_unchecked() } }
                 };
 
-                let mut different = Vec::with_capacity(data.variants.len());
+                let mut different = Vec::with_capacity(variants.len());
 
                 // Build separate `match` arms to compare different variants to each
                 // other. The index for these variants is used to determine which
                 // `Ordering` to return.
-                for (index, variant) in data.variants.iter().enumerate() {
-                    let mut arms = Vec::with_capacity(data.variants.len() - 1);
+                for (index, (variant, field)) in variants.iter().zip(fields).enumerate() {
+                    let mut arms = Vec::with_capacity(variants.len() - 1);
 
-                    for (index_other, variant_other) in data.variants.iter().enumerate() {
+                    for (index_other, (variant_other, field_other)) in
+                        variants.iter().zip(fields).enumerate()
+                    {
                         // Make sure we aren't comparing the same variant with itself.
                         if index != index_other {
                             let ordering = match index.cmp(&index_other) {
@@ -340,8 +350,8 @@ impl Trait {
                                 Ordering::Greater => &greater,
                             };
 
-                            let skip = skip(&variant_other.fields);
-                            let variant_other = &variant_other.ident;
+                            let skip = skip(field_other);
+                            let variant_other = &variant_other;
 
                             arms.push(quote! {
                                 #name::#variant_other #skip => #ordering,
@@ -349,8 +359,8 @@ impl Trait {
                         }
                     }
 
-                    let skip = skip(&variant.fields);
-                    let variant = &variant.ident;
+                    let skip = skip(field);
+                    let variant = &variant;
 
                     different.push(quote! {
                         #name::#variant #skip => match __other {
@@ -384,7 +394,12 @@ impl Trait {
     }
 
     /// Build method signature of the corresponding trait.
-    fn build_signature(self, name: &Ident, data: &Data, body: TokenStream) -> TokenStream {
+    fn build_signature(
+        self,
+        name: &Ident,
+        variants: Option<(&[&Ident], &[&Fields])>,
+        body: TokenStream,
+    ) -> TokenStream {
         use Trait::*;
 
         match self {
@@ -412,7 +427,7 @@ impl Trait {
                 }
             },
             Ord => {
-                let body = self.build_ord_signature(name, data, body);
+                let body = self.build_ord_signature(name, variants, body);
 
                 quote! {
                     fn cmp(&self, __other: &Self) -> ::core::cmp::Ordering {
@@ -421,7 +436,7 @@ impl Trait {
                 }
             }
             PartialEq => {
-                let body = self.build_partial_eq_signature(data, body);
+                let body = self.build_partial_eq_signature(variants, body);
 
                 quote! {
                     fn eq(&self, __other: &Self) -> bool {
@@ -430,7 +445,7 @@ impl Trait {
                 }
             }
             PartialOrd => {
-                let body = self.build_ord_signature(name, data, body);
+                let body = self.build_ord_signature(name, variants, body);
 
                 quote! {
                     fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
