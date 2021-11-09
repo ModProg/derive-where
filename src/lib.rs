@@ -32,8 +32,8 @@ impl Parse for Generic {
     fn parse(input: ParseStream) -> Result<Self> {
         let fork = input.fork();
 
-        // Try to parse input as a WherePredicate. The problem is, both expresions
-        // start with a Type, so this is the easiest way of differenciating them.
+        // Try to parse input as a `WherePredicate`. The problem is, both expressions
+        // start with a Type, so this is the easiest way of differentiating them.
         match WherePredicate::parse(&fork) {
             Ok(where_predicate) => {
                 // Advance input as if `WherePredicate` was parsed on it.
@@ -261,7 +261,7 @@ impl Trait {
         body: TokenStream,
     ) -> TokenStream {
         match variants {
-            // Only check for discriminants if there is more then one variant.
+            // Only check for discriminators if there is more than one variant.
             Some((variants, fields)) if variants.len() > 1 => {
                 // If there is any unit variant, return `true` in the `_` pattern.
                 // `matches!` was added in 1.42.0.
@@ -334,7 +334,7 @@ impl Trait {
         };
 
         match variants {
-            // Only check for discriminants if there is more then one variant.
+            // Only check for discriminators if there is more than one variant.
             Some((variants, fields)) if variants.len() > 1 => {
                 // If there is any unit variant, return `Ordering::Equal` in the `_` pattern.
                 // `matches!` was added in 1.42.0.
@@ -777,7 +777,7 @@ fn derive_where_internal(attr: TokenStream, item: TokenStream) -> Result<TokenSt
     for trait_ in derive_where.traits {
         let body = trait_.generate_body(&ident, &data)?;
 
-        // Where clauses on struct definitions are supported.
+        // Where clauses on `struct` definitions are supported.
         let mut where_clause = where_clause.cloned();
 
         // Only create a where clause if required
@@ -851,7 +851,7 @@ mod test {
 
     #[test]
     fn ui() {
-        // Skip UI tests when we are tesing MSRV.
+        // Skip UI tests when we are testing MSRV.
         if let Ok(var) = std::env::var("DERIVE_WHERE_SKIP_UI") {
             if var == "1" {
                 return;
