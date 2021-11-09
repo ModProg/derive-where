@@ -7,8 +7,6 @@
 // To support a lower MSRV.
 extern crate proc_macro;
 
-use core::cmp::Ordering;
-
 use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote, ToTokens};
 use syn::{
@@ -306,13 +304,15 @@ impl Trait {
     /// Build signature for [`PartialOrd`] and [`Ord`].
     fn build_ord_signature(
         self,
-        name: &Ident,
+        #[cfg(not(feature = "safe"))] _name: &Ident,
+        #[cfg(feature = "safe")] name: &Ident,
         variants: Option<(&[&Ident], &[&Fields])>,
         body: TokenStream,
     ) -> TokenStream {
         use Trait::*;
 
         /// Generate [`TokenStream`] for a pattern skipping all fields.
+        #[cfg(feature = "safe")]
         fn skip(fields: &Fields) -> TokenStream {
             match fields {
                 Fields::Named(_) => quote! { { .. } },
@@ -321,12 +321,19 @@ impl Trait {
             }
         }
 
+        #[cfg(feature = "safe")]
         let mut less = quote! { ::core::cmp::Ordering::Less };
         let mut equal = quote! { ::core::cmp::Ordering::Equal };
+        #[cfg(feature = "safe")]
         let mut greater = quote! { ::core::cmp::Ordering::Greater };
 
         // Add `Option` to `Ordering` if we are implementing `PartialOrd`.
         match self {
+            #[cfg(not(feature = "safe"))]
+            PartialOrd => {
+                equal = quote! { ::core::option::Option::Some(#equal) };
+            }
+            #[cfg(feature = "safe")]
             PartialOrd => {
                 less = quote! { ::core::option::Option::Some(#less) };
                 equal = quote! { ::core::option::Option::Some(#equal) };
@@ -358,59 +365,88 @@ impl Trait {
                     quote! { unreachable!("comparing variants yielded unexpected results") }
                 };
 
-                let mut different = Vec::with_capacity(variants.len());
+                #[cfg(not(feature = "safe"))]
+                {
+                    let path = self.path();
+                    let method = match self {
+                        PartialOrd => quote! { partial_cmp },
+                        Ord => quote! { cmp },
+                        _ => unreachable!("unsupported trait in `prepare_ord`"),
+                    };
 
-                // Build separate `match` arms to compare different variants to each
-                // other. The index for these variants is used to determine which
-                // `Ordering` to return.
-                for (index, (variant, field)) in variants.iter().zip(fields).enumerate() {
-                    let mut arms = Vec::with_capacity(variants.len() - 1);
+                    quote! {
+                        let __self_disc = ::core::mem::discriminant(self);
+                        let __other_disc = ::core::mem::discriminant(__other);
 
-                    for (index_other, (variant_other, field_other)) in
-                        variants.iter().zip(fields).enumerate()
-                    {
-                        // Make sure we aren't comparing the same variant with itself.
-                        if index != index_other {
-                            let ordering = match index.cmp(&index_other) {
-                                Ordering::Less => &less,
-                                Ordering::Equal => &equal,
-                                Ordering::Greater => &greater,
-                            };
-
-                            let skip = skip(field_other);
-                            let variant_other = &variant_other;
-
-                            arms.push(quote! {
-                                #name::#variant_other #skip => #ordering,
-                            });
+                        if __self_disc == __other_disc {
+                            match (self, __other) {
+                                #body
+                                _ => #rest,
+                            }
+                        } else {
+                            #path::#method(
+                                &::core::mem::transmute::<_, isize>(__self_disc),
+                                &::core::mem::transmute::<_, isize>(__other_disc),
+                            )
                         }
                     }
-
-                    let skip = skip(field);
-                    let variant = &variant;
-                    #[cfg(not(feature = "safe"))]
-                    let unreachable = quote! { unsafe { ::core::hint::unreachable_unchecked() } };
-                    #[cfg(feature = "safe")]
-                    let unreachable =
-                        quote! { unreachable!("comparing variants yielded unexpected results") };
-
-                    different.push(quote! {
-                        #name::#variant #skip => match __other {
-                            #(#arms)*
-                            _ => #unreachable,
-                        },
-                    });
                 }
+                #[cfg(feature = "safe")]
+                {
+                    let mut different = Vec::with_capacity(variants.len());
 
-                quote! {
-                    if ::core::mem::discriminant(self) == ::core::mem::discriminant(__other) {
-                        match (self, __other) {
-                            #body
-                            _ => #rest,
+                    // Build separate `match` arms to compare different variants to each
+                    // other. The index for these variants is used to determine which
+                    // `Ordering` to return.
+                    for (index, (variant, field)) in variants.iter().zip(fields).enumerate() {
+                        let mut arms = Vec::with_capacity(variants.len() - 1);
+
+                        for (index_other, (variant_other, field_other)) in
+                            variants.iter().zip(fields).enumerate()
+                        {
+                            // Make sure we aren't comparing the same variant with itself.
+                            if index != index_other {
+                                use core::cmp::Ordering::*;
+
+                                let ordering = match index.cmp(&index_other) {
+                                    Less => &less,
+                                    Equal => &equal,
+                                    Greater => &greater,
+                                };
+
+                                let skip = skip(field_other);
+                                let variant_other = &variant_other;
+
+                                arms.push(quote! {
+                                    #name::#variant_other #skip => #ordering,
+                                });
+                            }
                         }
-                    } else {
-                        match self {
-                            #(#different)*
+
+                        let skip = skip(field);
+                        let variant = &variant;
+
+                        different.push(quote! {
+                            #name::#variant #skip => match __other {
+                                #(#arms)*
+                                _ => unreachable!("comparing variants yielded unexpected results"),
+                            },
+                        });
+                    }
+
+                    quote! {
+                        let __self_disc = ::core::mem::discriminant(self);
+                        let __other_disc = ::core::mem::discriminant(__other);
+
+                        if __self_disc == __other_disc {
+                            match (self, __other) {
+                                #body
+                                _ => #rest,
+                            }
+                        } else {
+                            match self {
+                                #(#different)*
+                            }
                         }
                     }
                 }
@@ -500,11 +536,12 @@ impl Trait {
         let mut equal = quote! { ::core::cmp::Ordering::Equal };
 
         // Add `Option` to `Ordering` if we are implementing `PartialOrd`.
-        match self {
+        let method = match self {
             PartialOrd => {
                 equal = quote! { ::core::option::Option::Some(#equal) };
+                quote! { partial_cmp }
             }
-            Ord => (),
+            Ord => quote! { cmp },
             _ => unreachable!("unsupported trait in `prepare_ord`"),
         };
 
@@ -515,7 +552,7 @@ impl Trait {
         // Builds `match` arms backwards, using the `match` arm of the field coming afterwards.
         for (field_temp, field_other) in fields_temp.iter().zip(fields_other).rev() {
             body = quote! {
-                match #path::partial_cmp(#field_temp, #field_other) {
+                match #path::#method(#field_temp, #field_other) {
                     #equal => #body,
                     __cmp => __cmp,
                 }
@@ -925,7 +962,7 @@ mod test {
                     fn cmp(&self, __other: &Self) -> ::core::cmp::Ordering {
                         match (self, __other) {
                             (Test { field: ref __field }, Test { field: ref __other_field }) =>
-                                match ::core::cmp::Ord::partial_cmp(__field, __other_field) {
+                                match ::core::cmp::Ord::cmp(__field, __other_field) {
                                     ::core::cmp::Ordering::Equal => ::core::cmp::Ordering::Equal,
                                     __cmp => __cmp,
                                 },
@@ -1022,7 +1059,7 @@ mod test {
                     fn cmp(&self, __other: &Self) -> ::core::cmp::Ordering {
                         match (self, __other) {
                             (Test(ref __0), Test(ref __other_0)) =>
-                                match ::core::cmp::Ord::partial_cmp(__0, __other_0) {
+                                match ::core::cmp::Ord::cmp(__0, __other_0) {
                                     ::core::cmp::Ordering::Equal => ::core::cmp::Ordering::Equal,
                                     __cmp => __cmp,
                                 },
@@ -1066,9 +1103,65 @@ mod test {
     #[test]
     fn enum_() -> Result<()> {
         #[cfg(not(feature = "safe"))]
-        let unreachable = quote! { unsafe { ::core::hint::unreachable_unchecked() } };
+        let ord = quote! {
+            ::core::cmp::Ord::cmp(
+                &::core::mem::transmute::<_, isize>(__self_disc),
+                &::core::mem::transmute::<_, isize>(__other_disc),
+            )
+        };
         #[cfg(feature = "safe")]
-        let unreachable = quote! { unreachable!("comparing variants yielded unexpected results") };
+        let ord = quote! {
+            match self {
+                Test::A { .. } =>
+                    match __other {
+                        Test::B(..) => ::core::cmp::Ordering::Less,
+                        Test::C => ::core::cmp::Ordering::Less,
+                        _ => unreachable!("comparing variants yielded unexpected results"),
+                    },
+                Test::B(..) =>
+                    match __other {
+                        Test::A { .. } => ::core::cmp::Ordering::Greater,
+                        Test::C => ::core::cmp::Ordering::Less,
+                        _ => unreachable!("comparing variants yielded unexpected results"),
+                    },
+                Test::C =>
+                    match __other {
+                        Test::A { .. } => ::core::cmp::Ordering::Greater,
+                        Test::B(..) => ::core::cmp::Ordering::Greater,
+                        _ => unreachable!("comparing variants yielded unexpected results"),
+                    },
+            }
+        };
+        #[cfg(not(feature = "safe"))]
+        let partial_ord = quote! {
+            ::core::cmp::PartialOrd::partial_cmp(
+                &::core::mem::transmute::<_, isize>(__self_disc),
+                &::core::mem::transmute::<_, isize>(__other_disc),
+            )
+        };
+        #[cfg(feature = "safe")]
+        let partial_ord = quote! {
+            match self {
+                Test::A { .. } =>
+                    match __other {
+                        Test::B(..) => ::core::option::Option::Some(::core::cmp::Ordering::Less),
+                        Test::C => ::core::option::Option::Some(::core::cmp::Ordering::Less),
+                        _ => unreachable!("comparing variants yielded unexpected results"),
+                    },
+                Test::B(..) =>
+                    match __other {
+                        Test::A { .. } => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
+                        Test::C => ::core::option::Option::Some(::core::cmp::Ordering::Less),
+                        _ => unreachable!("comparing variants yielded unexpected results"),
+                    },
+                Test::C =>
+                    match __other {
+                        Test::A { .. } => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
+                        Test::B(..) => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
+                        _ => unreachable!("comparing variants yielded unexpected results"),
+                    },
+            }
+        };
 
         test_derive(
             quote! { Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd; T },
@@ -1145,41 +1238,25 @@ mod test {
                 {
                     #[inline]
                     fn cmp(&self, __other: &Self) -> ::core::cmp::Ordering {
-                        if ::core::mem::discriminant(self) == ::core::mem::discriminant(__other) {
+                        let __self_disc = ::core::mem::discriminant(self);
+                        let __other_disc = ::core::mem::discriminant(__other);
+
+                        if __self_disc == __other_disc {
                             match (self, __other) {
                                 (Test::A { field: ref __field }, Test::A { field: ref __other_field }) =>
-                                    match ::core::cmp::Ord::partial_cmp(__field, __other_field) {
+                                    match ::core::cmp::Ord::cmp(__field, __other_field) {
                                         ::core::cmp::Ordering::Equal => ::core::cmp::Ordering::Equal,
                                         __cmp => __cmp,
                                     },
                                 (Test::B(ref __0), Test::B(ref __other_0)) =>
-                                    match ::core::cmp::Ord::partial_cmp(__0, __other_0) {
+                                    match ::core::cmp::Ord::cmp(__0, __other_0) {
                                         ::core::cmp::Ordering::Equal => ::core::cmp::Ordering::Equal,
                                         __cmp => __cmp,
                                     },
                                 _ => ::core::cmp::Ordering::Equal,
                             }
                         } else {
-                            match self {
-                                Test::A { .. } =>
-                                    match __other {
-                                        Test::B(..) => ::core::cmp::Ordering::Less,
-                                        Test::C => ::core::cmp::Ordering::Less,
-                                        _ => #unreachable,
-                                    },
-                                Test::B(..) =>
-                                    match __other {
-                                        Test::A { .. } => ::core::cmp::Ordering::Greater,
-                                        Test::C => ::core::cmp::Ordering::Less,
-                                        _ => #unreachable,
-                                    },
-                                Test::C =>
-                                    match __other {
-                                        Test::A { .. } => ::core::cmp::Ordering::Greater,
-                                        Test::B(..) => ::core::cmp::Ordering::Greater,
-                                        _ => #unreachable,
-                                    },
-                            }
+                            #ord
                         }
                     }
                 }
@@ -1214,7 +1291,10 @@ mod test {
                 {
                     #[inline]
                     fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
-                        if ::core::mem::discriminant(self) == ::core::mem::discriminant(__other) {
+                        let __self_disc = ::core::mem::discriminant(self);
+                        let __other_disc = ::core::mem::discriminant(__other);
+
+                        if __self_disc == __other_disc {
                             match (self, __other) {
                                 (Test::A { field: ref __field }, Test::A { field: ref __other_field }) =>
                                     match ::core::cmp::PartialOrd::partial_cmp(__field, __other_field) {
@@ -1229,26 +1309,7 @@ mod test {
                                 _ => ::core::option::Option::Some(::core::cmp::Ordering::Equal),
                             }
                         } else {
-                            match self {
-                                Test::A { .. } =>
-                                    match __other {
-                                        Test::B(..) => ::core::option::Option::Some(::core::cmp::Ordering::Less),
-                                        Test::C => ::core::option::Option::Some(::core::cmp::Ordering::Less),
-                                        _ => #unreachable,
-                                    },
-                                Test::B(..) =>
-                                    match __other {
-                                        Test::A { .. } => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
-                                        Test::C => ::core::option::Option::Some(::core::cmp::Ordering::Less),
-                                        _ => #unreachable,
-                                    },
-                                Test::C =>
-                                    match __other {
-                                        Test::A { .. } => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
-                                        Test::B(..) => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
-                                        _ => #unreachable,
-                                    },
-                            }
+                            #partial_ord
                         }
                     }
                 }
@@ -1328,6 +1389,28 @@ mod test {
         let unreachable = quote! { unsafe { ::core::hint::unreachable_unchecked() } };
         #[cfg(feature = "safe")]
         let unreachable = quote! { unreachable!("comparing variants yielded unexpected results") };
+        #[cfg(not(feature = "safe"))]
+        let partial_ord = quote! {
+            ::core::cmp::PartialOrd::partial_cmp(
+                &::core::mem::transmute::<_, isize>(__self_disc),
+                &::core::mem::transmute::<_, isize>(__other_disc),
+            )
+        };
+        #[cfg(feature = "safe")]
+        let partial_ord = quote! {
+            match self {
+                Test::A(..) =>
+                    match __other {
+                        Test::B(..) => ::core::option::Option::Some(::core::cmp::Ordering::Less),
+                        _ => #unreachable,
+                    },
+                Test::B(..) =>
+                    match __other {
+                        Test::A(..) => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
+                        _ => #unreachable,
+                    },
+            }
+        };
 
         test_derive(
             quote! { PartialEq, PartialOrd; T },
@@ -1363,7 +1446,10 @@ mod test {
                 {
                     #[inline]
                     fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
-                        if ::core::mem::discriminant(self) == ::core::mem::discriminant(__other) {
+                        let __self_disc = ::core::mem::discriminant(self);
+                        let __other_disc = ::core::mem::discriminant(__other);
+
+                        if __self_disc == __other_disc {
                             match (self, __other) {
                                 (Test::A(ref __0), Test::A(ref __other_0)) =>
                                     match ::core::cmp::PartialOrd::partial_cmp(__0, __other_0) {
@@ -1378,18 +1464,7 @@ mod test {
                                 _ => #unreachable,
                             }
                         } else {
-                            match self {
-                                Test::A(..) =>
-                                    match __other {
-                                        Test::B(..) => ::core::option::Option::Some(::core::cmp::Ordering::Less),
-                                        _ => #unreachable,
-                                    },
-                                Test::B(..) =>
-                                    match __other {
-                                        Test::A(..) => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
-                                        _ => #unreachable,
-                                    },
-                            }
+                            #partial_ord
                         }
                     }
                 }
@@ -1400,9 +1475,27 @@ mod test {
     #[test]
     fn enum_unit() -> Result<()> {
         #[cfg(not(feature = "safe"))]
-        let unreachable = quote! { unsafe { ::core::hint::unreachable_unchecked() } };
+        let partial_ord = quote! {
+            ::core::cmp::PartialOrd::partial_cmp(
+                &::core::mem::transmute::<_, isize>(__self_disc),
+                &::core::mem::transmute::<_, isize>(__other_disc),
+            )
+        };
         #[cfg(feature = "safe")]
-        let unreachable = quote! { unreachable!("comparing variants yielded unexpected results") };
+        let partial_ord = quote! {
+            match self {
+                Test::A(..) =>
+                    match __other {
+                        Test::B => ::core::option::Option::Some(::core::cmp::Ordering::Less),
+                        _ => unreachable!("comparing variants yielded unexpected results"),
+                    },
+                Test::B =>
+                    match __other {
+                        Test::A(..) => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
+                        _ => unreachable!("comparing variants yielded unexpected results"),
+                    },
+            }
+        };
 
         test_derive(
             quote! { PartialEq, PartialOrd; T },
@@ -1433,7 +1526,10 @@ mod test {
                 {
                     #[inline]
                     fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
-                        if ::core::mem::discriminant(self) == ::core::mem::discriminant(__other) {
+                        let __self_disc = ::core::mem::discriminant(self);
+                        let __other_disc = ::core::mem::discriminant(__other);
+
+                        if __self_disc == __other_disc {
                             match (self, __other) {
                                 (Test::A(ref __0), Test::A(ref __other_0)) =>
                                     match ::core::cmp::PartialOrd::partial_cmp(__0, __other_0) {
@@ -1443,18 +1539,7 @@ mod test {
                                 _ => ::core::option::Option::Some(::core::cmp::Ordering::Equal),
                             }
                         } else {
-                            match self {
-                                Test::A(..) =>
-                                    match __other {
-                                        Test::B => ::core::option::Option::Some(::core::cmp::Ordering::Less),
-                                        _ => #unreachable,
-                                    },
-                                Test::B =>
-                                    match __other {
-                                        Test::A(..) => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
-                                        _ => #unreachable,
-                                    },
-                            }
+                            #partial_ord
                         }
                     }
                 }
