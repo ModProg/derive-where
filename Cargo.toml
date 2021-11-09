@@ -20,6 +20,9 @@ include = [
 [lib]
 proc-macro = true
 
+[features]
+safe = []
+
 [dependencies]
 proc-macro2 = { version = "1", default-features = false, features = ["proc-macro"] }
 quote = { version = "1", default-features = false }
