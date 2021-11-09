@@ -304,12 +304,15 @@ impl Trait {
     /// Build signature for [`PartialOrd`] and [`Ord`].
     fn build_ord_signature(
         self,
-        #[cfg(not(feature = "safe"))] _name: &Ident,
-        #[cfg(feature = "safe")] name: &Ident,
+        name: &Ident,
         variants: Option<(&[&Ident], &[&Fields])>,
         body: TokenStream,
     ) -> TokenStream {
         use Trait::*;
+
+        // Rust 1.36.0 doesn't support attributes on parameters.
+        #[cfg(not(feature = "safe"))]
+        core::mem::drop(name);
 
         /// Generate [`TokenStream`] for a pattern skipping all fields.
         #[cfg(feature = "safe")]
@@ -901,7 +904,7 @@ mod test {
     fn ui() {
         // Skip UI tests when we are testing MSRV.
         match std::env::var("DERIVE_WHERE_SKIP_UI") {
-            Ok(var) if var == "1" => (),
+            Ok(ref var) if var == "1" => (),
             _ => TestCases::new().compile_fail("tests/ui/*.rs"),
         }
     }
