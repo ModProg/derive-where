@@ -385,8 +385,8 @@ impl Trait {
                             }
                         } else {
                             #path::#method(
-                                &::core::mem::transmute::<_, isize>(__self_disc),
-                                &::core::mem::transmute::<_, isize>(__other_disc),
+                                &unsafe { ::core::mem::transmute::<_, isize>(__self_disc) },
+                                &unsafe { ::core::mem::transmute::<_, isize>(__other_disc) },
                             )
                         }
                     }
@@ -1105,8 +1105,8 @@ mod test {
         #[cfg(not(feature = "safe"))]
         let ord = quote! {
             ::core::cmp::Ord::cmp(
-                &::core::mem::transmute::<_, isize>(__self_disc),
-                &::core::mem::transmute::<_, isize>(__other_disc),
+                &unsafe { ::core::mem::transmute::<_, isize>(__self_disc) },
+                &unsafe { ::core::mem::transmute::<_, isize>(__other_disc) },
             )
         };
         #[cfg(feature = "safe")]
@@ -1135,8 +1135,8 @@ mod test {
         #[cfg(not(feature = "safe"))]
         let partial_ord = quote! {
             ::core::cmp::PartialOrd::partial_cmp(
-                &::core::mem::transmute::<_, isize>(__self_disc),
-                &::core::mem::transmute::<_, isize>(__other_disc),
+                &unsafe { ::core::mem::transmute::<_, isize>(__self_disc) },
+                &unsafe { ::core::mem::transmute::<_, isize>(__other_disc) },
             )
         };
         #[cfg(feature = "safe")]
@@ -1392,8 +1392,8 @@ mod test {
         #[cfg(not(feature = "safe"))]
         let partial_ord = quote! {
             ::core::cmp::PartialOrd::partial_cmp(
-                &::core::mem::transmute::<_, isize>(__self_disc),
-                &::core::mem::transmute::<_, isize>(__other_disc),
+                &unsafe { ::core::mem::transmute::<_, isize>(__self_disc) },
+                &unsafe { ::core::mem::transmute::<_, isize>(__other_disc) },
             )
         };
         #[cfg(feature = "safe")]
@@ -1477,8 +1477,8 @@ mod test {
         #[cfg(not(feature = "safe"))]
         let partial_ord = quote! {
             ::core::cmp::PartialOrd::partial_cmp(
-                &::core::mem::transmute::<_, isize>(__self_disc),
-                &::core::mem::transmute::<_, isize>(__other_disc),
+                &unsafe { ::core::mem::transmute::<_, isize>(__self_disc) },
+                &unsafe { ::core::mem::transmute::<_, isize>(__other_disc) },
             )
         };
         #[cfg(feature = "safe")]
