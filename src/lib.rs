@@ -7,7 +7,7 @@
 // To support a lower MSRV.
 extern crate proc_macro;
 
-use core::{cmp::Ordering, iter};
+use core::cmp::Ordering;
 
 use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote, ToTokens};
@@ -16,8 +16,8 @@ use syn::{
     punctuated::Punctuated,
     spanned::Spanned,
     token::{Colon, Where},
-    Data, DeriveInput, Error, Fields, FieldsNamed, FieldsUnnamed, Path, PredicateType, Result,
-    Token, TraitBound, Type, TypeParamBound, WhereClause, WherePredicate,
+    Data, DataUnion, DeriveInput, Error, Fields, FieldsNamed, FieldsUnnamed, Path, PredicateType,
+    Result, Token, TraitBound, Type, TypeParamBound, WhereClause, WherePredicate,
 };
 
 /// Holds a single generic [type](Type) or [type with bound](PredicateType)
@@ -154,13 +154,13 @@ impl Parse for Trait {
 }
 
 impl Trait {
-    /// Returns corresponding fully qualified path to the trait.
+    /// Returns fully qualified path for the trait.
     fn path(self) -> Path {
         use Trait::*;
 
         syn::parse_str(match self {
             Clone => "::core::clone::Clone",
-            Copy => "::core::copy::Copy",
+            Copy => "::core::marker::Copy",
             Debug => "::core::fmt::Debug",
             Eq => "::core::cmp::Eq",
             Hash => "::core::hash::Hash",
@@ -169,6 +169,30 @@ impl Trait {
             PartialOrd => "::core::cmp::PartialOrd",
         })
         .expect("failed to parse path")
+    }
+
+    /// Returns where-clause bounds for the trait in respect of the item type.
+    fn where_bounds(self, data: &Data) -> Punctuated<TypeParamBound, Token![+]> {
+        let mut list = Punctuated::new();
+
+        list.push(TypeParamBound::Trait(TraitBound {
+            paren_token: None,
+            modifier: syn::TraitBoundModifier::None,
+            lifetimes: None,
+            path: self.path(),
+        }));
+
+        // `Clone` for unions requires the `Copy` bound.
+        if let (Trait::Clone, Data::Union(..)) = (self, data) {
+            list.push(TypeParamBound::Trait(TraitBound {
+                paren_token: None,
+                modifier: syn::TraitBoundModifier::None,
+                lifetimes: None,
+                path: Trait::Copy.path(),
+            }))
+        }
+
+        list
     }
 
     /// Generate `impl` item body.
@@ -226,10 +250,7 @@ impl Trait {
 
                 Ok(self.build_signature(name, Some((&variants, &variants_type)), body))
             }
-            Data::Union(data) => Err(Error::new(
-                data.union_token.span(),
-                "unions aren't supported",
-            )),
+            Data::Union(data) => self.build_for_union(data),
         }
     }
 
@@ -700,6 +721,28 @@ impl Trait {
             PartialOrd => quote! {},
         }
     }
+
+    /// Build method body if type is a union. See description for `pattern` in
+    /// [`Self::build_for_struct`].
+    fn build_for_union(self, data: &DataUnion) -> Result<TokenStream> {
+        use Trait::*;
+
+        match self {
+            Clone => Ok(quote! {
+                #[inline]
+                fn clone(&self) -> Self {
+                    struct __AssertParamIsCopy<__T: ::core::marker::Copy + ?::core::marker::Sized>(::core::marker::PhantomData<__T>);
+                    let _: __AssertParamIsCopy<Self>;
+                    *self
+                }
+            }),
+            Copy => Ok(quote! {}),
+            _ => Err(Error::new(
+                data.union_token.span(),
+                "traits other then `Clone` and `Copy` aren't supported by unions",
+            )),
+        }
+    }
 }
 
 /// Internal derive function for handling errors.
@@ -729,7 +772,6 @@ fn derive_where_internal(attr: TokenStream, item: TokenStream) -> Result<TokenSt
     // Every trait needs a separate implementation.
     for trait_ in derive_where.traits {
         let body = trait_.generate_body(&ident, &data)?;
-        let trait_ = trait_.path();
 
         // Where clauses on struct definitions are supported.
         let mut where_clause = where_clause.cloned();
@@ -752,17 +794,13 @@ fn derive_where_internal(attr: TokenStream, item: TokenStream) -> Result<TokenSt
                             lifetimes: None,
                             bounded_ty: path.clone(),
                             colon_token: Colon::default(),
-                            bounds: iter::once(TypeParamBound::Trait(TraitBound {
-                                paren_token: None,
-                                modifier: syn::TraitBoundModifier::None,
-                                lifetimes: None,
-                                path: trait_.clone(),
-                            }))
-                            .collect(),
+                            bounds: trait_.where_bounds(&data),
                         },
                     }));
             }
         }
+
+        let trait_ = trait_.path();
 
         // Add implementation item to the output.
         output.extend(quote! {
@@ -835,8 +873,8 @@ mod test {
                     }
                 }
 
-                impl<T> ::core::copy::Copy for Test<T>
-                where T: ::core::copy::Copy
+                impl<T> ::core::marker::Copy for Test<T>
+                where T: ::core::marker::Copy
                 { }
 
                 impl<T> ::core::fmt::Debug for Test<T>
@@ -928,8 +966,8 @@ mod test {
                     }
                 }
 
-                impl<T> ::core::copy::Copy for Test<T>
-                where T: ::core::copy::Copy
+                impl<T> ::core::marker::Copy for Test<T>
+                where T: ::core::marker::Copy
                 { }
 
                 impl<T> ::core::fmt::Debug for Test<T>
@@ -1027,8 +1065,8 @@ mod test {
                     }
                 }
 
-                impl<T> ::core::copy::Copy for Test<T>
-                where T: ::core::copy::Copy
+                impl<T> ::core::marker::Copy for Test<T>
+                where T: ::core::marker::Copy
                 { }
 
                 impl<T> ::core::fmt::Debug for Test<T>
@@ -1185,6 +1223,33 @@ mod test {
                         }
                     }
                 }
+            },
+        )
+    }
+
+    #[test]
+    fn union_() -> Result<()> {
+        test_derive(
+            quote! { Clone, Copy; T },
+            quote! { union Test<T> {
+                a: core::marker::PhantomData<T>,
+                b: u8,
+            } },
+            quote! {
+                impl<T> ::core::clone::Clone for Test<T>
+                where T: ::core::clone::Clone + ::core::marker::Copy
+                {
+                    #[inline]
+                    fn clone(&self) -> Self {
+                        struct __AssertParamIsCopy<__T: ::core::marker::Copy + ?::core::marker::Sized>(::core::marker::PhantomData<__T>);
+                        let _: __AssertParamIsCopy<Self>;
+                        *self
+                    }
+                }
+
+                impl<T> ::core::marker::Copy for Test<T>
+                where T: ::core::marker::Copy
+                { }
             },
         )
     }

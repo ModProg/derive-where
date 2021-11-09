@@ -1,4 +1,4 @@
-error: unions aren't supported
+error: traits other then `Clone` and `Copy` aren't supported by unions
  --> tests/ui/union.rs:5:1
   |
 5 | union Test<T> {
