@@ -1,4 +1,5 @@
 #![deny(unsafe_code)]
+#![cfg_attr(feature = "nightly", feature(allow_internal_unstable))]
 #![warn(clippy::cargo, clippy::missing_docs_in_private_items)]
 #![cfg_attr(doc, warn(rustdoc::all), allow(rustdoc::missing_doc_code_examples))]
 
@@ -311,11 +312,12 @@ impl Trait {
         use Trait::*;
 
         // Rust 1.36.0 doesn't support attributes on parameters.
-        #[cfg(not(feature = "safe"))]
+        #[cfg(any(feature = "nightly", not(feature = "safe")))]
+        #[allow(clippy::drop_ref)]
         core::mem::drop(name);
 
         /// Generate [`TokenStream`] for a pattern skipping all fields.
-        #[cfg(feature = "safe")]
+        #[cfg(all(not(feature = "nightly"), feature = "safe"))]
         fn skip(fields: &Fields) -> TokenStream {
             match fields {
                 Fields::Named(_) => quote! { { .. } },
@@ -324,19 +326,19 @@ impl Trait {
             }
         }
 
-        #[cfg(feature = "safe")]
+        #[cfg(all(not(feature = "nightly"), feature = "safe"))]
         let mut less = quote! { ::core::cmp::Ordering::Less };
         let mut equal = quote! { ::core::cmp::Ordering::Equal };
-        #[cfg(feature = "safe")]
+        #[cfg(all(not(feature = "nightly"), feature = "safe"))]
         let mut greater = quote! { ::core::cmp::Ordering::Greater };
 
         // Add `Option` to `Ordering` if we are implementing `PartialOrd`.
         match self {
-            #[cfg(not(feature = "safe"))]
+            #[cfg(any(feature = "nightly", not(feature = "safe")))]
             PartialOrd => {
                 equal = quote! { ::core::option::Option::Some(#equal) };
             }
-            #[cfg(feature = "safe")]
+            #[cfg(all(not(feature = "nightly"), feature = "safe"))]
             PartialOrd => {
                 less = quote! { ::core::option::Option::Some(#less) };
                 equal = quote! { ::core::option::Option::Some(#equal) };
@@ -368,7 +370,30 @@ impl Trait {
                     quote! { unreachable!("comparing variants yielded unexpected results") }
                 };
 
-                #[cfg(not(feature = "safe"))]
+                #[cfg(feature = "nightly")]
+                {
+                    let path = self.path();
+                    let method = match self {
+                        PartialOrd => quote! { partial_cmp },
+                        Ord => quote! { cmp },
+                        _ => unreachable!("unsupported trait in `prepare_ord`"),
+                    };
+
+                    quote! {
+                        let __self_disc = ::core::intrinsics::discriminant_value(&self);
+                        let __other_disc = ::core::intrinsics::discriminant_value(&__other);
+
+                        if __self_disc == __other_disc {
+                            match (self, __other) {
+                                #body
+                                _ => #rest,
+                            }
+                        } else {
+                            #path::#method(&__self_disc, &__other_disc)
+                        }
+                    }
+                }
+                #[cfg(not(any(feature = "nightly", feature = "safe")))]
                 {
                     let path = self.path();
                     let method = match self {
@@ -394,7 +419,7 @@ impl Trait {
                         }
                     }
                 }
-                #[cfg(feature = "safe")]
+                #[cfg(all(not(feature = "nightly"), feature = "safe"))]
                 {
                     let mut different = Vec::with_capacity(variants.len());
 
@@ -871,6 +896,7 @@ fn derive_where_internal(attr: TokenStream, item: TokenStream) -> Result<TokenSt
 
 /// TODO
 #[proc_macro_attribute]
+#[cfg_attr(feature = "nightly", allow_internal_unstable(core_intrinsics))]
 pub fn derive_where(
     attr: proc_macro::TokenStream,
     item: proc_macro::TokenStream,
@@ -1104,14 +1130,28 @@ mod test {
 
     #[test]
     fn enum_() -> Result<()> {
-        #[cfg(not(feature = "safe"))]
+        #[cfg(feature = "nightly")]
+        let discriminant = quote! {
+            let __self_disc = ::core::intrinsics::discriminant_value(&self);
+            let __other_disc = ::core::intrinsics::discriminant_value(&__other);
+        };
+        #[cfg(not(feature = "nightly"))]
+        let discriminant = quote! {
+            let __self_disc = ::core::mem::discriminant(self);
+            let __other_disc = ::core::mem::discriminant(__other);
+        };
+        #[cfg(feature = "nightly")]
+        let ord = quote! {
+            ::core::cmp::Ord::cmp(&__self_disc, &__other_disc)
+        };
+        #[cfg(not(any(feature = "nightly", feature = "safe")))]
         let ord = quote! {
             ::core::cmp::Ord::cmp(
                 &unsafe { ::core::mem::transmute::<_, isize>(__self_disc) },
                 &unsafe { ::core::mem::transmute::<_, isize>(__other_disc) },
             )
         };
-        #[cfg(feature = "safe")]
+        #[cfg(all(not(feature = "nightly"), feature = "safe"))]
         let ord = quote! {
             match self {
                 Test::A { .. } =>
@@ -1134,14 +1174,18 @@ mod test {
                     },
             }
         };
-        #[cfg(not(feature = "safe"))]
+        #[cfg(feature = "nightly")]
+        let partial_ord = quote! {
+            ::core::cmp::PartialOrd::partial_cmp(&__self_disc, &__other_disc)
+        };
+        #[cfg(not(any(feature = "nightly", feature = "safe")))]
         let partial_ord = quote! {
             ::core::cmp::PartialOrd::partial_cmp(
                 &unsafe { ::core::mem::transmute::<_, isize>(__self_disc) },
                 &unsafe { ::core::mem::transmute::<_, isize>(__other_disc) },
             )
         };
-        #[cfg(feature = "safe")]
+        #[cfg(all(not(feature = "nightly"), feature = "safe"))]
         let partial_ord = quote! {
             match self {
                 Test::A { .. } =>
@@ -1239,8 +1283,7 @@ mod test {
                 {
                     #[inline]
                     fn cmp(&self, __other: &Self) -> ::core::cmp::Ordering {
-                        let __self_disc = ::core::mem::discriminant(self);
-                        let __other_disc = ::core::mem::discriminant(__other);
+                        #discriminant
 
                         if __self_disc == __other_disc {
                             match (self, __other) {
@@ -1292,8 +1335,7 @@ mod test {
                 {
                     #[inline]
                     fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
-                        let __self_disc = ::core::mem::discriminant(self);
-                        let __other_disc = ::core::mem::discriminant(__other);
+                        #discriminant
 
                         if __self_disc == __other_disc {
                             match (self, __other) {
@@ -1390,14 +1432,28 @@ mod test {
         let unreachable = quote! { unsafe { ::core::hint::unreachable_unchecked() } };
         #[cfg(feature = "safe")]
         let unreachable = quote! { unreachable!("comparing variants yielded unexpected results") };
-        #[cfg(not(feature = "safe"))]
+        #[cfg(feature = "nightly")]
+        let discriminant = quote! {
+            let __self_disc = ::core::intrinsics::discriminant_value(&self);
+            let __other_disc = ::core::intrinsics::discriminant_value(&__other);
+        };
+        #[cfg(not(feature = "nightly"))]
+        let discriminant = quote! {
+            let __self_disc = ::core::mem::discriminant(self);
+            let __other_disc = ::core::mem::discriminant(__other);
+        };
+        #[cfg(feature = "nightly")]
+        let partial_ord = quote! {
+            ::core::cmp::PartialOrd::partial_cmp(&__self_disc, &__other_disc)
+        };
+        #[cfg(not(any(feature = "nightly", feature = "safe")))]
         let partial_ord = quote! {
             ::core::cmp::PartialOrd::partial_cmp(
                 &unsafe { ::core::mem::transmute::<_, isize>(__self_disc) },
                 &unsafe { ::core::mem::transmute::<_, isize>(__other_disc) },
             )
         };
-        #[cfg(feature = "safe")]
+        #[cfg(all(not(feature = "nightly"), feature = "safe"))]
         let partial_ord = quote! {
             match self {
                 Test::A(..) =>
@@ -1447,8 +1503,7 @@ mod test {
                 {
                     #[inline]
                     fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
-                        let __self_disc = ::core::mem::discriminant(self);
-                        let __other_disc = ::core::mem::discriminant(__other);
+                        #discriminant
 
                         if __self_disc == __other_disc {
                             match (self, __other) {
@@ -1475,14 +1530,28 @@ mod test {
 
     #[test]
     fn enum_unit() -> Result<()> {
-        #[cfg(not(feature = "safe"))]
+        #[cfg(feature = "nightly")]
+        let discriminant = quote! {
+            let __self_disc = ::core::intrinsics::discriminant_value(&self);
+            let __other_disc = ::core::intrinsics::discriminant_value(&__other);
+        };
+        #[cfg(not(feature = "nightly"))]
+        let discriminant = quote! {
+            let __self_disc = ::core::mem::discriminant(self);
+            let __other_disc = ::core::mem::discriminant(__other);
+        };
+        #[cfg(feature = "nightly")]
+        let partial_ord = quote! {
+            ::core::cmp::PartialOrd::partial_cmp(&__self_disc, &__other_disc)
+        };
+        #[cfg(not(any(feature = "nightly", feature = "safe")))]
         let partial_ord = quote! {
             ::core::cmp::PartialOrd::partial_cmp(
                 &unsafe { ::core::mem::transmute::<_, isize>(__self_disc) },
                 &unsafe { ::core::mem::transmute::<_, isize>(__other_disc) },
             )
         };
-        #[cfg(feature = "safe")]
+        #[cfg(all(not(feature = "nightly"), feature = "safe"))]
         let partial_ord = quote! {
             match self {
                 Test::A(..) =>
@@ -1527,8 +1596,7 @@ mod test {
                 {
                     #[inline]
                     fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
-                        let __self_disc = ::core::mem::discriminant(self);
-                        let __other_disc = ::core::mem::discriminant(__other);
+                        #discriminant
 
                         if __self_disc == __other_disc {
                             match (self, __other) {
