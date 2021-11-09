@@ -21,6 +21,7 @@ include = [
 proc-macro = true
 
 [features]
+nightly = []
 safe = []
 
 [dependencies]
