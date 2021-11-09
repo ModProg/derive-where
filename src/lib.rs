@@ -592,7 +592,6 @@ impl Trait {
         use Trait::*;
 
         let path = self.path();
-        let debug_name = debug_name.to_string();
 
         // Build temporary de-structuring variable names from field indexes.
         let fields_temp: Vec<_> = (0..fields.unnamed.len())
@@ -612,13 +611,17 @@ impl Trait {
                 #pattern(#(ref #fields_temp),*) => #pattern (#(#path::clone(#fields_temp)),*),
             },
             Copy => quote! {},
-            Debug => quote! {
-                #pattern(#(ref #fields_temp),*) => {
-                    let mut __builder = ::core::fmt::Formatter::debug_tuple(__f, #debug_name);
-                    #(::core::fmt::DebugTuple::field(&mut __builder, #fields_temp);)*
-                    ::core::fmt::DebugTuple::finish(&mut __builder)
+            Debug => {
+                let debug_name = debug_name.to_string();
+
+                quote! {
+                    #pattern(#(ref #fields_temp),*) => {
+                        let mut __builder = ::core::fmt::Formatter::debug_tuple(__f, #debug_name);
+                        #(::core::fmt::DebugTuple::field(&mut __builder, #fields_temp);)*
+                        ::core::fmt::DebugTuple::finish(&mut __builder)
+                    }
                 }
-            },
+            }
             Eq => quote! {},
             Hash => {
                 // Add hashing the variant if this is an `enum`.
@@ -669,12 +672,14 @@ impl Trait {
     ) -> TokenStream {
         use Trait::*;
 
-        let debug_name = debug_name.to_string();
-
         match self {
             Clone => quote! { #pattern => #pattern, },
             Copy => quote! {},
-            Debug => quote! { #pattern => ::core::fmt::Formatter::write_str(__f, #debug_name), },
+            Debug => {
+                let debug_name = debug_name.to_string();
+
+                quote! { #pattern => ::core::fmt::Formatter::write_str(__f, #debug_name), }
+            }
             Eq => quote! {},
             Hash => {
                 // Add hashing the variant if this is an `enum`.
