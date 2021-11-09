@@ -275,8 +275,11 @@ impl Trait {
                 }) {
                     quote! { true }
                 } else {
+                    #[cfg(not(feature = "safe"))]
                     // This follows the standard implementation.
                     quote! { unsafe { ::core::hint::unreachable_unchecked() } }
+                    #[cfg(feature = "safe")]
+                    quote! { unreachable!("comparing variants yielded unexpected results") }
                 };
 
                 quote! {
@@ -348,8 +351,11 @@ impl Trait {
                 }) {
                     quote! { #equal }
                 } else {
+                    #[cfg(not(feature = "safe"))]
                     // This follows the standard implementation.
                     quote! { unsafe { ::core::hint::unreachable_unchecked() } }
+                    #[cfg(feature = "safe")]
+                    quote! { unreachable!("comparing variants yielded unexpected results") }
                 };
 
                 let mut different = Vec::with_capacity(variants.len());
@@ -382,11 +388,16 @@ impl Trait {
 
                     let skip = skip(field);
                     let variant = &variant;
+                    #[cfg(not(feature = "safe"))]
+                    let unreachable = quote! { unsafe { ::core::hint::unreachable_unchecked() } };
+                    #[cfg(feature = "safe")]
+                    let unreachable =
+                        quote! { unreachable!("comparing variants yielded unexpected results") };
 
                     different.push(quote! {
                         #name::#variant #skip => match __other {
                             #(#arms)*
-                            _ => unsafe { ::core::hint::unreachable_unchecked() },
+                            _ => #unreachable,
                         },
                     });
                 }
@@ -852,13 +863,10 @@ mod test {
     #[test]
     fn ui() {
         // Skip UI tests when we are testing MSRV.
-        if let Ok(var) = std::env::var("DERIVE_WHERE_SKIP_UI") {
-            if var == "1" {
-                return;
-            }
+        match std::env::var("DERIVE_WHERE_SKIP_UI") {
+            Ok(var) if var == "1" => (),
+            _ => TestCases::new().compile_fail("tests/ui/*.rs"),
         }
-
-        TestCases::new().compile_fail("tests/ui/*.rs");
     }
 
     #[test]
@@ -1057,6 +1065,11 @@ mod test {
 
     #[test]
     fn enum_() -> Result<()> {
+        #[cfg(not(feature = "safe"))]
+        let unreachable = quote! { unsafe { ::core::hint::unreachable_unchecked() } };
+        #[cfg(feature = "safe")]
+        let unreachable = quote! { unreachable!("comparing variants yielded unexpected results") };
+
         test_derive(
             quote! { Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd; T },
             quote! { enum Test<T> {
@@ -1152,19 +1165,19 @@ mod test {
                                     match __other {
                                         Test::B(..) => ::core::cmp::Ordering::Less,
                                         Test::C => ::core::cmp::Ordering::Less,
-                                        _ => unsafe { ::core::hint::unreachable_unchecked() },
+                                        _ => #unreachable,
                                     },
                                 Test::B(..) =>
                                     match __other {
                                         Test::A { .. } => ::core::cmp::Ordering::Greater,
                                         Test::C => ::core::cmp::Ordering::Less,
-                                        _ => unsafe { ::core::hint::unreachable_unchecked() },
+                                        _ => #unreachable,
                                     },
                                 Test::C =>
                                     match __other {
                                         Test::A { .. } => ::core::cmp::Ordering::Greater,
                                         Test::B(..) => ::core::cmp::Ordering::Greater,
-                                        _ => unsafe { ::core::hint::unreachable_unchecked() },
+                                        _ => #unreachable,
                                     },
                             }
                         }
@@ -1221,19 +1234,19 @@ mod test {
                                     match __other {
                                         Test::B(..) => ::core::option::Option::Some(::core::cmp::Ordering::Less),
                                         Test::C => ::core::option::Option::Some(::core::cmp::Ordering::Less),
-                                        _ => unsafe { ::core::hint::unreachable_unchecked() },
+                                        _ => #unreachable,
                                     },
                                 Test::B(..) =>
                                     match __other {
                                         Test::A { .. } => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
                                         Test::C => ::core::option::Option::Some(::core::cmp::Ordering::Less),
-                                        _ => unsafe { ::core::hint::unreachable_unchecked() },
+                                        _ => #unreachable,
                                     },
                                 Test::C =>
                                     match __other {
                                         Test::A { .. } => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
                                         Test::B(..) => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
-                                        _ => unsafe { ::core::hint::unreachable_unchecked() },
+                                        _ => #unreachable,
                                     },
                             }
                         }
@@ -1311,6 +1324,11 @@ mod test {
 
     #[test]
     fn enum_two_data() -> Result<()> {
+        #[cfg(not(feature = "safe"))]
+        let unreachable = quote! { unsafe { ::core::hint::unreachable_unchecked() } };
+        #[cfg(feature = "safe")]
+        let unreachable = quote! { unreachable!("comparing variants yielded unexpected results") };
+
         test_derive(
             quote! { PartialEq, PartialOrd; T },
             quote! { enum Test<T> { A(T), B(T) } },
@@ -1332,7 +1350,7 @@ mod test {
                                     __cmp &= ::core::cmp::PartialEq::eq(__0, __other_0);
                                     __cmp
                                 }
-                                _ => unsafe { ::core::hint::unreachable_unchecked() },
+                                _ => #unreachable,
                             }
                         } else {
                             false
@@ -1357,19 +1375,19 @@ mod test {
                                         ::core::option::Option::Some(::core::cmp::Ordering::Equal) => ::core::option::Option::Some(::core::cmp::Ordering::Equal),
                                         __cmp => __cmp,
                                     },
-                                _ => unsafe { ::core::hint::unreachable_unchecked() },
+                                _ => #unreachable,
                             }
                         } else {
                             match self {
                                 Test::A(..) =>
                                     match __other {
                                         Test::B(..) => ::core::option::Option::Some(::core::cmp::Ordering::Less),
-                                        _ => unsafe { ::core::hint::unreachable_unchecked() },
+                                        _ => #unreachable,
                                     },
                                 Test::B(..) =>
                                     match __other {
                                         Test::A(..) => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
-                                        _ => unsafe { ::core::hint::unreachable_unchecked() },
+                                        _ => #unreachable,
                                     },
                             }
                         }
@@ -1381,6 +1399,11 @@ mod test {
 
     #[test]
     fn enum_unit() -> Result<()> {
+        #[cfg(not(feature = "safe"))]
+        let unreachable = quote! { unsafe { ::core::hint::unreachable_unchecked() } };
+        #[cfg(feature = "safe")]
+        let unreachable = quote! { unreachable!("comparing variants yielded unexpected results") };
+
         test_derive(
             quote! { PartialEq, PartialOrd; T },
             quote! { enum Test<T> { A(T), B } },
@@ -1424,12 +1447,12 @@ mod test {
                                 Test::A(..) =>
                                     match __other {
                                         Test::B => ::core::option::Option::Some(::core::cmp::Ordering::Less),
-                                        _ => unsafe { ::core::hint::unreachable_unchecked() },
+                                        _ => #unreachable,
                                     },
                                 Test::B =>
                                     match __other {
                                         Test::A(..) => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
-                                        _ => unsafe { ::core::hint::unreachable_unchecked() },
+                                        _ => #unreachable,
                                     },
                             }
                         }
