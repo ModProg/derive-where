@@ -425,6 +425,7 @@ impl Trait {
 
         match self {
             Clone => quote! {
+                #[inline]
                 fn clone(&self) -> Self {
                     match self {
                         #body
@@ -451,6 +452,7 @@ impl Trait {
                 let body = self.build_ord_signature(name, variants, body);
 
                 quote! {
+                    #[inline]
                     fn cmp(&self, __other: &Self) -> ::core::cmp::Ordering {
                         #body
                     }
@@ -460,6 +462,7 @@ impl Trait {
                 let body = self.build_partial_eq_signature(variants, body);
 
                 quote! {
+                    #[inline]
                     fn eq(&self, __other: &Self) -> bool {
                         #body
                     }
@@ -469,6 +472,7 @@ impl Trait {
                 let body = self.build_ord_signature(name, variants, body);
 
                 quote! {
+                    #[inline]
                     fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
                         #body
                     }
@@ -866,6 +870,7 @@ mod test {
                 impl<T> ::core::clone::Clone for Test<T>
                 where T: ::core::clone::Clone
                 {
+                    #[inline]
                     fn clone(&self) -> Self {
                         match self {
                             Test { field: ref __field } => Test { field: ::core::clone::Clone::clone(__field) },
@@ -908,6 +913,7 @@ mod test {
                 impl<T> ::core::cmp::Ord for Test<T>
                 where T: ::core::cmp::Ord
                 {
+                    #[inline]
                     fn cmp(&self, __other: &Self) -> ::core::cmp::Ordering {
                         match (self, __other) {
                             (Test { field: ref __field }, Test { field: ref __other_field }) =>
@@ -922,6 +928,7 @@ mod test {
                 impl<T> ::core::cmp::PartialEq for Test<T>
                 where T: ::core::cmp::PartialEq
                 {
+                    #[inline]
                     fn eq(&self, __other: &Self) -> bool {
                         match (self, __other) {
                             (Test { field: ref __field }, Test { field: ref __other_field }) => {
@@ -936,6 +943,7 @@ mod test {
                 impl<T> ::core::cmp::PartialOrd for Test<T>
                 where T: ::core::cmp::PartialOrd
                 {
+                    #[inline]
                     fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
                         match (self, __other) {
                             (Test { field: ref __field }, Test { field: ref __other_field }) =>
@@ -959,6 +967,7 @@ mod test {
                 impl<T> ::core::clone::Clone for Test<T>
                 where T: ::core::clone::Clone
                 {
+                    #[inline]
                     fn clone(&self) -> Self {
                         match self {
                             Test(ref __0) => Test(::core::clone::Clone::clone(__0)),
@@ -1001,6 +1010,7 @@ mod test {
                 impl<T> ::core::cmp::Ord for Test<T>
                 where T: ::core::cmp::Ord
                 {
+                    #[inline]
                     fn cmp(&self, __other: &Self) -> ::core::cmp::Ordering {
                         match (self, __other) {
                             (Test(ref __0), Test(ref __other_0)) =>
@@ -1015,6 +1025,7 @@ mod test {
                 impl<T> ::core::cmp::PartialEq for Test<T>
                 where T: ::core::cmp::PartialEq
                 {
+                    #[inline]
                     fn eq(&self, __other: &Self) -> bool {
                         match (self, __other) {
                             (Test(ref __0), Test(ref __other_0)) => {
@@ -1029,6 +1040,7 @@ mod test {
                 impl<T> ::core::cmp::PartialOrd for Test<T>
                 where T: ::core::cmp::PartialOrd
                 {
+                    #[inline]
                     fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
                         match (self, __other) {
                             (Test(ref __0), Test(ref __other_0)) =>
@@ -1056,6 +1068,7 @@ mod test {
                 impl<T> ::core::clone::Clone for Test<T>
                 where T: ::core::clone::Clone
                 {
+                    #[inline]
                     fn clone(&self) -> Self {
                         match self {
                             Test::A { field: ref __field } => Test::A { field: ::core::clone::Clone::clone(__field) },
@@ -1117,6 +1130,7 @@ mod test {
                 impl<T> ::core::cmp::Ord for Test<T>
                 where T: ::core::cmp::Ord
                 {
+                    #[inline]
                     fn cmp(&self, __other: &Self) -> ::core::cmp::Ordering {
                         if ::core::mem::discriminant(self) == ::core::mem::discriminant(__other) {
                             match (self, __other) {
@@ -1160,6 +1174,7 @@ mod test {
                 impl<T> ::core::cmp::PartialEq for Test<T>
                 where T: ::core::cmp::PartialEq
                 {
+                    #[inline]
                     fn eq(&self, __other: &Self) -> bool {
                         if ::core::mem::discriminant(self) == ::core::mem::discriminant(__other) {
                             match (self, __other) {
@@ -1184,6 +1199,7 @@ mod test {
                 impl<T> ::core::cmp::PartialOrd for Test<T>
                 where T: ::core::cmp::PartialOrd
                 {
+                    #[inline]
                     fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
                         if ::core::mem::discriminant(self) == ::core::mem::discriminant(__other) {
                             match (self, __other) {
@@ -1263,6 +1279,7 @@ mod test {
                 impl<T> ::core::cmp::PartialEq for Test<T>
                 where T: ::core::cmp::PartialEq
                 {
+                    #[inline]
                     fn eq(&self, __other: &Self) -> bool {
                         match (self, __other) {
                             (Test::A(ref __0), Test::A(ref __other_0)) => {
@@ -1277,6 +1294,7 @@ mod test {
                 impl<T> ::core::cmp::PartialOrd for Test<T>
                 where T: ::core::cmp::PartialOrd
                 {
+                    #[inline]
                     fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
                         match (self, __other) {
                             (Test::A(ref __0), Test::A(ref __other_0)) =>
@@ -1300,6 +1318,7 @@ mod test {
                 impl<T> ::core::cmp::PartialEq for Test<T>
                 where T: ::core::cmp::PartialEq
                 {
+                    #[inline]
                     fn eq(&self, __other: &Self) -> bool {
                         if ::core::mem::discriminant(self) == ::core::mem::discriminant(__other) {
                             match (self, __other) {
@@ -1324,6 +1343,7 @@ mod test {
                 impl<T> ::core::cmp::PartialOrd for Test<T>
                 where T: ::core::cmp::PartialOrd
                 {
+                    #[inline]
                     fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
                         if ::core::mem::discriminant(self) == ::core::mem::discriminant(__other) {
                             match (self, __other) {
@@ -1368,6 +1388,7 @@ mod test {
                 impl<T> ::core::cmp::PartialEq for Test<T>
                 where T: ::core::cmp::PartialEq
                 {
+                    #[inline]
                     fn eq(&self, __other: &Self) -> bool {
                         if ::core::mem::discriminant(self) == ::core::mem::discriminant(__other) {
                             match (self, __other) {
@@ -1387,6 +1408,7 @@ mod test {
                 impl<T> ::core::cmp::PartialOrd for Test<T>
                 where T: ::core::cmp::PartialOrd
                 {
+                    #[inline]
                     fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
                         if ::core::mem::discriminant(self) == ::core::mem::discriminant(__other) {
                             match (self, __other) {
@@ -1425,6 +1447,7 @@ mod test {
             quote! {
                 impl<T> ::core::clone::Clone for Test<T>
                 {
+                    #[inline]
                     fn clone(&self) -> Self {
                         match self {
                             Test(ref __0, ref __1) => Test(::core::clone::Clone::clone(__0), ::core::clone::Clone::clone(__1)),
@@ -1444,6 +1467,7 @@ mod test {
                 impl<T> ::core::clone::Clone for Test<T>
                 where T: Copy
                 {
+                    #[inline]
                     fn clone(&self) -> Self {
                         match self {
                             Test(ref __0) => Test(::core::clone::Clone::clone(__0)),
@@ -1465,6 +1489,7 @@ mod test {
                     T: core::fmt::Debug,
                     T: ::core::clone::Clone
                 {
+                    #[inline]
                     fn clone(&self) -> Self {
                         match self {
                             Test(ref __0) => Test(::core::clone::Clone::clone(__0)),
@@ -1484,6 +1509,7 @@ mod test {
                 impl<T> ::core::clone::Clone for Test<T>
                 where <T as core::ops::Deref>::Target: ::core::clone::Clone
                 {
+                    #[inline]
                     fn clone(&self) -> Self {
                         match self {
                             Test(ref __0) => Test(::core::clone::Clone::clone(__0)),
@@ -1503,6 +1529,7 @@ mod test {
                 impl<T> ::core::clone::Clone for Test<T>
                 where <T as core::ops::Deref>::Target: Copy
                 {
+                    #[inline]
                     fn clone(&self) -> Self {
                         match self {
                             Test(ref __0) => Test(::core::clone::Clone::clone(__0)),
