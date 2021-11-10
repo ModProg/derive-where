@@ -904,11 +904,8 @@ impl Trait {
                 }
             }
             PartialEq => quote! {
-                (#pattern { #(#fields: ref #fields_temp),* }, #pattern { #(#fields: ref #fields_other),* }) => {
-                    let mut __cmp = true;
-                    #(__cmp &= #path::eq(#fields_temp, #fields_other);)*
-                    __cmp
-                }
+                (#pattern { #(#fields: ref #fields_temp),* }, #pattern { #(#fields: ref #fields_other),* }) =>
+                    true #(&& #path::eq(#fields_temp, #fields_other))*,
             },
             PartialOrd => {
                 let body = self.build_ord(&fields_temp, &fields_other);
@@ -992,11 +989,8 @@ impl Trait {
                 }
             }
             PartialEq => quote! {
-                (#pattern(#(ref #fields_temp),*), #pattern(#(ref #fields_other),*)) => {
-                    let mut __cmp = true;
-                    #(__cmp &= #path::eq(#fields_temp, #fields_other);)*
-                    __cmp
-                }
+                (#pattern(#(ref #fields_temp),*), #pattern(#(ref #fields_other),*)) =>
+                    true #(&& #path::eq(#fields_temp, #fields_other))*,
             },
             PartialOrd => {
                 let body = self.build_ord(&fields_temp, &fields_other);
@@ -1216,11 +1210,8 @@ mod test {
                     #[inline]
                     fn eq(&self, __other: &Self) -> bool {
                         match (self, __other) {
-                            (Test { field: ref __field }, Test { field: ref __other_field }) => {
-                                let mut __cmp = true;
-                                __cmp &= ::core::cmp::PartialEq::eq(__field, __other_field);
-                                __cmp
-                            }
+                            (Test { field: ref __field }, Test { field: ref __other_field }) =>
+                                true && ::core::cmp::PartialEq::eq(__field, __other_field),
                         }
                     }
                 }
@@ -1313,11 +1304,8 @@ mod test {
                     #[inline]
                     fn eq(&self, __other: &Self) -> bool {
                         match (self, __other) {
-                            (Test(ref __0), Test(ref __other_0)) => {
-                                let mut __cmp = true;
-                                __cmp &= ::core::cmp::PartialEq::eq(__0, __other_0);
-                                __cmp
-                            }
+                            (Test(ref __0), Test(ref __other_0)) =>
+                                true && ::core::cmp::PartialEq::eq(__0, __other_0),
                         }
                     }
                 }
@@ -1524,16 +1512,10 @@ mod test {
                     fn eq(&self, __other: &Self) -> bool {
                         if ::core::mem::discriminant(self) == ::core::mem::discriminant(__other) {
                             match (self, __other) {
-                                (Test::A { field: ref __field }, Test::A { field: ref __other_field }) => {
-                                    let mut __cmp = true;
-                                    __cmp &= ::core::cmp::PartialEq::eq(__field, __other_field);
-                                    __cmp
-                                }
-                                (Test::B(ref __0), Test::B(ref __other_0)) => {
-                                    let mut __cmp = true;
-                                    __cmp &= ::core::cmp::PartialEq::eq(__0, __other_0);
-                                    __cmp
-                                }
+                                (Test::A { field: ref __field }, Test::A { field: ref __other_field }) =>
+                                    true && ::core::cmp::PartialEq::eq(__field, __other_field),
+                                (Test::B(ref __0), Test::B(ref __other_0)) =>
+                                    true && ::core::cmp::PartialEq::eq(__0, __other_0),
                                 _ => true,
                             }
                         } else {
@@ -1611,11 +1593,8 @@ mod test {
                     #[inline]
                     fn eq(&self, __other: &Self) -> bool {
                         match (self, __other) {
-                            (Test::A(ref __0), Test::A(ref __other_0)) => {
-                                let mut __cmp = true;
-                                __cmp &= ::core::cmp::PartialEq::eq(__0, __other_0);
-                                __cmp
-                            }
+                            (Test::A(ref __0), Test::A(ref __other_0)) =>
+                                true && ::core::cmp::PartialEq::eq(__0, __other_0),
                         }
                     }
                 }
@@ -1692,16 +1671,10 @@ mod test {
                     fn eq(&self, __other: &Self) -> bool {
                         if ::core::mem::discriminant(self) == ::core::mem::discriminant(__other) {
                             match (self, __other) {
-                                (Test::A(ref __0), Test::A(ref __other_0)) => {
-                                    let mut __cmp = true;
-                                    __cmp &= ::core::cmp::PartialEq::eq(__0, __other_0);
-                                    __cmp
-                                }
-                                (Test::B(ref __0), Test::B(ref __other_0)) => {
-                                    let mut __cmp = true;
-                                    __cmp &= ::core::cmp::PartialEq::eq(__0, __other_0);
-                                    __cmp
-                                }
+                                (Test::A(ref __0), Test::A(ref __other_0)) =>
+                                    true && ::core::cmp::PartialEq::eq(__0, __other_0),
+                                (Test::B(ref __0), Test::B(ref __other_0)) =>
+                                    true && ::core::cmp::PartialEq::eq(__0, __other_0),
                                 _ => #unreachable,
                             }
                         } else {
@@ -1790,11 +1763,8 @@ mod test {
                     fn eq(&self, __other: &Self) -> bool {
                         if ::core::mem::discriminant(self) == ::core::mem::discriminant(__other) {
                             match (self, __other) {
-                                (Test::A(ref __0), Test::A(ref __other_0)) => {
-                                    let mut __cmp = true;
-                                    __cmp &= ::core::cmp::PartialEq::eq(__0, __other_0);
-                                    __cmp
-                                }
+                                (Test::A(ref __0), Test::A(ref __other_0)) =>
+                                    true && ::core::cmp::PartialEq::eq(__0, __other_0),
                                 _ => true,
                             }
                         } else {
