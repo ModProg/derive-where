@@ -24,6 +24,7 @@ proc-macro = true
 [features]
 nightly = []
 safe = []
+zeroize = []
 
 [dependencies]
 proc-macro2 = { version = "1", default-features = false, features = ["proc-macro"] }
@@ -32,3 +33,4 @@ syn = { version = "1", default-features = false, features = ["clone-impls", "der
 
 [dev-dependencies]
 trybuild = { version = "1", default-features = false }
+zeroize_ = { version = "1", package = "zeroize", default-features = false }

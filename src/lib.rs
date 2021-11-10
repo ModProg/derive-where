@@ -124,6 +124,9 @@ enum Trait {
     PartialEq,
     /// [`PartialOrd`].
     PartialOrd,
+    /// [`Zeroize`](https://docs.rs/zeroize/1.4.3/zeroize/trait.Zeroize.html).
+    #[cfg(feature = "zeroize")]
+    Zeroize,
 }
 
 impl Parse for Trait {
@@ -140,6 +143,8 @@ impl Parse for Trait {
                 "Ord" => Ord,
                 "PartialEq" => PartialEq,
                 "PartialOrd" => PartialOrd,
+                #[cfg(feature = "zeroize")]
+                "Zeroize" => Zeroize,
                 _ => {
                     return Err(Error::new(
                         ident.span(),
@@ -166,6 +171,8 @@ impl Trait {
             Ord => "::core::cmp::Ord",
             PartialEq => "::core::cmp::PartialEq",
             PartialOrd => "::core::cmp::PartialOrd",
+            #[cfg(feature = "zeroize")]
+            Zeroize => "::zeroize::Zeroize",
         })
         .expect("failed to parse path")
     }
@@ -552,6 +559,14 @@ impl Trait {
                     }
                 }
             }
+            #[cfg(feature = "zeroize")]
+            Zeroize => quote! {
+                fn zeroize(&mut self) {
+                    match self {
+                        #body
+                    }
+                }
+            },
         }
     }
 
@@ -677,6 +692,12 @@ impl Trait {
                     (#pattern { #(#fields: ref #fields_temp),* }, #pattern { #(#fields: ref #fields_other),* }) => #body,
                 }
             }
+            #[cfg(feature = "zeroize")]
+            Zeroize => quote! {
+                #pattern { #(#fields: ref mut #fields_temp),* } => {
+                    #(#path::zeroize(#fields_temp);)*
+                }
+            },
         }
     }
 
@@ -759,6 +780,12 @@ impl Trait {
                     (#pattern(#(ref #fields_temp),*), #pattern(#(ref #fields_other),*)) => #body,
                 }
             }
+            #[cfg(feature = "zeroize")]
+            Zeroize => quote! {
+                #pattern(#(ref mut #fields_temp),*) => {
+                    #(#path::zeroize(#fields_temp);)*
+                }
+            },
         }
     }
 
@@ -797,6 +824,8 @@ impl Trait {
             Ord => quote! {},
             PartialEq => quote! {},
             PartialOrd => quote! {},
+            #[cfg(feature = "zeroize")]
+            Zeroize => quote! {},
         }
     }
 
@@ -1709,6 +1738,28 @@ mod test {
                     fn clone(&self) -> Self {
                         match self {
                             Test(ref __0) => Test(::core::clone::Clone::clone(__0)),
+                        }
+                    }
+                }
+            },
+        )
+    }
+
+    #[test]
+    #[cfg(feature = "zeroize")]
+    fn zeroize() -> Result<()> {
+        test_derive(
+            quote! { Zeroize; T },
+            quote! { struct Test<T>(T); },
+            quote! {
+                impl<T> ::zeroize::Zeroize for Test<T>
+                where T: ::zeroize::Zeroize
+                {
+                    fn zeroize(&mut self) {
+                        match self {
+                            Test(ref mut __0) => {
+                                ::zeroize::Zeroize::zeroize(__0);
+                            }
                         }
                     }
                 }

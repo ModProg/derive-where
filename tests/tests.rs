@@ -1,5 +1,8 @@
 #![allow(dead_code)]
 
+#[cfg(feature = "zeroize")]
+extern crate zeroize_ as zeroize;
+
 use core::marker::PhantomData;
 
 use derive_where::derive_where;
@@ -142,4 +145,18 @@ fn test_all() {
     assert_eq!(test1.clone(), test1);
     assert_eq!(test2.clone(), test2);
     assert_eq!(test3.clone(), test3);
+}
+
+#[test]
+#[cfg(feature = "zeroize")]
+fn test_zeroize() {
+    use crate::zeroize::Zeroize;
+
+    #[derive_where(Zeroize; T)]
+    struct Test<T>(T);
+
+    let mut test = Test(42);
+    test.zeroize();
+
+    assert_eq!(test.0, 0);
 }
