@@ -1,0 +1,35 @@
+error: duplicate `drop` option
+ --> tests/ui/zeroize/duplicate_option.rs:3:44
+  |
+3 | #[derive_where::derive_where(Zeroize(drop, drop); T)]
+  |                                            ^^^^
+
+error: duplicate `crate` option
+ --> tests/ui/zeroize/duplicate_option.rs:6:58
+  |
+6 | #[derive_where::derive_where(Zeroize(crate = "zeroize_", crate = "zeroize_"); T)]
+  |                                                          ^^^^^
+
+error: duplicate `drop` option
+ --> tests/ui/zeroize/duplicate_option.rs:9:44
+  |
+9 | #[derive_where::derive_where(Zeroize(drop, drop, crate = "zeroize_"); T)]
+  |                                            ^^^^
+
+error: duplicate `crate` option
+  --> tests/ui/zeroize/duplicate_option.rs:12:64
+   |
+12 | #[derive_where::derive_where(Zeroize(drop, crate = "zeroize_", crate = "zeroize_"); T)]
+   |                                                                ^^^^^
+
+error: duplicate `crate` option
+  --> tests/ui/zeroize/duplicate_option.rs:15:58
+   |
+15 | #[derive_where::derive_where(Zeroize(crate = "zeroize_", crate = "zeroize_", drop); T)]
+   |                                                          ^^^^^
+
+error: duplicate `drop` option
+  --> tests/ui/zeroize/duplicate_option.rs:19:64
+   |
+19 | #[derive_where::derive_where(Zeroize(crate = "zeroize_", drop, drop); T)]
+   |                                                                ^^^^

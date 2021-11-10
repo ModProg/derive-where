@@ -1,0 +1,17 @@
+[package]
+name = "non-msrv-tests"
+version = "0.0.0"
+edition = "2018"
+publish = false
+
+[features]
+nightly = ["derive-where/nightly"]
+safe = ["derive-where/safe"]
+zeroize = ["derive-where/zeroize"]
+
+[dependencies]
+derive-where = { path = ".." }
+
+[dev-dependencies]
+trybuild = { version = "1", default-features = false }
+zeroize_ = { version = "1", package = "zeroize", default-features = false }
