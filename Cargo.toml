@@ -1,8 +1,13 @@
+[workspace]
+members = ["", "non-msrv-tests"]
+default-members = [""]
+resolver = "2"
+
 [package]
 name = "derive-where"
 version = "0.1.0"
 edition = "2018"
-rust-version = "1.36.0"
+rust-version = "1.33.0"
 description = "Deriving with custom trait bounds"
 documentation = "https://docs.rs/derive-where"
 readme = "README.md"
@@ -16,7 +21,6 @@ include = [
 	"LICENSE-*",
 	"README.md"
 ]
-resolver = "2"
 
 [lib]
 proc-macro = true
@@ -30,7 +34,3 @@ zeroize = []
 proc-macro2 = { version = "1", default-features = false, features = ["proc-macro"] }
 quote = { version = "1", default-features = false }
 syn = { version = "1", default-features = false, features = ["clone-impls", "derive", "parsing", "printing"] }
-
-[dev-dependencies]
-trybuild = { version = "1", default-features = false }
-zeroize_ = { version = "1", package = "zeroize", default-features = false }

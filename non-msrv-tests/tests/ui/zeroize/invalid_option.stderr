@@ -1,0 +1,11 @@
+error: `Zeroize` doesn't support this option
+ --> tests/ui/zeroize/invalid_option.rs:3:38
+  |
+3 | #[derive_where::derive_where(Zeroize(test); T)]
+  |                                      ^^^^
+
+error: `Zeroize` doesn't support this option
+ --> tests/ui/zeroize/invalid_option.rs:6:38
+  |
+6 | #[derive_where::derive_where(Zeroize(test = "test"); T)]
+  |                                      ^^^^^^^^^^^^^

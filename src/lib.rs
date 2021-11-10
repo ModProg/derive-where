@@ -8,16 +8,19 @@
 // To support a lower MSRV.
 extern crate proc_macro;
 
-use proc_macro2::{Ident, TokenStream};
+use proc_macro2::{Ident, Span, TokenStream};
 use quote::{format_ident, quote, ToTokens};
 use syn::{
     parse::{discouraged::Speculative, Parse, ParseStream},
     punctuated::Punctuated,
     spanned::Spanned,
     token::{Colon, Where},
-    Data, DataUnion, DeriveInput, Error, Fields, FieldsNamed, FieldsUnnamed, Path, PredicateType,
-    Result, Token, TraitBound, Type, TypeParamBound, WhereClause, WherePredicate,
+    Data, DataUnion, DeriveInput, Error, Fields, FieldsNamed, FieldsUnnamed, ImplGenerics, Meta,
+    Path, PredicateType, Result, Token, TraitBound, Type, TypeGenerics, TypeParamBound,
+    WhereClause, WherePredicate,
 };
+#[cfg(feature = "zeroize")]
+use syn::{Lit, NestedMeta};
 
 /// Holds a single generic [type](Type) or [type with bound](PredicateType)
 enum Generic {
@@ -54,7 +57,7 @@ impl Parse for Generic {
                 Ok(type_) => Ok(Generic::NoBound(type_)),
                 Err(error) => Err(Error::new(
                     error.span(),
-                    &format!("expected type to bind to, {}", error),
+                    format!("expected type to bind to, {}", error),
                 )),
             },
         }
@@ -106,7 +109,7 @@ impl Parse for DeriveWhere {
 }
 
 /// Trait to implement.
-#[derive(Copy, Clone, Debug)]
+#[derive(Clone)]
 enum Trait {
     /// [`Clone`].
     Clone,
@@ -126,40 +129,178 @@ enum Trait {
     PartialOrd,
     /// [`Zeroize`](https://docs.rs/zeroize/1.4.3/zeroize/trait.Zeroize.html).
     #[cfg(feature = "zeroize")]
-    Zeroize,
+    Zeroize {
+        /// Zeroize path.
+        crate_: Option<Path>,
+        /// Zeroize drop implementation.
+        drop: bool,
+    },
 }
 
 impl Parse for Trait {
     fn parse(input: ParseStream) -> Result<Self> {
-        use Trait::*;
+        /// Common error for most paths.
+        fn error(span: Span) -> Result<Trait> {
+            use Trait::*;
 
-        match Ident::parse(input) {
-            Ok(ident) => Ok(match ident.to_string().as_str() {
-                "Clone" => Clone,
-                "Copy" => Copy,
-                "Debug" => Debug,
-                "Eq" => Eq,
-                "Hash" => Hash,
-                "Ord" => Ord,
-                "PartialEq" => PartialEq,
-                "PartialOrd" => PartialOrd,
-                #[cfg(feature = "zeroize")]
-                "Zeroize" => Zeroize,
-                _ => {
-                    return Err(Error::new(
-                        ident.span(),
-                        format!("`{}` isn't a supported trait", ident),
-                    ))
+            Err(Error::new(
+                span,
+                format!(
+                    "expected one of {}",
+                    [
+                        Clone.as_str(),
+                        Copy.as_str(),
+                        Debug.as_str(),
+                        Eq.as_str(),
+                        Hash.as_str(),
+                        Ord.as_str(),
+                        PartialEq.as_str(),
+                        PartialOrd.as_str(),
+                        #[cfg(feature = "zeroize")]
+                        Zeroize {
+                            crate_: None,
+                            drop: false,
+                        }
+                        .as_str()
+                    ]
+                    .join(", ")
+                ),
+            ))
+        }
+
+        match Meta::parse(input) {
+            Ok(meta) => match meta {
+                Meta::Path(path) => {
+                    if let Some(ident) = path.get_ident() {
+                        Self::from_ident(ident)
+                    } else {
+                        error(path.span())
+                    }
                 }
-            }),
-            Err(error) => Err(Error::new(error.span(), "expected a trait")),
+                Meta::List(list) => {
+                    if let Some(ident) = list.path.get_ident() {
+                        match Trait::from_ident(ident)? {
+                            #[cfg(feature = "zeroize")]
+                            Self::Zeroize {
+                                mut crate_,
+                                mut drop,
+                            } => {
+                                for nested_meta in list.nested {
+                                    if let NestedMeta::Meta(meta) = &nested_meta {
+                                        match meta {
+                                            Meta::Path(path) => {
+                                                if let Some(ident) = path.get_ident() {
+                                                    if ident == "drop" {
+                                                        if !drop {
+                                                            drop = true;
+                                                            continue;
+                                                        } else {
+                                                            return Err(Error::new(
+                                                                ident.span(),
+                                                                "duplicate `drop` option",
+                                                            ));
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            Meta::NameValue(name_value) => {
+                                                if let Some(ident) = name_value.path.get_ident() {
+                                                    if ident == "crate" {
+                                                        if crate_.is_none() {
+                                                            if let Lit::Str(lit_str) =
+                                                                &name_value.lit
+                                                            {
+                                                                match lit_str.parse() {
+                                                                    Ok(path) => {
+                                                                        crate_ = Some(path);
+                                                                        continue;
+                                                                    }
+                                                                    Err(error) => {
+                                                                        return Err(Error::new(
+                                                                            error.span(),
+                                                                            format!(
+                                                                                "expected path, {}",
+                                                                                error
+                                                                            ),
+                                                                        ))
+                                                                    }
+                                                                }
+                                                            }
+                                                        } else {
+                                                            return Err(Error::new(
+                                                                ident.span(),
+                                                                "duplicate `crate` option",
+                                                            ));
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            other => {
+                                                return Err(Error::new(
+                                                    other.span(),
+                                                    "Unexpected option syntax",
+                                                ))
+                                            }
+                                        }
+                                    }
+
+                                    return Err(Error::new(
+                                        nested_meta.span(),
+                                        "`Zeroize` doesn't support this option",
+                                    ));
+                                }
+
+                                Ok(Self::Zeroize { crate_, drop })
+                            }
+                            trait_ => {
+                                return Err(Error::new(
+                                    list.span(),
+                                    format!("`{}` doesn't support custom options", trait_.as_str()),
+                                ))
+                            }
+                        }
+                    } else {
+                        error(list.path.span())
+                    }
+                }
+                other => Err(Error::new(other.span(), "Unexpected option syntax")),
+            },
+            Err(err) => error(err.span()),
         }
     }
 }
 
 impl Trait {
+    /// Try to create [`Trait`] from [`Ident`].
+    // MSRV doesn't support [`TryFrom`](core::convert::TryFrom).
+    fn from_ident(value: &Ident) -> Result<Self> {
+        use Trait::*;
+
+        Ok(match value.to_string().as_str() {
+            "Clone" => Clone,
+            "Copy" => Copy,
+            "Debug" => Debug,
+            "Eq" => Eq,
+            "Hash" => Hash,
+            "Ord" => Ord,
+            "PartialEq" => PartialEq,
+            "PartialOrd" => PartialOrd,
+            #[cfg(feature = "zeroize")]
+            "Zeroize" => Zeroize {
+                crate_: None,
+                drop: false,
+            },
+            _ => {
+                return Err(Error::new(
+                    value.span(),
+                    format!("`{}` isn't a supported trait", value),
+                ))
+            }
+        })
+    }
+
     /// Returns fully qualified path for the trait.
-    fn path(self) -> Path {
+    fn path(&self) -> Path {
         use Trait::*;
 
         syn::parse_str(match self {
@@ -172,13 +313,41 @@ impl Trait {
             PartialEq => "::core::cmp::PartialEq",
             PartialOrd => "::core::cmp::PartialOrd",
             #[cfg(feature = "zeroize")]
-            Zeroize => "::zeroize::Zeroize",
+            Zeroize { crate_, .. } => {
+                if let Some(crate_) = crate_ {
+                    let mut crate_ = crate_.clone();
+                    crate_
+                        .segments
+                        .push(syn::parse_str("Zeroize").expect("failed to parse ident"));
+                    return crate_;
+                } else {
+                    "::zeroize::Zeroize"
+                }
+            }
         })
         .expect("failed to parse path")
     }
 
+    /// Returns a [str] representation of this trait for the purpose of error messages.
+    fn as_str(&self) -> &'static str {
+        use Trait::*;
+
+        match self {
+            Clone => "Clone",
+            Copy => "Copy",
+            Debug => "Debug",
+            Eq => "Eq",
+            Hash => "Hash",
+            Ord => "Ord",
+            PartialEq => "PartialEq",
+            PartialOrd => "PartialOrd",
+            #[cfg(feature = "zeroize")]
+            Zeroize { .. } => "Zeroize",
+        }
+    }
+
     /// Returns where-clause bounds for the trait in respect of the item type.
-    fn where_bounds(self, data: &Data) -> Punctuated<TypeParamBound, Token![+]> {
+    fn where_bounds(&self, data: &Data) -> Punctuated<TypeParamBound, Token![+]> {
         let mut list = Punctuated::new();
 
         list.push(TypeParamBound::Trait(TraitBound {
@@ -201,8 +370,72 @@ impl Trait {
         list
     }
 
+    /// Generate an implementation for this [trait](Self).
+    fn generate_impl(
+        &self,
+        name: &Ident,
+        data: &Data,
+        generics: &Option<Vec<Generic>>,
+        impl_generics: &ImplGenerics,
+        type_generics: &TypeGenerics,
+        where_clause: &mut Option<WhereClause>,
+    ) -> Result<TokenStream> {
+        let body = self.generate_body(name, data)?;
+
+        // Only create a where clause if required
+        if let Some(generics) = generics {
+            // We use the existing where clause or create a new one if required.
+            let where_clause = where_clause.get_or_insert(WhereClause {
+                where_token: Where::default(),
+                predicates: Punctuated::default(),
+            });
+
+            // Insert bounds into the `where` clause.
+            for generic in generics {
+                where_clause
+                    .predicates
+                    .push(WherePredicate::Type(match generic {
+                        Generic::CoustomBound(type_bound) => type_bound.clone(),
+                        Generic::NoBound(path) => PredicateType {
+                            lifetimes: None,
+                            bounded_ty: path.clone(),
+                            colon_token: Colon::default(),
+                            bounds: self.where_bounds(data),
+                        },
+                    }));
+            }
+        }
+
+        let path = self.path();
+        #[allow(unused_mut)]
+        let mut output = quote! {
+            impl #impl_generics #path for #name #type_generics
+            #where_clause
+            {
+                #body
+            }
+        };
+
+        #[cfg(feature = "zeroize")]
+        {
+            if let Trait::Zeroize { drop: true, .. } = self {
+                output.extend(quote! {
+                    impl #impl_generics ::core::ops::Drop for #name #type_generics
+                    #where_clause
+                    {
+                        fn drop(&mut self) {
+                            #path::zeroize(self);
+                        }
+                    }
+                })
+            }
+        }
+
+        Ok(output)
+    }
+
     /// Generate `impl` item body.
-    fn generate_body(self, name: &Ident, data: &Data) -> Result<TokenStream> {
+    fn generate_body(&self, name: &Ident, data: &Data) -> Result<TokenStream> {
         match data {
             Data::Struct(data) => {
                 let pattern = name.into_token_stream();
@@ -262,7 +495,7 @@ impl Trait {
 
     /// Build signature for [`PartialEq`].
     fn build_partial_eq_signature(
-        self,
+        &self,
         variants: Option<(&[&Ident], &[&Fields])>,
         body: TokenStream,
     ) -> TokenStream {
@@ -311,7 +544,7 @@ impl Trait {
 
     /// Build signature for [`PartialOrd`] and [`Ord`].
     fn build_ord_signature(
-        self,
+        &self,
         name: &Ident,
         variants: Option<(&[&Ident], &[&Fields])>,
         body: TokenStream,
@@ -497,7 +730,7 @@ impl Trait {
 
     /// Build method signature of the corresponding trait.
     fn build_signature(
-        self,
+        &self,
         name: &Ident,
         variants: Option<(&[&Ident], &[&Fields])>,
         body: TokenStream,
@@ -560,7 +793,7 @@ impl Trait {
                 }
             }
             #[cfg(feature = "zeroize")]
-            Zeroize => quote! {
+            Zeroize { .. } => quote! {
                 fn zeroize(&mut self) {
                     match self {
                         #body
@@ -571,7 +804,7 @@ impl Trait {
     }
 
     /// Build `match` arms for [`PartialOrd`] and [`Ord`].
-    fn build_ord(self, fields_temp: &[Ident], fields_other: &[Ident]) -> TokenStream {
+    fn build_ord(&self, fields_temp: &[Ident], fields_other: &[Ident]) -> TokenStream {
         use Trait::*;
 
         let path = self.path();
@@ -608,7 +841,7 @@ impl Trait {
     /// generalize over matching against a `struct` or an `enum`: `Self` for
     /// `struct`s and `Self::Variant` for `enum`s.
     fn build_for_struct(
-        self,
+        &self,
         debug_name: &Ident,
         pattern: &TokenStream,
         variants: Option<(usize, &[&Ident], &[&Fields])>,
@@ -693,7 +926,7 @@ impl Trait {
                 }
             }
             #[cfg(feature = "zeroize")]
-            Zeroize => quote! {
+            Zeroize { .. } => quote! {
                 #pattern { #(#fields: ref mut #fields_temp),* } => {
                     #(#path::zeroize(#fields_temp);)*
                 }
@@ -704,7 +937,7 @@ impl Trait {
     /// Build method body if type is a tuple. See description for `pattern` in
     /// [`Self::build_for_struct`].
     fn build_for_tuple(
-        self,
+        &self,
         debug_name: &Ident,
         pattern: &TokenStream,
         variants: Option<(usize, &[&Ident], &[&Fields])>,
@@ -781,7 +1014,7 @@ impl Trait {
                 }
             }
             #[cfg(feature = "zeroize")]
-            Zeroize => quote! {
+            Zeroize { .. } => quote! {
                 #pattern(#(ref mut #fields_temp),*) => {
                     #(#path::zeroize(#fields_temp);)*
                 }
@@ -792,7 +1025,7 @@ impl Trait {
     /// Build method body if type is a unit. See description for `pattern` in
     /// [`Self::build_for_struct`].
     fn build_for_unit(
-        self,
+        &self,
         debug_name: &Ident,
         pattern: &TokenStream,
         variants: Option<(usize, &[&Ident], &[&Fields])>,
@@ -825,13 +1058,13 @@ impl Trait {
             PartialEq => quote! {},
             PartialOrd => quote! {},
             #[cfg(feature = "zeroize")]
-            Zeroize => quote! {},
+            Zeroize { .. } => quote! {},
         }
     }
 
     /// Build method body if type is a union. See description for `pattern` in
     /// [`Self::build_for_struct`].
-    fn build_for_union(self, data: &DataUnion) -> Result<TokenStream> {
+    fn build_for_union(&self, data: &DataUnion) -> Result<TokenStream> {
         use Trait::*;
 
         match self {
@@ -878,45 +1111,14 @@ fn derive_where_internal(attr: TokenStream, item: TokenStream) -> Result<TokenSt
 
     // Every trait needs a separate implementation.
     for trait_ in derive_where.traits {
-        let body = trait_.generate_body(&ident, &data)?;
-
-        // Where clauses on `struct` definitions are supported.
-        let mut where_clause = where_clause.cloned();
-
-        // Only create a where clause if required
-        if let Some(generics) = &derive_where.generics {
-            // We use the existing where clause or create a new one if required.
-            let where_clause = where_clause.get_or_insert(WhereClause {
-                where_token: Where::default(),
-                predicates: Punctuated::default(),
-            });
-
-            // Insert bounds into the `where` clause.
-            for generic in generics {
-                where_clause
-                    .predicates
-                    .push(WherePredicate::Type(match generic {
-                        Generic::CoustomBound(type_bound) => type_bound.clone(),
-                        Generic::NoBound(path) => PredicateType {
-                            lifetimes: None,
-                            bounded_ty: path.clone(),
-                            colon_token: Colon::default(),
-                            bounds: trait_.where_bounds(&data),
-                        },
-                    }));
-            }
-        }
-
-        let trait_ = trait_.path();
-
-        // Add implementation item to the output.
-        output.extend(quote! {
-            impl #impl_generics #trait_ for #ident #type_generics
-            #where_clause
-            {
-                #body
-            }
-        })
+        output.extend(trait_.generate_impl(
+            &ident,
+            &data,
+            &derive_where.generics,
+            &impl_generics,
+            &type_generics,
+            &mut where_clause.cloned(),
+        )?)
     }
 
     Ok(output)
@@ -951,16 +1153,6 @@ pub fn derive_where(
 #[cfg(test)]
 mod test {
     use super::*;
-    use trybuild::TestCases;
-
-    #[test]
-    fn ui() {
-        // Skip UI tests when we are testing MSRV.
-        match std::env::var("DERIVE_WHERE_SKIP_UI") {
-            Ok(ref var) if var == "1" => (),
-            _ => TestCases::new().compile_fail("tests/ui/*.rs"),
-        }
-    }
 
     #[test]
     fn struct_() -> Result<()> {
@@ -1761,6 +1953,118 @@ mod test {
                                 ::zeroize::Zeroize::zeroize(__0);
                             }
                         }
+                    }
+                }
+            },
+        )
+    }
+
+    #[test]
+    #[cfg(feature = "zeroize")]
+    fn zeroize_drop() -> Result<()> {
+        test_derive(
+            quote! { Zeroize(drop); T },
+            quote! { struct Test<T>(T); },
+            quote! {
+                impl<T> ::zeroize::Zeroize for Test<T>
+                where T: ::zeroize::Zeroize
+                {
+                    fn zeroize(&mut self) {
+                        match self {
+                            Test(ref mut __0) => {
+                                ::zeroize::Zeroize::zeroize(__0);
+                            }
+                        }
+                    }
+                }
+
+                impl<T> ::core::ops::Drop for Test<T>
+                where T: ::zeroize::Zeroize
+                {
+                    fn drop(&mut self) {
+                        ::zeroize::Zeroize::zeroize(self);
+                    }
+                }
+            },
+        )
+    }
+
+    #[test]
+    #[cfg(feature = "zeroize")]
+    fn zeroize_crate() -> Result<()> {
+        test_derive(
+            quote! { Zeroize(crate = "zeroize_"); T },
+            quote! { struct Test<T>(T); },
+            quote! {
+                impl<T> zeroize_::Zeroize for Test<T>
+                where T: zeroize_::Zeroize
+                {
+                    fn zeroize(&mut self) {
+                        match self {
+                            Test(ref mut __0) => {
+                                zeroize_::Zeroize::zeroize(__0);
+                            }
+                        }
+                    }
+                }
+            },
+        )
+    }
+
+    #[test]
+    #[cfg(feature = "zeroize")]
+    fn zeroize_drop_crate() -> Result<()> {
+        test_derive(
+            quote! { Zeroize(drop, crate = "zeroize_"); T },
+            quote! { struct Test<T>(T); },
+            quote! {
+                impl<T> zeroize_::Zeroize for Test<T>
+                where T: zeroize_::Zeroize
+                {
+                    fn zeroize(&mut self) {
+                        match self {
+                            Test(ref mut __0) => {
+                                zeroize_::Zeroize::zeroize(__0);
+                            }
+                        }
+                    }
+                }
+
+                impl<T> ::core::ops::Drop for Test<T>
+                where T: zeroize_::Zeroize
+                {
+                    fn drop(&mut self) {
+                        zeroize_::Zeroize::zeroize(self);
+                    }
+                }
+            },
+        )
+    }
+
+    #[test]
+    #[cfg(feature = "zeroize")]
+    fn zeroize_crate_drop() -> Result<()> {
+        test_derive(
+            quote! { Zeroize(crate = "zeroize_", drop); T },
+            quote! { struct Test<T>(T); },
+            quote! {
+                impl<T> zeroize_::Zeroize for Test<T>
+                where T: zeroize_::Zeroize
+                {
+                    fn zeroize(&mut self) {
+                        match self {
+                            Test(ref mut __0) => {
+                                zeroize_::Zeroize::zeroize(__0);
+                            }
+                        }
+                    }
+                }
+
+                impl<T> ::core::ops::Drop for Test<T>
+                where T: zeroize_::Zeroize
+                {
+                    fn drop(&mut self) {
+                        zeroize_::Zeroize::zeroize(self);
                     }
                 }
             },

@@ -1,10 +1,10 @@
-error: expected a trait
+error: expected one of Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Zeroize
  --> tests/ui/wrong_comma.rs:1:36
   |
 1 | #[derive_where::derive_where(Clone,; T)]
   |                                    ^
 
-error: expected a trait
+error: expected one of Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Zeroize
  --> tests/ui/wrong_comma.rs:4:36
   |
 4 | #[derive_where::derive_where(Clone,,)]
