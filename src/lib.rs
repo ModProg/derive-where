@@ -609,7 +609,7 @@ impl Trait {
                     quote! { unreachable!("comparing variants yielded unexpected results") }
                 };
 
-                #[cfg(feature = "nightly")]
+                #[cfg(any(feature = "nightly", not(feature = "safe")))]
                 {
                     let path = self.path();
                     let method = match self {
@@ -618,6 +618,7 @@ impl Trait {
                         _ => unreachable!("unsupported trait in `prepare_ord`"),
                     };
 
+                    #[cfg(feature = "nightly")]
                     quote! {
                         let __self_disc = ::core::intrinsics::discriminant_value(&self);
                         let __other_disc = ::core::intrinsics::discriminant_value(&__other);
@@ -631,16 +632,7 @@ impl Trait {
                             #path::#method(&__self_disc, &__other_disc)
                         }
                     }
-                }
-                #[cfg(not(any(feature = "nightly", feature = "safe")))]
-                {
-                    let path = self.path();
-                    let method = match self {
-                        PartialOrd => quote! { partial_cmp },
-                        Ord => quote! { cmp },
-                        _ => unreachable!("unsupported trait in `prepare_ord`"),
-                    };
-
+                    #[cfg(not(any(feature = "nightly", feature = "safe")))]
                     quote! {
                         let __self_disc = ::core::mem::discriminant(self);
                         let __other_disc = ::core::mem::discriminant(__other);
