@@ -1,145 +1,113 @@
-#![allow(dead_code)]
+#![allow(clippy::clone_on_copy)]
 
-use core::marker::PhantomData;
+use std::collections::hash_map::DefaultHasher;
+use core::hash::{Hash, Hasher};
+use core::fmt::Debug;
 
 use derive_where::derive_where;
 
-// test macro hygiene
-trait Clone {}
+struct AssertClone<T: Clone>(T);
+struct AssertCopy<T: Copy>(T);
+struct AssertDebug<T: Debug>(T);
+struct AssertEq<T: Eq>(T);
+struct AssertHash<T: Hash>(T);
+struct AssertOrd<T: Ord>(T);
+struct AssertPartialEq<T: PartialEq>(T);
+struct AssertPartialOrd<T: PartialOrd>(T);
 
 #[test]
-fn test_path() {
-    trait Trait {
-        type Type;
-    }
-    #[derive_where(Clone, Debug; T::Type)]
-    struct TestTuple<T: Trait>(T::Type);
+fn struct_single() {
+	#[derive_where(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd; T)]
+	struct Test<T> {
+		a: T,
+	}
 
-    struct Test;
-    impl Trait for Test {
-        type Type = String;
-    }
+	let test_1 = Test { a: 42 };
+	let test_2 = Test { a: 42 };
 
-    let test: TestTuple<Test> = TestTuple(String::from("hi"));
-    let cloned = test.clone();
+	let _ = AssertClone(test_1);
+	let _ = AssertCopy(test_1);
+	let _ = AssertDebug(test_1);
+	let _ = AssertEq(test_1);
+	let _ = AssertHash(test_1);
+	let _ = AssertOrd(test_1);
+	let _ = AssertPartialEq(test_1);
+	let _ = AssertPartialOrd(test_1);
 
-    dbg!(test);
-    dbg!(cloned);
+	let test_clone = test_1.clone();
+	assert_eq!(test_clone.a, 42);
+
+	let test_copy = test_1;
+	assert_eq!(test_copy.a, 42);
+
+	assert_eq!(format!("{:?}", test_1), "Test { a: 42 }");
+
+	let mut hasher = DefaultHasher::new();
+	test_1.hash(&mut hasher);
+	let hash_1 = hasher.finish();
+	let mut hasher = DefaultHasher::new();
+	test_2.hash(&mut hasher);
+	let hash_2 = hasher.finish();
+	assert_eq!(hash_1, hash_2);
+
+	assert!(test_1 == test_2);
+	assert!(test_1 != Test { a: 43 });
+
+	assert!(test_1 > Test { a: 41 });
+	assert!(test_1 < Test { a: 43 });
 }
 
 #[test]
-fn test_no_bound() {
-    #[derive_where(Clone, Debug)]
-    struct TestTuple<T>(PhantomData<T>);
+fn struct_multiple() {
+	#[derive_where(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd; T)]
+	struct Test<T> {
+		a: T,
+		b: T,
+		c: T,
+	}
 
-    struct NotCloneAble;
+	let test_1 = Test { a: 42, b: 43, c: 44 };
+	let test_2 = Test { a: 42, b: 43, c: 44 };
 
-    let test = TestTuple::<NotCloneAble>(PhantomData);
-    let cloned = test.clone();
+	let _ = AssertClone(test_1);
+	let _ = AssertCopy(test_1);
+	let _ = AssertDebug(test_1);
+	let _ = AssertEq(test_1);
+	let _ = AssertHash(test_1);
+	let _ = AssertOrd(test_1);
+	let _ = AssertPartialEq(test_1);
+	let _ = AssertPartialOrd(test_1);
 
-    dbg!(test);
-    dbg!(cloned);
-}
+	let test_clone = test_1.clone();
+	assert_eq!(test_clone.a, 42);
+	assert_eq!(test_clone.b, 43);
+	assert_eq!(test_clone.c, 44);
 
-#[test]
-fn test_custom_bound() {
-    trait Trait {}
+	let test_copy = test_1;
+	assert_eq!(test_copy.a, 42);
+	assert_eq!(test_copy.b, 43);
+	assert_eq!(test_copy.c, 44);
 
-    #[derive_where(Clone, Debug; T: Trait)]
-    struct TestTuple<T>(PhantomData<T>);
+	assert_eq!(format!("{:?}", test_1), "Test { a: 42, b: 43, c: 44 }");
 
-    struct NotCloneAble;
-    impl Trait for NotCloneAble {}
+	let mut hasher = DefaultHasher::new();
+	test_1.hash(&mut hasher);
+	let hash_1 = hasher.finish();
+	let mut hasher = DefaultHasher::new();
+	test_2.hash(&mut hasher);
+	let hash_2 = hasher.finish();
+	assert_eq!(hash_1, hash_2);
 
-    let test = TestTuple::<NotCloneAble>(PhantomData);
-    let cloned = test.clone();
+	assert!(test_1 == test_2);
+	assert!(test_1 != Test { a: 43, b: 43, c: 44 });
+	assert!(test_1 != Test { a: 42, b: 44, c: 44 });
+	assert!(test_1 != Test { a: 42, b: 43, c: 45 });
+	assert!(test_1 != Test { a: 45, b: 45, c: 45 });
 
-    dbg!(test);
-    dbg!(cloned);
-}
-
-#[test]
-fn test_tuple() {
-    #[derive_where(Clone; T, S)]
-    #[derive(Debug)]
-    struct TestTuple<T, S>(T, S);
-
-    let test = TestTuple(1, String::from("Test"));
-    let cloned = test.clone();
-
-    dbg!(test);
-    dbg!(cloned);
-}
-
-#[test]
-fn test_struct() {
-    // test macro hygiene
-    #[allow(non_upper_case_globals)]
-    const a: usize = 0;
-
-    #[derive_where(Clone; T, S)]
-    #[derive(Debug)]
-    struct TestStruct<T, S> {
-        a: T,
-        b: S,
-    }
-
-    let test = TestStruct {
-        a: 1,
-        b: String::from("hi"),
-    };
-    let cloned = test.clone();
-
-    dbg!(test);
-    dbg!(cloned);
-}
-
-#[test]
-fn test_enum() {
-    #[derive_where(Clone; T, S)]
-    #[derive(Debug)]
-    #[allow(clippy::enum_variant_names)]
-    enum TestEnum<T, S> {
-        VariantStruct { field: T },
-        VariantTupel(S),
-        Variant,
-    }
-    let test = TestEnum::<u8, &str>::Variant;
-    let cloned = test.clone();
-    dbg!(test);
-    dbg!(cloned);
-
-    let test = TestEnum::<u8, &str>::Variant;
-    let cloned = test.clone();
-    dbg!(test);
-    dbg!(cloned);
-
-    let test = TestEnum::<u8, &str>::VariantTupel("hi");
-    let cloned = test.clone();
-    dbg!(test);
-    dbg!(cloned);
-
-    let test = TestEnum::<u8, &str>::VariantStruct { field: 8 };
-    let cloned = test.clone();
-    dbg!(test);
-    dbg!(cloned);
-}
-
-#[test]
-fn test_all() {
-    #[derive_where(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd; T, S)]
-    #[allow(clippy::enum_variant_names)]
-    enum TestEnum<T, S> {
-        VariantStruct { field: T },
-        VariantTupel(S),
-        Variant,
-    }
-
-    let test1 = TestEnum::<u8, &str>::VariantStruct { field: 42 };
-    let test2 = TestEnum::<u8, &str>::VariantTupel("test");
-    let test3 = TestEnum::<u8, &str>::Variant;
-
-    assert_eq!(test1.clone(), test1);
-    assert_eq!(test2.clone(), test2);
-    assert_eq!(test3.clone(), test3);
+	assert!(test_1 > Test { a: 41, b: 43, c: 44 });
+	assert!(test_1 > Test { a: 42, b: 42, c: 44 });
+	assert!(test_1 > Test { a: 42, b: 43, c: 43 });
+	assert!(test_1 < Test { a: 43, b: 43, c: 44 });
+	assert!(test_1 < Test { a: 42, b: 44, c: 44 });
+	assert!(test_1 < Test { a: 42, b: 43, c: 45 });
 }
