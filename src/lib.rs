@@ -15,9 +15,9 @@ use syn::{
     punctuated::Punctuated,
     spanned::Spanned,
     token::{Colon, Where},
-    Data, DataUnion, DeriveInput, Error, Fields, FieldsNamed, FieldsUnnamed, ImplGenerics, Meta,
-    Path, PredicateType, Result, Token, TraitBound, Type, TypeGenerics, TypeParamBound,
-    WhereClause, WherePredicate,
+    Attribute, Data, DataEnum, DataStruct, DataUnion, DeriveInput, Error, Fields, FieldsNamed,
+    FieldsUnnamed, ImplGenerics, Meta, Path, PredicateType, Result, Token, TraitBound, Type,
+    TypeGenerics, TypeParamBound, Variant, WhereClause, WherePredicate,
 };
 #[cfg(feature = "zeroize")]
 use syn::{Lit, NestedMeta};
@@ -1075,6 +1075,48 @@ impl Trait {
     }
 }
 
+/// Removes the derive_where attributes from all fields, and variants.
+///
+/// This is needed, because rust does not support those for proc_macro_attribute currently
+fn input_without_derive_where_attributes(mut input: DeriveInput) -> TokenStream {
+    let DeriveInput { data, .. } = &mut input;
+
+    /// Remove all attrs from derive_where
+    fn remove_derive_where(attrs: &mut Vec<Attribute>) {
+        // TODO find the actual path
+        let ident = Ident::new("derive_where", Span::call_site());
+        attrs.retain(|attr| !attr.path.is_ident(&ident))
+    }
+
+    /// Remove all attrs from derive_where from fields
+    fn remove_derive_where_from_fields(fields: &mut Fields) {
+        match fields {
+            Fields::Named(FieldsNamed { named, .. }) => named
+                .iter_mut()
+                .for_each(|field| remove_derive_where(&mut field.attrs)),
+            Fields::Unnamed(FieldsUnnamed { unnamed, .. }) => unnamed
+                .iter_mut()
+                .for_each(|field| remove_derive_where(&mut field.attrs)),
+            Fields::Unit => (),
+        }
+    }
+
+    match data {
+        Data::Struct(DataStruct { fields, .. }) => remove_derive_where_from_fields(fields),
+        Data::Enum(DataEnum { variants, .. }) => {
+            variants
+                .iter_mut()
+                .for_each(|Variant { attrs, fields, .. }| {
+                    remove_derive_where(attrs);
+                    remove_derive_where_from_fields(fields)
+                })
+        }
+        Data::Union(_) => (),
+    }
+
+    quote! {#input}
+}
+
 /// Internal derive function for handling errors.
 fn derive_where_internal(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
     let derive_where: DeriveWhere = syn::parse2(attr)?;
@@ -1082,15 +1124,17 @@ fn derive_where_internal(attr: TokenStream, item: TokenStream) -> Result<TokenSt
     // The item needs to be added, as it is consumed by the derive. Parsing
     // consumes `item` so we save any data we can't get afterwards beforehand
     // to avoid cloning.
-    let mut output = quote! { #item };
     let item_span = item.span();
+
+    let input: DeriveInput = syn::parse2(item)?;
+    let mut output = input_without_derive_where_attributes(input.clone());
 
     let DeriveInput {
         ident,
         generics,
         data,
         ..
-    } = syn::parse2(item)?;
+    } = input;
 
     if generics.params.is_empty() {
         return Err(Error::new(item_span, "derive-where doesn't support items without generics, as this can already be handled by standard `#[derive()]`"));

@@ -8,6 +8,28 @@ use derive_where::derive_where;
 trait Clone {}
 
 #[test]
+fn test_remove_attrs() {
+    #[derive_where(Clone; T)]
+    struct Struct<T> {
+        #[derive_where("hello")]
+        field: T,
+    }
+    #[derive_where(Clone; T)]
+    enum Enum<T> {
+        Named {
+            #[derive_where(Clone; T)]
+            a: T,
+            #[derive_where(Clone; T)]
+            b: T,
+        },
+        #[derive_where(IDK what this would even be for)]
+        Unit,
+        #[derive_where(skip_inner(Clone))]
+        Unnamed(T, T, #[derive_where(skip(Zeroize))] T),
+    }
+}
+
+#[test]
 fn test_path() {
     trait Trait {
         type Type;
