@@ -1,5 +1,7 @@
 error: traits other then `Clone` and `Copy` aren't supported by unions
  --> tests/ui/union.rs:5:1
   |
-5 | union Test<T> {
-  | ^^^^^
+5 | / union Test<T> {
+6 | |     field: PhantomData<T>,
+7 | | }
+  | |_^
