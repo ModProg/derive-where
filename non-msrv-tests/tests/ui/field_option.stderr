@@ -1,0 +1,5 @@
+error: only option supported is `default`
+ --> tests/ui/field_option.rs:3:17
+  |
+3 |     #[derive_where(option)]
+  |                    ^^^^^^

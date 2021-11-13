@@ -15,7 +15,7 @@ use syn::{
     punctuated::Punctuated,
     spanned::Spanned,
     token::{Colon, Where},
-    Data, DataUnion, DeriveInput, Error, Fields, FieldsNamed, FieldsUnnamed, ImplGenerics, Meta,
+    Attribute, Data, DeriveInput, Error, Fields, FieldsNamed, FieldsUnnamed, ImplGenerics, Meta,
     Path, PredicateType, Result, Token, TraitBound, Type, TypeGenerics, TypeParamBound,
     WhereClause, WherePredicate,
 };
@@ -117,6 +117,8 @@ enum Trait {
     Copy,
     /// [`Debug`](core::fmt::Debug).
     Debug,
+    /// [`Default`].
+    Default,
     /// [`Eq`].
     Eq,
     /// [`Hash`](core::hash::Hash).
@@ -151,6 +153,7 @@ impl Parse for Trait {
                         Clone.as_str(),
                         Copy.as_str(),
                         Debug.as_str(),
+                        Default.as_str(),
                         Eq.as_str(),
                         Hash.as_str(),
                         Ord.as_str(),
@@ -189,49 +192,43 @@ impl Parse for Trait {
                                     if let NestedMeta::Meta(meta) = &nested_meta {
                                         match meta {
                                             Meta::Path(path) => {
-                                                if let Some(ident) = path.get_ident() {
-                                                    if ident == "drop" {
-                                                        if !drop {
-                                                            drop = true;
-                                                            continue;
-                                                        } else {
-                                                            return Err(Error::new(
-                                                                ident.span(),
-                                                                "duplicate `drop` option",
-                                                            ));
-                                                        }
+                                                if path.is_ident("drop") {
+                                                    if !drop {
+                                                        drop = true;
+                                                        continue;
+                                                    } else {
+                                                        return Err(Error::new(
+                                                            path.span(),
+                                                            "duplicate `drop` option",
+                                                        ));
                                                     }
                                                 }
                                             }
                                             Meta::NameValue(name_value) => {
-                                                if let Some(ident) = name_value.path.get_ident() {
-                                                    if ident == "crate" {
-                                                        if crate_.is_none() {
-                                                            if let Lit::Str(lit_str) =
-                                                                &name_value.lit
-                                                            {
-                                                                match lit_str.parse() {
-                                                                    Ok(path) => {
-                                                                        crate_ = Some(path);
-                                                                        continue;
-                                                                    }
-                                                                    Err(error) => {
-                                                                        return Err(Error::new(
-                                                                            error.span(),
-                                                                            format!(
-                                                                                "expected path, {}",
-                                                                                error
-                                                                            ),
-                                                                        ))
-                                                                    }
+                                                if name_value.path.is_ident("crate") {
+                                                    if crate_.is_none() {
+                                                        if let Lit::Str(lit_str) = &name_value.lit {
+                                                            match lit_str.parse() {
+                                                                Ok(path) => {
+                                                                    crate_ = Some(path);
+                                                                    continue;
+                                                                }
+                                                                Err(error) => {
+                                                                    return Err(Error::new(
+                                                                        error.span(),
+                                                                        format!(
+                                                                            "expected path, {}",
+                                                                            error
+                                                                        ),
+                                                                    ))
                                                                 }
                                                             }
-                                                        } else {
-                                                            return Err(Error::new(
-                                                                ident.span(),
-                                                                "duplicate `crate` option",
-                                                            ));
                                                         }
+                                                    } else {
+                                                        return Err(Error::new(
+                                                            name_value.path.span(),
+                                                            "duplicate `crate` option",
+                                                        ));
                                                     }
                                                 }
                                             }
@@ -280,6 +277,7 @@ impl Trait {
             "Clone" => Clone,
             "Copy" => Copy,
             "Debug" => Debug,
+            "Default" => Default,
             "Eq" => Eq,
             "Hash" => Hash,
             "Ord" => Ord,
@@ -307,6 +305,7 @@ impl Trait {
             Clone => "::core::clone::Clone",
             Copy => "::core::marker::Copy",
             Debug => "::core::fmt::Debug",
+            Default => "::core::default::Default",
             Eq => "::core::cmp::Eq",
             Hash => "::core::hash::Hash",
             Ord => "::core::cmp::Ord",
@@ -336,6 +335,7 @@ impl Trait {
             Clone => "Clone",
             Copy => "Copy",
             Debug => "Debug",
+            Default => "Default",
             Eq => "Eq",
             Hash => "Hash",
             Ord => "Ord",
@@ -371,16 +371,18 @@ impl Trait {
     }
 
     /// Generate an implementation for this [trait](Self).
+    #[allow(clippy::too_many_arguments)]
     fn generate_impl(
         &self,
         name: &Ident,
+        span: Span,
         data: &Data,
         generics: &Option<Vec<Generic>>,
         impl_generics: &ImplGenerics,
         type_generics: &TypeGenerics,
         where_clause: &mut Option<WhereClause>,
     ) -> Result<TokenStream> {
-        let body = self.generate_body(name, data)?;
+        let body = self.generate_body(name, span, data)?;
 
         // Only create a where clause if required
         if let Some(generics) = generics {
@@ -435,7 +437,7 @@ impl Trait {
     }
 
     /// Generate `impl` item body.
-    fn generate_body(&self, name: &Ident, data: &Data) -> Result<TokenStream> {
+    fn generate_body(&self, name: &Ident, span: Span, data: &Data) -> Result<TokenStream> {
         match data {
             Data::Struct(data) => {
                 let pattern = name.into_token_stream();
@@ -456,40 +458,103 @@ impl Trait {
                     .iter()
                     .map(|variant| &variant.fields)
                     .collect();
+                let mut found_default = false;
 
-                let body = data
-                    .variants
-                    .iter()
-                    .enumerate()
-                    .map(|(index, variant)| {
-                        let debug_name = &variant.ident;
-                        let pattern = quote! { #name::#debug_name };
+                let body: TokenStream =
+                    data.variants
+                        .iter()
+                        .enumerate()
+                        .map(|(index, variant)| {
+                            let debug_name = &variant.ident;
+                            let pattern = quote! { #name::#debug_name };
 
-                        match &variant.fields {
-                            Fields::Named(fields) => self.build_for_struct(
-                                debug_name,
-                                &pattern,
-                                Some((index, &variants, &variants_type)),
-                                fields,
-                            ),
-                            Fields::Unnamed(fields) => self.build_for_tuple(
-                                debug_name,
-                                &pattern,
-                                Some((index, &variants, &variants_type)),
-                                fields,
-                            ),
-                            Fields::Unit => self.build_for_unit(
-                                debug_name,
-                                &pattern,
-                                Some((index, &variants, &variants_type)),
-                            ),
-                        }
-                    })
-                    .collect();
+                            if let Trait::Default = self {
+                                let mut is_default = false;
+
+                                for attr in &variant.attrs {
+                                    // We only care about attributes that concern us.
+                                    if attr.path.is_ident("derive_where") {
+                                        match attr.parse_meta() {
+                                            Ok(Meta::List(list)) => {
+                                                for meta in list.nested {
+                                                    match &meta {
+                                                        NestedMeta::Meta(Meta::Path(path))
+                                                            if path.is_ident("default") =>
+                                                        {
+                                                            if !is_default && !found_default {
+                                                                is_default = true;
+                                                                found_default = true;
+                                                                continue;
+                                                            } else {
+                                                                return Err(Error::new(
+                                                                    path.span(),
+                                                                    "duplicate `default` option",
+                                                                ));
+                                                            }
+                                                        }
+                                                        _ => return Err(Error::new(
+                                                            meta.span(),
+                                                            "only option supported is `default`",
+                                                        )),
+                                                    }
+                                                }
+                                            }
+                                            Ok(meta) => {
+                                                return Err(Error::new(
+                                                    meta.span(),
+                                                    "unexpected option syntax",
+                                                ))
+                                            }
+                                            Err(error) => {
+                                                return Err(Error::new(
+                                                    error.span(),
+                                                    format!("unexpected option syntax: {}", error),
+                                                ))
+                                            }
+                                        }
+                                    }
+                                }
+
+                                // Skip variant if its not the default
+                                if !is_default {
+                                    return Ok(quote! {});
+                                }
+                            }
+
+                            Ok(match &variant.fields {
+                                Fields::Named(fields) => self.build_for_struct(
+                                    debug_name,
+                                    &pattern,
+                                    Some((index, &variants, &variants_type)),
+                                    fields,
+                                ),
+                                Fields::Unnamed(fields) => self.build_for_tuple(
+                                    debug_name,
+                                    &pattern,
+                                    Some((index, &variants, &variants_type)),
+                                    fields,
+                                ),
+                                Fields::Unit => self.build_for_unit(
+                                    debug_name,
+                                    &pattern,
+                                    Some((index, &variants, &variants_type)),
+                                ),
+                            })
+                        })
+                        .collect::<Result<_>>()?;
+
+                if let Trait::Default = self {
+                    if !found_default {
+                        return Err(Error::new(
+                            span,
+                            "`enum`s require specifying a `default` option to implement `Default`",
+                        ));
+                    }
+                }
 
                 Ok(self.build_signature(name, Some((&variants, &variants_type)), body))
             }
-            Data::Union(data) => self.build_for_union(data),
+            Data::Union(_) => self.build_for_union(span),
         }
     }
 
@@ -744,6 +809,11 @@ impl Trait {
                     }
                 }
             },
+            Default => quote! {
+                fn default() -> Self {
+                    #body
+                }
+            },
             Eq => quote! {},
             Hash => quote! {
                 fn hash<__H: ::core::hash::Hasher>(&self, __state: &mut __H) {
@@ -878,6 +948,9 @@ impl Trait {
                     }
                 }
             }
+            Default => quote! {
+                #pattern { #(#fields: #path::default()),* }
+            },
             Eq => quote! {},
             Hash => {
                 // Add hashing the variant if this is an `enum`.
@@ -952,7 +1025,7 @@ impl Trait {
 
         match self {
             Clone => quote! {
-                #pattern(#(ref #fields_temp),*) => #pattern (#(#path::clone(#fields_temp)),*),
+                #pattern(#(ref #fields_temp),*) => #pattern(#(#path::clone(#fields_temp)),*),
             },
             Copy => quote! {},
             Debug => {
@@ -964,6 +1037,13 @@ impl Trait {
                         #(::core::fmt::DebugTuple::field(&mut __builder, #fields_temp);)*
                         ::core::fmt::DebugTuple::finish(&mut __builder)
                     }
+                }
+            }
+            Default => {
+                let fields = fields_temp.iter().map(|_| quote! { #path::default() });
+
+                quote! {
+                    #pattern(#(#fields),*)
                 }
             }
             Eq => quote! {},
@@ -1030,6 +1110,7 @@ impl Trait {
 
                 quote! { #pattern => ::core::fmt::Formatter::write_str(__f, #debug_name), }
             }
+            Default => quote! { #pattern },
             Eq => quote! {},
             Hash => {
                 // Add hashing the variant if this is an `enum`.
@@ -1054,7 +1135,7 @@ impl Trait {
 
     /// Build method body if type is a union. See description for `pattern` in
     /// [`Self::build_for_struct`].
-    fn build_for_union(&self, data: &DataUnion) -> Result<TokenStream> {
+    fn build_for_union(&self, span: Span) -> Result<TokenStream> {
         use Trait::*;
 
         match self {
@@ -1068,7 +1149,7 @@ impl Trait {
             }),
             Copy => Ok(quote! {}),
             _ => Err(Error::new(
-                data.union_token.span(),
+                span,
                 "traits other then `Clone` and `Copy` aren't supported by unions",
             )),
         }
@@ -1076,13 +1157,13 @@ impl Trait {
 }
 
 /// Internal derive function for handling errors.
-fn derive_where_internal(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
+fn derive_where_internal(
+    attr: TokenStream,
+    clean_item: &DeriveInput,
+    item: &DeriveInput,
+) -> Result<TokenStream> {
     let derive_where: DeriveWhere = syn::parse2(attr)?;
 
-    // The item needs to be added, as it is consumed by the derive. Parsing
-    // consumes `item` so we save any data we can't get afterwards beforehand
-    // to avoid cloning.
-    let mut output = quote! { #item };
     let item_span = item.span();
 
     let DeriveInput {
@@ -1090,7 +1171,7 @@ fn derive_where_internal(attr: TokenStream, item: TokenStream) -> Result<TokenSt
         generics,
         data,
         ..
-    } = syn::parse2(item)?;
+    } = &item;
 
     if generics.params.is_empty() {
         return Err(Error::new(item_span, "derive-where doesn't support items without generics, as this can already be handled by standard `#[derive()]`"));
@@ -1099,11 +1180,14 @@ fn derive_where_internal(attr: TokenStream, item: TokenStream) -> Result<TokenSt
     // Build necessary generics to construct the implementation item.
     let (impl_generics, type_generics, where_clause) = generics.split_for_impl();
 
+    let mut output = quote! { #clean_item };
+
     // Every trait needs a separate implementation.
     for trait_ in derive_where.traits {
         output.extend(trait_.generate_impl(
-            &ident,
-            &data,
+            ident,
+            item.span(),
+            data,
             &derive_where.generics,
             &impl_generics,
             &type_generics,
@@ -1112,6 +1196,45 @@ fn derive_where_internal(attr: TokenStream, item: TokenStream) -> Result<TokenSt
     }
 
     Ok(output)
+}
+
+/// Removes `derive_where` attributes from all fields and variants. This is necessary
+/// because because `proc_macro_attribute` doesn't support field or variant attributes.
+fn clean_item(mut item: DeriveInput) -> DeriveInput {
+    /// Remove all [`Attribute`]s that belong to us.
+    fn remove_derive_where(attrs: &mut Vec<Attribute>) {
+        attrs.retain(|Attribute { path, .. }| !path.is_ident("derive_where"))
+    }
+
+    /// Remove all [`Attribute`]s that belong to us from all [`Field`]s.
+    fn remove_derive_where_from_fields(fields: &mut Fields) {
+        match fields {
+            Fields::Named(fields) => fields
+                .named
+                .iter_mut()
+                .for_each(|field| remove_derive_where(&mut field.attrs)),
+            Fields::Unnamed(fields) => fields
+                .unnamed
+                .iter_mut()
+                .for_each(|field| remove_derive_where(&mut field.attrs)),
+            Fields::Unit => (),
+        }
+    }
+
+    match &mut item.data {
+        Data::Struct(data) => remove_derive_where_from_fields(&mut data.fields),
+        Data::Enum(data) => data.variants.iter_mut().for_each(|variant| {
+            remove_derive_where(&mut variant.attrs);
+            remove_derive_where_from_fields(&mut variant.fields)
+        }),
+        Data::Union(data) => data
+            .fields
+            .named
+            .iter_mut()
+            .for_each(|field| remove_derive_where(&mut field.attrs)),
+    }
+
+    item
 }
 
 /// TODO
@@ -1123,13 +1246,30 @@ pub fn derive_where(
 ) -> proc_macro::TokenStream {
     let item: TokenStream = item.into();
 
-    // Redirect to `derive_where_internal`, this only convert the error
-    // appropriately.
-    match derive_where_internal(attr.into(), item.clone()) {
-        Ok(output) => output.into(),
+    // Attempt to parse the item.
+    match syn::parse2::<DeriveInput>(item.clone()) {
+        Ok(item) => {
+            // Strip attributes from the item, as they aren't supported.
+            let clean_item = clean_item(item.clone());
+
+            // Redirect to `derive_where_internal`, this only convert the error
+            // appropriately.
+            match derive_where_internal(attr.into(), &clean_item, &item) {
+                Ok(output) => output.into(),
+                // We can output the cleaned item in an error now.
+                Err(error) => {
+                    let error = error.into_compile_error();
+                    let output = quote! {
+                        #error
+                        #clean_item
+                    };
+                    output.into()
+                }
+            }
+        }
+        // When an error happens, we still want to emit the item, as it
+        // get's consumed otherwise.
         Err(error) => {
-            // When an error happens, we still want to emit the item, as it
-            // get's consumed otherwise.
             let error = error.into_compile_error();
             let output = quote! {
                 #error
@@ -1147,7 +1287,7 @@ mod test {
     #[test]
     fn struct_() -> Result<()> {
         test_derive(
-            quote! { Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd; T },
+            quote! { Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd; T },
             quote! { struct Test<T> { field: T } },
             quote! {
                 impl<T> ::core::clone::Clone for Test<T>
@@ -1176,6 +1316,14 @@ mod test {
                                 ::core::fmt::DebugStruct::finish(&mut __builder)
                             }
                         }
+                    }
+                }
+
+                impl<T> ::core::default::Default for Test<T>
+                where T: ::core::default::Default
+                {
+                    fn default() -> Self {
+                        Test { field: ::core::default::Default::default() }
                     }
                 }
 
@@ -1241,7 +1389,7 @@ mod test {
     #[test]
     fn tuple() -> Result<()> {
         test_derive(
-            quote! { Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd; T },
+            quote! { Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd; T },
             quote! { struct Test<T>(T); },
             quote! {
                 impl<T> ::core::clone::Clone for Test<T>
@@ -1270,6 +1418,14 @@ mod test {
                                 ::core::fmt::DebugTuple::finish(&mut __builder)
                             }
                         }
+                    }
+                }
+
+                impl<T> ::core::default::Default for Test<T>
+                where T: ::core::default::Default
+                {
+                    fn default() -> Self {
+                        Test(::core::default::Default::default())
                     }
                 }
 
@@ -1355,6 +1511,7 @@ mod test {
                 &unsafe { ::core::mem::transmute::<_, isize>(__other_disc) },
             )
         };
+
         #[cfg(all(not(feature = "nightly"), feature = "safe"))]
         let ord = quote! {
             match self {
@@ -1458,12 +1615,13 @@ mod test {
         };
 
         test_derive(
-            quote! { Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd; T },
+            quote! { Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd; T },
             quote! { enum Test<T> {
                 A { field: T},
                 B { },
                 C(T),
                 D(),
+                #[derive_where(default)]
                 E,
             } },
             quote! {
@@ -1511,6 +1669,14 @@ mod test {
                             }
                             Test::E => ::core::fmt::Formatter::write_str(__f, "E"),
                         }
+                    }
+                }
+
+                impl<T> ::core::default::Default for Test<T>
+                where T: ::core::default::Default
+                {
+                    fn default() -> Self {
+                        Test::E
                     }
                 }
 
@@ -1643,6 +1809,97 @@ mod test {
                 impl<T> ::core::marker::Copy for Test<T>
                 where T: ::core::marker::Copy
                 { }
+            },
+        )
+    }
+
+    #[test]
+    fn ignore_foreign_attribute() -> Result<()> {
+        test_derive(
+            quote! { Default; T },
+            quote! {
+                enum Test<T> {
+                    #[foreign(default)]
+                    A { field: T },
+                    #[derive_where(default)]
+                    B { field: T },
+                }
+            },
+            quote! {
+                impl<T> ::core::default::Default for Test<T>
+                where T: ::core::default::Default
+                {
+                    fn default() -> Self {
+                        Test::B { field: ::core::default::Default::default() }
+                    }
+                }
+            },
+        )
+    }
+
+    #[test]
+    fn enum_default_struct() -> Result<()> {
+        test_derive(
+            quote! { Default; T },
+            quote! {
+                enum Test<T> {
+                    #[derive_where(default)]
+                    A { field: T },
+                }
+            },
+            quote! {
+                impl<T> ::core::default::Default for Test<T>
+                where T: ::core::default::Default
+                {
+                    fn default() -> Self {
+                        Test::A { field: ::core::default::Default::default() }
+                    }
+                }
+            },
+        )
+    }
+
+    #[test]
+    fn enum_default_tuple() -> Result<()> {
+        test_derive(
+            quote! { Default; T },
+            quote! {
+                enum Test<T> {
+                    #[derive_where(default)]
+                    A(T),
+                }
+            },
+            quote! {
+                impl<T> ::core::default::Default for Test<T>
+                where T: ::core::default::Default
+                {
+                    fn default() -> Self {
+                        Test::A(::core::default::Default::default())
+                    }
+                }
+            },
+        )
+    }
+
+    #[test]
+    fn enum_default_unit() -> Result<()> {
+        test_derive(
+            quote! { Default; T },
+            quote! {
+                enum Test<T> {
+                    #[derive_where(default)]
+                    A,
+                    B(T),
+                }
+            },
+            quote! {
+                impl<T> ::core::default::Default for Test<T>
+                where T: ::core::default::Default
+                {
+                    fn default() -> Self {
+                        Test::A
+                    }
+                }
             },
         )
     }
@@ -2270,8 +2527,11 @@ mod test {
     }
 
     fn test_derive(attr: TokenStream, item: TokenStream, expected: TokenStream) -> Result<()> {
-        let left = derive_where_internal(attr, item.clone())?.to_string();
-        let right = quote! { #item #expected }.to_string();
+        let item: DeriveInput = syn::parse2(item)?;
+        let clean_item = clean_item(item.clone());
+
+        let left = derive_where_internal(attr, &clean_item, &item)?.to_string();
+        let right = quote! { #clean_item #expected }.to_string();
 
         assert_eq!(left, right);
         Ok(())

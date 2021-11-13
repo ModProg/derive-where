@@ -1,0 +1,7 @@
+error: `enum`s require specifying a `default` option to implement `Default`
+ --> tests/ui/missing_default.rs:2:1
+  |
+2 | / enum Test<T> {
+3 | |     A(T),
+4 | | }
+  | |_^
