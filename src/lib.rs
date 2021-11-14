@@ -10,17 +10,17 @@ extern crate proc_macro;
 
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::{format_ident, quote, ToTokens};
+#[cfg(feature = "zeroize")]
+use syn::Lit;
 use syn::{
     parse::{discouraged::Speculative, Parse, ParseStream},
     punctuated::Punctuated,
     spanned::Spanned,
     token::{Colon, Where},
     Attribute, Data, DeriveInput, Error, Fields, FieldsNamed, FieldsUnnamed, ImplGenerics, Meta,
-    Path, PredicateType, Result, Token, TraitBound, Type, TypeGenerics, TypeParamBound,
+    NestedMeta, Path, PredicateType, Result, Token, TraitBound, Type, TypeGenerics, TypeParamBound,
     WhereClause, WherePredicate,
 };
-#[cfg(feature = "zeroize")]
-use syn::{Lit, NestedMeta};
 
 /// Holds a single generic [type](Type) or [type with bound](PredicateType)
 enum Generic {
@@ -132,9 +132,9 @@ enum Trait {
     /// [`Zeroize`](https://docs.rs/zeroize/1.4.3/zeroize/trait.Zeroize.html).
     #[cfg(feature = "zeroize")]
     Zeroize {
-        /// Zeroize path.
+        /// [`Zeroize`](https://docs.rs/zeroize/1.4.3/zeroize/trait.Zeroize.html) path.
         crate_: Option<Path>,
-        /// Zeroize drop implementation.
+        /// [`Zeroize`](https://docs.rs/zeroize/1.4.3/zeroize/trait.Zeroize.html) drop implementation.
         drop: bool,
     },
 }
@@ -184,7 +184,7 @@ impl Parse for Trait {
                     if let Some(ident) = list.path.get_ident() {
                         match Trait::from_ident(ident)? {
                             #[cfg(feature = "zeroize")]
-                            Self::Zeroize {
+                            Trait::Zeroize {
                                 mut crate_,
                                 mut drop,
                             } => {
@@ -247,7 +247,7 @@ impl Parse for Trait {
                                     ));
                                 }
 
-                                Ok(Self::Zeroize { crate_, drop })
+                                Ok(Trait::Zeroize { crate_, drop })
                             }
                             trait_ => {
                                 return Err(Error::new(
@@ -327,7 +327,7 @@ impl Trait {
         .expect("failed to parse path")
     }
 
-    /// Returns a [str] representation of this trait for the purpose of error messages.
+    /// Returns a [`str`] representation of this trait for the purpose of error messages.
     fn as_str(&self) -> &'static str {
         use Trait::*;
 
@@ -2149,10 +2149,10 @@ mod test {
             match self {
                 Test::A(..) =>
                     match __other {
-                        Test::B(..) => ::core::option::Option::Some(::core::cmp::Ordering::Less),
+                        Test::B { .. } => ::core::option::Option::Some(::core::cmp::Ordering::Less),
                         _ => unreachable!("comparing variants yielded unexpected results"),
                     },
-                Test::B(..) =>
+                Test::B { .. } =>
                     match __other {
                         Test::A(..) => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
                         _ => unreachable!("comparing variants yielded unexpected results"),
@@ -2162,7 +2162,7 @@ mod test {
 
         test_derive(
             quote! { PartialEq, PartialOrd; T },
-            quote! { enum Test<T> { A(T), B() } },
+            quote! { enum Test<T> { A(T), B { } } },
             quote! {
                 impl<T> ::core::cmp::PartialEq for Test<T>
                 where T: ::core::cmp::PartialEq
@@ -2237,7 +2237,7 @@ mod test {
                         Test::B(..) => ::core::option::Option::Some(::core::cmp::Ordering::Less),
                         _ => unreachable!("comparing variants yielded unexpected results"),
                     },
-                Test::B { .. } =>
+                Test::B(..) =>
                     match __other {
                         Test::A(..) => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
                         _ => unreachable!("comparing variants yielded unexpected results"),
@@ -2247,7 +2247,7 @@ mod test {
 
         test_derive(
             quote! { PartialEq, PartialOrd; T },
-            quote! { enum Test<T> { A(T), B { } } },
+            quote! { enum Test<T> { A(T), B() } },
             quote! {
                 impl<T> ::core::cmp::PartialEq for Test<T>
                 where T: ::core::cmp::PartialEq
