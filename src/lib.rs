@@ -1145,8 +1145,8 @@ impl Trait {
             Clone => Ok(quote! {
                 #[inline]
                 fn clone(&self) -> Self {
-                    struct __AssertParamIsCopy<__T: ::core::marker::Copy + ?::core::marker::Sized>(::core::marker::PhantomData<__T>);
-                    let _: __AssertParamIsCopy<Self>;
+                    struct __AssertCopy<__T: ::core::marker::Copy + ?::core::marker::Sized>(::core::marker::PhantomData<__T>);
+                    let _: __AssertCopy<Self>;
                     *self
                 }
             }),
@@ -1803,8 +1803,8 @@ mod test {
                 {
                     #[inline]
                     fn clone(&self) -> Self {
-                        struct __AssertParamIsCopy<__T: ::core::marker::Copy + ?::core::marker::Sized>(::core::marker::PhantomData<__T>);
-                        let _: __AssertParamIsCopy<Self>;
+                        struct __AssertCopy<__T: ::core::marker::Copy + ?::core::marker::Sized>(::core::marker::PhantomData<__T>);
+                        let _: __AssertCopy<Self>;
                         *self
                     }
                 }
