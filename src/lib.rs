@@ -22,6 +22,9 @@ use syn::{
     WhereClause, WherePredicate,
 };
 
+/// Token used for attributes.
+const DERIVE_WHERE: &str = "derive_where";
+
 /// Holds a single generic [type](Type) or [type with bound](PredicateType)
 enum Generic {
     /// Generic type with custom [specified bounds](PredicateType)
@@ -473,7 +476,7 @@ impl Trait {
 
                                 for attr in &variant.attrs {
                                     // We only care about attributes that concern us.
-                                    if attr.path.is_ident("derive_where") {
+                                    if attr.path.is_ident(DERIVE_WHERE) {
                                         match attr.parse_meta() {
                                             Ok(Meta::List(list)) => {
                                                 for meta in list.nested {
@@ -1203,7 +1206,7 @@ fn derive_where_internal(
 fn clean_item(mut item: DeriveInput) -> DeriveInput {
     /// Remove all [`Attribute`]s that belong to us.
     fn remove_derive_where(attrs: &mut Vec<Attribute>) {
-        attrs.retain(|Attribute { path, .. }| !path.is_ident("derive_where"))
+        attrs.retain(|Attribute { path, .. }| !path.is_ident(DERIVE_WHERE))
     }
 
     /// Remove all [`Attribute`]s that belong to us from all [`Field`]s.
