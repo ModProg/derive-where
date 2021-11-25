@@ -2,7 +2,7 @@
 
 use syn::{spanned::Spanned, Attribute, Meta, NestedMeta, Result};
 
-use crate::{Error, DEFAULT, DERIVE_WHERE, SKIP_INNER};
+use crate::{Error, Trait, DEFAULT, DERIVE_WHERE, SKIP_INNER};
 
 use super::{Default, Skip};
 
@@ -56,5 +56,10 @@ impl VariantAttr {
         } else {
             Err(Error::option_syntax(meta.span()))
         }
+    }
+
+    /// Returns `true` if this variant is skipped with the given [`Trait`].
+    pub fn skip(&self, trait_: &Trait) -> bool {
+        self.skip_inner.skip(trait_)
     }
 }

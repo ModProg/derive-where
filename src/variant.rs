@@ -1,8 +1,15 @@
 //! Variant parsing.
 
-use syn::{Fields, Ident, Result};
+use core::iter::FromIterator;
 
-use crate::{Field, VariantAttr};
+use syn::{
+    punctuated::Punctuated,
+    token::{Brace, Paren},
+    Fields, Ident, Pat, PatPath, PatRest, PatStruct, PatTuple, PatTupleStruct, Path, PathArguments,
+    PathSegment, Result, Token,
+};
+
+use crate::{Field, Trait, VariantAttr};
 
 /// `enum` variant.
 pub struct Variant<'a> {
@@ -41,5 +48,54 @@ impl<'a> Variant<'a> {
             ident: &variant.ident,
             data,
         })
+    }
+
+    /// Returns `true` if this variant is skipped with the given [`Trait`].
+    pub fn skip(&self, trait_: &Trait) -> bool {
+        self.attr.skip(trait_)
+            || match &self.data {
+                VariantData::Struct(fields) | VariantData::Tuple(fields) => {
+                    fields.iter().all(|field| field.skip(trait_))
+                }
+                VariantData::Unit => false,
+            }
+    }
+
+    /// Create `match` [pattern](Pat) to skip this variant.
+    pub fn skip_pattern(&self, item: &Ident) -> Pat {
+        let path = Path {
+            leading_colon: None,
+            segments: Punctuated::from_iter([item, self.ident].iter().map(|ident| PathSegment {
+                ident: (*ident).clone(),
+                arguments: PathArguments::None,
+            })),
+        };
+
+        match self.data {
+            VariantData::Struct(_) => Pat::Struct(PatStruct {
+                attrs: Vec::new(),
+                path,
+                brace_token: Brace::default(),
+                fields: Punctuated::default(),
+                dot2_token: Some(<Token![..]>::default()),
+            }),
+            VariantData::Tuple(_) => Pat::TupleStruct(PatTupleStruct {
+                attrs: Vec::new(),
+                path,
+                pat: PatTuple {
+                    attrs: Vec::new(),
+                    paren_token: Paren::default(),
+                    elems: Punctuated::from_iter(Some(Pat::Rest(PatRest {
+                        attrs: Vec::new(),
+                        dot2_token: <Token![..]>::default(),
+                    }))),
+                },
+            }),
+            VariantData::Unit => Pat::Path(PatPath {
+                attrs: Vec::new(),
+                qself: None,
+                path,
+            }),
+        }
     }
 }
