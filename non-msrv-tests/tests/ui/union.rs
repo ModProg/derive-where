@@ -1,7 +1,8 @@
 #[allow(unused_imports)]
 use core::marker::PhantomData;
 
-#[derive_where::derive_where(Debug)]
+#[derive(derive_where::DeriveWhere)]
+#[derive_where(Debug)]
 union Test<T> {
     field: PhantomData<T>,
 }

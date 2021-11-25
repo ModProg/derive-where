@@ -4,7 +4,7 @@ use core::fmt::Debug;
 use core::hash::{Hash, Hasher};
 use std::collections::hash_map::DefaultHasher;
 
-use derive_where::derive_where;
+use derive_where::DeriveWhere;
 
 struct AssertClone<T: Clone>(T);
 struct AssertCopy<T: Copy>(T);
@@ -17,6 +17,7 @@ struct AssertPartialOrd<T: PartialOrd>(T);
 
 #[test]
 fn struct_single() {
+    #[derive(DeriveWhere)]
     #[derive_where(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd; T)]
     struct Test<T> {
         a: T,
@@ -62,6 +63,7 @@ fn struct_single() {
 
 #[test]
 fn struct_multiple() {
+    #[derive(DeriveWhere)]
     #[derive_where(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd; T)]
     struct Test<T> {
         a: T,
