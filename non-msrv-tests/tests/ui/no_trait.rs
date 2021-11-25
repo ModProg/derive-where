@@ -1,4 +1,5 @@
-#[derive_where::derive_where("Clone")]
+#[derive(derive_where::DeriveWhere)]
+#[derive_where("Clone")]
 struct Test<T>(T);
 
 fn main() {}

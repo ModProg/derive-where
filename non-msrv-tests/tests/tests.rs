@@ -6,11 +6,12 @@ extern crate zeroize_ as zeroize;
 #[test]
 #[cfg(feature = "zeroize")]
 fn test_zeroize() {
-    use derive_where::derive_where;
+    use derive_where::DeriveWhere;
     //use core::ops::{Deref, DerefMut};
 
     use crate::zeroize::Zeroize;
 
+    #[derive(DeriveWhere)]
     #[derive_where(Zeroize; T)]
     struct Test1<T>(T);
 
@@ -19,6 +20,7 @@ fn test_zeroize() {
 
     assert_eq!(test.0, 0);
 
+    #[derive(DeriveWhere)]
     #[derive_where(Zeroize(crate = "zeroize_"); T)]
     struct Test2<T>(T);
 
