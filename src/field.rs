@@ -3,7 +3,7 @@
 use proc_macro2::Span;
 use syn::{Attribute, FieldsNamed, FieldsUnnamed, Ident, Index, Result};
 
-use crate::FieldAttr;
+use crate::{FieldAttr, Trait};
 
 /// Struct and struct variant field.
 pub struct Field<'a> {
@@ -58,5 +58,10 @@ impl<'a> Field<'a> {
         let attr = FieldAttr::from_attrs(attrs)?;
 
         Ok(Self { attr, member })
+    }
+
+    /// Returns `true` if this field is skipped with the given [`Trait`].
+    pub fn skip(&self, trait_: &Trait) -> bool {
+        self.attr.skip(trait_)
     }
 }

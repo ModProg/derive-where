@@ -65,4 +65,9 @@ impl FieldAttr {
             Err(Error::option_syntax(meta.span()))
         }
     }
+
+    /// Returns `true` if this field is skipped with the given [`Trait`].
+    pub fn skip(&self, trait_: &Trait) -> bool {
+        self.skip.skip(trait_)
+    }
 }

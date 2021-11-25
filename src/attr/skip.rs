@@ -96,6 +96,7 @@ impl Skip {
         }
     }
 
+    /// Returns `true` if this item, variant or field is skipped with the given [`Trait`].
     pub fn skip(&self, trait_: &Trait) -> bool {
         match self {
             Skip::None => false,

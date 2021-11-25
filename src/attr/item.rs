@@ -8,8 +8,8 @@ use syn::{
     parse::{discouraged::Speculative, Parse, ParseStream},
     punctuated::Punctuated,
     spanned::Spanned,
-    Attribute, Ident, Meta, NestedMeta, Path, PredicateType, Result, Token, TraitBound, Type,
-    TypeParamBound, WhereClause, WherePredicate,
+    Attribute, Ident, LitBool, Meta, NestedMeta, Path, PredicateType, Result, Token, TraitBound,
+    Type, TypeParamBound, WhereClause, WherePredicate,
 };
 
 use crate::{
@@ -351,24 +351,23 @@ impl DeriveTrait {
     /// Build signature for [`PartialEq`].
     fn build_partial_eq_signature(
         &self,
+        item: &Ident,
         attr: &Skip,
         data: &Data,
         body: TokenStream,
     ) -> TokenStream {
-        // If we decided to skip everything, just return `true`.
-        if attr.skip(self) {
+        // If everything should be skipped, just return `true`.
+        if attr.skip(self) || data.skip(self) {
             return quote! {
                 true
             };
         }
 
-        let unit_found = util::unit_found(data);
-
         match data {
             // Only check for discriminators if there is more than one variant.
             Data::Enum(variants) if variants.len() > 1 => {
                 // If there are any unit variants, skip comparing them and instead return `true`. Otherwise panic as it should be unreachable.
-                let rest = if unit_found {
+                let rest = if util::unit_found(data) {
                     quote! { true }
                 } else {
                     #[cfg(not(feature = "safe"))]
@@ -378,6 +377,35 @@ impl DeriveTrait {
                     quote! { ::core::unreachable!("comparing variants yielded unexpected results") }
                 };
 
+                let false_ = LitBool::new(false, Span::call_site());
+
+                // Return `true` of `self` or `other` should be skipped.
+                let skip_count = variants.iter().filter(|variant| variant.skip(self)).count();
+                let different = if skip_count != 0 {
+                    let mut arms = Vec::with_capacity(skip_count);
+                    let true_ = LitBool::new(true, Span::call_site());
+
+                    for variant in variants {
+                        if variant.skip(self) {
+                            let skip = variant.skip_pattern(item);
+
+                            arms.push(quote! {
+                                (#skip, ..) => #true_,
+                                (.., #skip) => #true_,
+                            })
+                        }
+                    }
+
+                    quote! {
+                        match (self, _other) {
+                            #(#arms)*
+                            _ => #false_
+                        }
+                    }
+                } else {
+                    false_.into_token_stream()
+                };
+
                 quote! {
                     if ::core::mem::discriminant(self) == ::core::mem::discriminant(__other) {
                         match (self, __other) {
@@ -385,12 +413,12 @@ impl DeriveTrait {
                             _ => #rest,
                         }
                     } else {
-                        false
+                        #different
                     }
                 }
             }
             // If only one variant was found and it's a unit variant, return `true`.
-            Data::Enum(variants) if variants.len() == 1 && unit_found => {
+            Data::Enum(variants) if variants.len() == 1 && util::unit_found(data) => {
                 quote! {
                     true
                 }
@@ -445,12 +473,10 @@ impl DeriveTrait {
             _ => unreachable!("unsupported trait in `prepare_ord`"),
         };
 
-        let unit_found = util::unit_found(data);
-
         match data {
             // Only check for discriminators if there is more than one variant.
             Data::Enum(variants) if variants.len() > 1 => {
-                let rest = if unit_found {
+                let rest = if util::unit_found(data) {
                     quote! { #equal }
                 } else {
                     #[cfg(not(feature = "safe"))]
@@ -562,7 +588,7 @@ impl DeriveTrait {
                 }
             }
             // If only one variant was found and it's a unit variant, return `Eq`.
-            Data::Enum(variants) if variants.len() == 1 && unit_found => {
+            Data::Enum(variants) if variants.len() == 1 && util::unit_found(data) => {
                 quote! {
                     #equal
                 }

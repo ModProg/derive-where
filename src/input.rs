@@ -3,7 +3,7 @@
 use proc_macro2::Span;
 use syn::{DeriveInput, Fields, Generics, Ident, Result};
 
-use crate::{Error, Field, ItemAttr, Variant};
+use crate::{Error, Field, ItemAttr, Trait, Variant};
 
 /// Parsed input.
 pub struct Input<'a> {
@@ -67,5 +67,19 @@ impl<'a> Input<'a> {
             generics: &item.generics,
             data,
         })
+    }
+}
+
+impl<'a> Data<'a> {
+    /// Returns `true` if all variants or fields are skipped with the given [`Trait`].
+    pub fn skip(&self, trait_: &Trait) -> bool {
+        match self {
+            Data::Struct(fields) | Data::Tuple(fields) => {
+                fields.iter().all(|field| field.skip(trait_))
+            }
+            Data::Enum(variants) => variants.iter().all(|variant| variant.skip(trait_)),
+            // `union`s don't support skip.
+            Data::Union(_) => false,
+        }
     }
 }
