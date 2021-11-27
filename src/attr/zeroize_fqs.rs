@@ -6,10 +6,8 @@ use crate::{Error, Trait, TraitImpl, FQS};
 
 /// Stores if this field should use FQS to call [`Zeroize::zeroize`](https://docs.rs/zeroize/1.4.3/zeroize/trait.Zeroize.html#tymethod.zeroize).
 #[derive(Default)]
-#[cfg(feature = "zeroize")]
 pub struct ZeroizeFqs(bool);
 
-#[cfg(feature = "zeroize")]
 impl ZeroizeFqs {
     /// Adds a [`Meta`] to this [`ZeroizeFqs`].
     pub fn add_attribute(&mut self, meta: &Meta) -> Result<()> {

@@ -11,6 +11,8 @@ use syn::{
     Attribute, Ident, LitBool, Meta, NestedMeta, Path, PredicateType, Result, Token, TraitBound,
     Type, TypeParamBound, WhereClause, WherePredicate,
 };
+#[cfg(feature="safe")]
+use syn::Fields;
 
 use crate::{
     util, Data, Error, Field, Input, Trait, TraitImpl, VariantData, DERIVE_WHERE, SKIP_INNER,
@@ -444,6 +446,7 @@ impl DeriveTrait {
         /// Generate [`TokenStream`] for a pattern skipping all fields.
         #[cfg(all(not(feature = "nightly"), feature = "safe"))]
         fn skip(fields: &Fields) -> TokenStream {
+
             match fields {
                 Fields::Named(_) => quote! { { .. } },
                 Fields::Unnamed(_) => quote! { (..) },

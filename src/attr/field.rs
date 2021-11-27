@@ -4,7 +4,10 @@ use syn::{spanned::Spanned, Attribute, Meta, NestedMeta, Result};
 
 use crate::{trait_::TraitImpl, Error, Trait, DERIVE_WHERE, SKIP};
 
-use super::{Skip, ZeroizeFqs};
+use super::Skip;
+
+#[cfg(feature = "zeroize")]
+use super::ZeroizeFqs;
 
 /// Attributes on field.
 #[derive(Default)]
