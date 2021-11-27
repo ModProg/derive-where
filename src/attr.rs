@@ -5,6 +5,7 @@ mod field;
 mod item;
 mod skip;
 mod variant;
+#[cfg(feature = "zeroize")]
 mod zeroize_fqs;
 
 use default::Default;
