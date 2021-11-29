@@ -1,5 +1,5 @@
 error: unexpected option syntax
- --> tests/ui/field_option_syntax.rs:3:4
+ --> tests/ui/field_option_syntax.rs:4:7
   |
-3 |     #[derive_where = "default"]
+4 |     #[derive_where = "default"]
   |       ^^^^^^^^^^^^^^^^^^^^^^^^

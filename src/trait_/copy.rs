@@ -2,7 +2,7 @@
 
 use crate::{DeriveTrait, TraitImpl};
 
-/// Dummy-struct implement [`Trait`] for [`Copy`](core::marker::Copy).
+/// Dummy-struct implement [`Trait`](crate::Trait) for [`Copy`](core::marker::Copy).
 pub struct Copy;
 
 impl TraitImpl for Copy {

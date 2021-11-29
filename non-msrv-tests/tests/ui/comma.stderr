@@ -1,23 +1,11 @@
-error: expected one of Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd, Zeroize
- --> tests/ui/comma.rs:1:36
-  |
-1 | #[derive_where::derive_where(Clone,; T)]
-  |                                    ^
-
-error: expected one of Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd, Zeroize
- --> tests/ui/comma.rs:4:36
-  |
-4 | #[derive_where::derive_where(Clone,,)]
-  |                                    ^
-
 error: expected `,`
- --> tests/ui/comma.rs:7:38
+ --> tests/ui/comma.rs:2:24
   |
-7 | #[derive_where::derive_where(Clone; T;)]
-  |                                      ^
+2 | #[derive_where(Clone; T;)]
+  |                        ^
 
 error: expected type to bind to, expected one of: `for`, parentheses, `fn`, `unsafe`, `extern`, identifier, `::`, `<`, square brackets, `*`, `&`, `!`, `impl`, `_`, lifetime
-  --> tests/ui/comma.rs:10:39
-   |
-10 | #[derive_where::derive_where(Clone; T,,)]
-   |                                       ^
+ --> tests/ui/comma.rs:6:25
+  |
+6 | #[derive_where(Clone; T,,)]
+  |                         ^

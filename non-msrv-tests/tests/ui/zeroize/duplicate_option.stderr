@@ -1,35 +1,35 @@
 error: duplicate `drop` option
- --> tests/ui/zeroize/duplicate_option.rs:3:44
+ --> tests/ui/zeroize/duplicate_option.rs:4:30
   |
-3 | #[derive_where::derive_where(Zeroize(drop, drop); T)]
-  |                                            ^^^^
+4 | #[derive_where(Zeroize(drop, drop); T)]
+  |                              ^^^^
 
 error: duplicate `crate` option
- --> tests/ui/zeroize/duplicate_option.rs:6:58
+ --> tests/ui/zeroize/duplicate_option.rs:8:44
   |
-6 | #[derive_where::derive_where(Zeroize(crate = "zeroize_", crate = "zeroize_"); T)]
-  |                                                          ^^^^^
+8 | #[derive_where(Zeroize(crate = "zeroize_", crate = "zeroize_"); T)]
+  |                                            ^^^^^^^^^^^^^^^^^^
 
 error: duplicate `drop` option
- --> tests/ui/zeroize/duplicate_option.rs:9:44
-  |
-9 | #[derive_where::derive_where(Zeroize(drop, drop, crate = "zeroize_"); T)]
-  |                                            ^^^^
+  --> tests/ui/zeroize/duplicate_option.rs:12:30
+   |
+12 | #[derive_where(Zeroize(drop, drop, crate = "zeroize_"); T)]
+   |                              ^^^^
 
 error: duplicate `crate` option
-  --> tests/ui/zeroize/duplicate_option.rs:12:64
+  --> tests/ui/zeroize/duplicate_option.rs:16:50
    |
-12 | #[derive_where::derive_where(Zeroize(drop, crate = "zeroize_", crate = "zeroize_"); T)]
-   |                                                                ^^^^^
+16 | #[derive_where(Zeroize(drop, crate = "zeroize_", crate = "zeroize_"); T)]
+   |                                                  ^^^^^^^^^^^^^^^^^^
 
 error: duplicate `crate` option
-  --> tests/ui/zeroize/duplicate_option.rs:15:58
+  --> tests/ui/zeroize/duplicate_option.rs:20:44
    |
-15 | #[derive_where::derive_where(Zeroize(crate = "zeroize_", crate = "zeroize_", drop); T)]
-   |                                                          ^^^^^
+20 | #[derive_where(Zeroize(crate = "zeroize_", crate = "zeroize_", drop); T)]
+   |                                            ^^^^^^^^^^^^^^^^^^
 
 error: duplicate `drop` option
-  --> tests/ui/zeroize/duplicate_option.rs:19:64
+  --> tests/ui/zeroize/duplicate_option.rs:25:50
    |
-19 | #[derive_where::derive_where(Zeroize(crate = "zeroize_", drop, drop); T)]
-   |                                                                ^^^^
+25 | #[derive_where(Zeroize(crate = "zeroize_", drop, drop); T)]
+   |                                                  ^^^^

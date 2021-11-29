@@ -1,8 +1,11 @@
 //! [`Hash`](core::hash::Hash) implementation.
 
-use crate::{DeriveTrait, TraitImpl};
+use proc_macro2::TokenStream;
+use quote::quote;
 
-/// Dummy-struct implement [`Trait`] for [`Hash`](core::hash::Hash).
+use crate::{DeriveTrait, Impl, TraitImpl};
+
+/// Dummy-struct implement [`Trait`](crate::Trait) for [`Hash`](core::hash::Hash).
 pub struct Hash;
 
 impl TraitImpl for Hash {
@@ -16,5 +19,15 @@ impl TraitImpl for Hash {
 
     fn supports_skip(&self) -> bool {
         true
+    }
+
+    fn build_signature(&self, _impl_: &Impl, body: &TokenStream) -> TokenStream {
+        quote! {
+            fn hash<__H: ::core::hash::Hasher>(&self, __state: &mut __H) {
+                match self {
+                    #body
+                }
+            }
+        }
     }
 }

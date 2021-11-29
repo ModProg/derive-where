@@ -1,0 +1,11 @@
+error: unsupported trait syntax, expected one of expected one of Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd, Zeroize
+ --> tests/ui/zeroize/comma.rs:2:22
+  |
+2 | #[derive_where(Clone,; T)]
+  |                      ^
+
+error: unsupported trait syntax, expected one of expected one of Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd, Zeroize
+ --> tests/ui/zeroize/comma.rs:6:22
+  |
+6 | #[derive_where(Clone,,)]
+  |                      ^

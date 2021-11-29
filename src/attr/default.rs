@@ -2,27 +2,57 @@
 
 use syn::{spanned::Spanned, Meta, Result};
 
-use crate::{Error, DEFAULT};
+use crate::{DeriveWhere, Error, Trait};
 
 /// Stores if this variant should be the default when implementing [`Default`](core::default::Default).
-#[derive(Default)]
-pub struct Default(bool);
+#[derive(Clone, Copy, Default)]
+#[cfg_attr(test, derive(Debug))]
+pub struct Default(pub bool);
 
 impl Default {
-    /// Adds a [`Meta`] to this [`Default`].
-    pub fn add_attribute(&mut self, meta: &Meta) -> Result<()> {
-        debug_assert!(meta.path().is_ident(DEFAULT));
+    /// Token used for the `default` option.
+    pub const DEFAULT: &'static str = "default";
 
-        match meta {
-            Meta::Path(path) => {
-                if self.0 {
-                    Err(Error::option_duplicate(path.span(), DEFAULT))
+    /// Adds a [`Meta`] to this [`Default`](self).
+    pub fn add_attribute(
+        &mut self,
+        meta: &Meta,
+        derive_wheres: &[DeriveWhere],
+        accumulated_defaults: &mut Default,
+    ) -> Result<()> {
+        debug_assert!(meta.path().is_ident(Self::DEFAULT));
+
+        if let Meta::Path(path) = meta {
+            if self.0 {
+                Err(Error::option_duplicate(path.span(), Self::DEFAULT))
+            } else {
+                let mut impl_default = false;
+
+                for derive_where in derive_wheres {
+                    if derive_where
+                        .traits
+                        .iter()
+                        .any(|trait_| **trait_ == Trait::Default)
+                    {
+                        impl_default = true;
+                        break;
+                    }
+                }
+
+                if impl_default {
+                    if accumulated_defaults.0 {
+                        Err(Error::default_duplicate(path.span()))
+                    } else {
+                        accumulated_defaults.0 = true;
+                        self.0 = true;
+                        Ok(())
+                    }
                 } else {
-                    self.0 = true;
-                    Ok(())
+                    Err(Error::default(path.span()))
                 }
             }
-            _ => Err(Error::option_syntax(meta.span())),
+        } else {
+            Err(Error::option_syntax(meta.span()))
         }
     }
 }

@@ -1,8 +1,11 @@
 //! [`Default`](core::default::Default) implementation.
 
-use crate::{DeriveTrait, TraitImpl};
+use proc_macro2::TokenStream;
+use quote::quote;
 
-/// Dummy-struct implement [`Trait`] for [`Default`](core::default::Default).
+use crate::{DeriveTrait, Impl, TraitImpl};
+
+/// Dummy-struct implement [`Trait`](crate::Trait) for [`Default`](core::default::Default).
 pub struct Default;
 
 impl TraitImpl for Default {
@@ -12,5 +15,13 @@ impl TraitImpl for Default {
 
     fn default_derive_trait(&self) -> DeriveTrait {
         DeriveTrait::Default
+    }
+
+    fn build_signature(&self, _impl_: &Impl, body: &TokenStream) -> TokenStream {
+        quote! {
+            fn default() -> Self {
+                #body
+            }
+        }
     }
 }

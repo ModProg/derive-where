@@ -1,8 +1,11 @@
 //! [`Debug`](core::fmt::Debug) implementation.
 
-use crate::{DeriveTrait, TraitImpl};
+use proc_macro2::TokenStream;
+use quote::quote;
 
-/// Dummy-struct implement [`Trait`] for [`Debug`](core::fmt::Debug).
+use crate::{DeriveTrait, Impl, TraitImpl};
+
+/// Dummy-struct implement [`Trait`](crate::Trait) for [`Debug`](core::fmt::Debug).
 pub struct Debug;
 
 impl TraitImpl for Debug {
@@ -16,5 +19,15 @@ impl TraitImpl for Debug {
 
     fn supports_skip(&self) -> bool {
         true
+    }
+
+    fn build_signature(&self, _impl_: &Impl, body: &TokenStream) -> TokenStream {
+        quote! {
+            fn fmt(&self, __f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+                match self {
+                    #body
+                }
+            }
+        }
     }
 }

@@ -1,6 +1,7 @@
 //! Individual implementation for all traits.
 
 mod clone;
+mod common_ord;
 mod copy;
 mod debug;
 mod default;
@@ -15,10 +16,11 @@ mod zeroize;
 use proc_macro2::TokenStream;
 use syn::{spanned::Spanned, MetaList, Path, Result, TypeParamBound};
 
-use crate::{input::Data, DeriveTrait, Error};
+use crate::{DeriveTrait, Error, Impl, Item};
 
 /// Type implementing [`TraitImpl`] for every trait.
 #[derive(Eq, PartialEq)]
+#[cfg_attr(test, derive(Debug))]
 pub enum Trait {
     /// [`Clone`].
     Clone,
@@ -103,19 +105,23 @@ impl TraitImpl for Trait {
         self.implementation().supports_skip()
     }
 
-    fn additional_where_bounds(&self, data: &Data) -> Option<TypeParamBound> {
+    fn additional_where_bounds(&self, data: &Item) -> Option<TypeParamBound> {
         self.implementation().additional_where_bounds(data)
     }
 
     fn additional_impl(&self, trait_: &DeriveTrait) -> Option<(Path, TokenStream)> {
         self.implementation().additional_impl(trait_)
     }
+
+    fn build_signature(&self, impl_: &Impl, body: &TokenStream) -> TokenStream {
+        self.implementation().build_signature(impl_, body)
+    }
 }
 
 /// Single trait implementation. Parses attributes and constructs `impl`s.
 pub trait TraitImpl {
     /// [`str`] representation of this [`Trait`].
-    /// Used to compare against [`Ident`](syn::Ident)s and create error messages.
+    /// Used to compare against [`Ident`](struct@syn::Ident)s and create error messages.
     fn as_str(&self) -> &'static str;
 
     /// Associated [`DeriveTrait`].
@@ -132,12 +138,17 @@ pub trait TraitImpl {
     }
 
     /// Additional bounds to add to [`WhereClause`](syn::WhereClause).
-    fn additional_where_bounds(&self, _data: &Data) -> Option<TypeParamBound> {
+    fn additional_where_bounds(&self, _data: &Item) -> Option<TypeParamBound> {
         None
     }
 
     /// Additional implementation to add for this [`Trait`].
     fn additional_impl(&self, _trait_: &DeriveTrait) -> Option<(Path, TokenStream)> {
         None
+    }
+
+    /// Build method signature for this [`Trait`].
+    fn build_signature(&self, _impl_: &Impl, _body: &TokenStream) -> TokenStream {
+        TokenStream::new()
     }
 }

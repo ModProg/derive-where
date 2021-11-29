@@ -1,5 +1,5 @@
-error: expected one of Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd, Zeroize
- --> tests/ui/no_trait.rs:1:30
+error: unexpected option syntax
+ --> tests/ui/no_trait.rs:2:16
   |
-1 | #[derive_where::derive_where("Clone")]
-  |                              ^^^^^^^
+2 | #[derive_where("Clone")]
+  |                ^^^^^^^
