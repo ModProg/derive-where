@@ -1,0 +1,5 @@
+[Hunspell]
+extra_dictionaries = ["topic.dic"]
+search_dirs = ["."]
+skip_os_lookups = true
+use_builtin = true
