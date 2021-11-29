@@ -35,3 +35,6 @@ syn = { version = "1", default-features = false, features = [
 	"parsing",
 	"printing",
 ] }
+
+[dev-dependencies]
+syn = { version = "1", default-features = false, features = ["extra-traits"] }

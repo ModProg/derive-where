@@ -2,9 +2,10 @@
 
 use syn::{spanned::Spanned, Meta, NestedMeta, Result};
 
-use crate::{Error, Trait, TraitImpl, SKIP, SKIP_INNER};
+use crate::{Error, Trait, TraitImpl};
 
 /// Stores what [`Trait`]s to skip this field or variant for.
+#[cfg_attr(test, derive(Debug))]
 pub enum Skip {
     /// Field skipped for no [`Trait`].
     None,
@@ -21,6 +22,11 @@ impl core::default::Default for Skip {
 }
 
 impl Skip {
+    /// Token used for the `skip` option.
+    pub const SKIP: &'static str = "skip";
+    /// Token used for the `skip_inner` option.
+    pub const SKIP_INNER: &'static str = "skip_inner";
+
     /// Returns if variant is [`Skip::None`].
     fn is_none(&self) -> bool {
         // MSRV: `matches!` was added in 1.42.0.
@@ -36,7 +42,7 @@ impl Skip {
 
     /// Adds a [`Meta`] to this [`Skip`].
     pub fn add_attribute(&mut self, meta: &Meta) -> Result<()> {
-        debug_assert!(meta.path().is_ident(SKIP) || meta.path().is_ident(SKIP_INNER));
+        debug_assert!(meta.path().is_ident(Self::SKIP) || meta.path().is_ident(Self::SKIP_INNER));
 
         match meta {
             Meta::Path(path) => {
@@ -106,6 +112,14 @@ impl Skip {
                 debug_assert!(!skip || (skip && trait_.supports_skip()));
                 skip
             }
+        }
+    }
+
+    /// Returns `true` if any field is skipped.
+    pub fn any_skip(&self) -> bool {
+        match self {
+            Skip::None => false,
+            Skip::All | Skip::Traits(_) => true,
         }
     }
 }

@@ -2,7 +2,7 @@
 
 use syn::{spanned::Spanned, Attribute, Meta, NestedMeta, Result};
 
-use crate::{Error, Trait, DEFAULT, DERIVE_WHERE, SKIP_INNER};
+use crate::{DeriveWhere, Error, DERIVE_WHERE};
 
 use super::{Default, Skip};
 
@@ -10,20 +10,24 @@ use super::{Default, Skip};
 #[derive(Default)]
 pub struct VariantAttr {
     /// Default variant.
-    default: Default,
-    /// [`Trait`]s to skip all fields for.
-    skip_inner: Skip,
+    pub default: Default,
+    /// [`Trait`](crate::Trait)s to skip all fields for.
+    pub skip_inner: Skip,
 }
 
 impl VariantAttr {
     /// Create [`VariantAttr`] from [`Attribute`]s.
-    pub fn from_attrs(attrs: &[Attribute]) -> Result<Self> {
+    pub fn from_attrs(
+        attrs: &[Attribute],
+        derive_wheres: &[DeriveWhere],
+        accumulated_defaults: &mut Default,
+    ) -> Result<Self> {
         let mut self_ = VariantAttr::default();
 
         for attr in attrs {
             if attr.path.is_ident(DERIVE_WHERE) {
                 match attr.parse_meta() {
-                    Ok(meta) => self_.add_meta(&meta)?,
+                    Ok(meta) => self_.add_meta(&meta, derive_wheres, accumulated_defaults)?,
                     Err(error) => return Err(Error::attribute_syntax(attr.span(), error)),
                 }
             }
@@ -33,17 +37,26 @@ impl VariantAttr {
     }
 
     /// Add [`Meta`] to [`VariantAttr`].
-    fn add_meta(&mut self, meta: &Meta) -> Result<()> {
+    fn add_meta(
+        &mut self,
+        meta: &Meta,
+        derive_wheres: &[DeriveWhere],
+        accumulated_defaults: &mut Default,
+    ) -> Result<()> {
         debug_assert!(meta.path().is_ident(DERIVE_WHERE));
 
         if let Meta::List(list) = meta {
             for nested_meta in &list.nested {
                 match nested_meta {
                     NestedMeta::Meta(meta) => {
-                        if meta.path().is_ident(SKIP_INNER) {
+                        if meta.path().is_ident(Skip::SKIP_INNER) {
                             self.skip_inner.add_attribute(meta)?;
-                        } else if meta.path().is_ident(DEFAULT) {
-                            self.default.add_attribute(meta)?;
+                        } else if meta.path().is_ident(Default::DEFAULT) {
+                            self.default.add_attribute(
+                                meta,
+                                derive_wheres,
+                                accumulated_defaults,
+                            )?;
                         } else {
                             return Err(Error::option(meta.path().span()));
                         }
@@ -56,10 +69,5 @@ impl VariantAttr {
         } else {
             Err(Error::option_syntax(meta.span()))
         }
-    }
-
-    /// Returns `true` if this variant is skipped with the given [`Trait`].
-    pub fn skip(&self, trait_: &Trait) -> bool {
-        self.skip_inner.skip(trait_)
     }
 }

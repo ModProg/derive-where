@@ -1,8 +1,10 @@
 //! [`Clone`](core::clone::Clone) implementation.
 
+use proc_macro2::TokenStream;
+use quote::quote;
 use syn::{TraitBound, TraitBoundModifier, TypeParamBound};
 
-use crate::{Data, DeriveTrait, TraitImpl};
+use crate::{DeriveTrait, Impl, Item, Trait, TraitImpl};
 
 /// Dummy-struct implement [`Trait`] for [`Clone`](core::clone::Clone).
 pub struct Clone;
@@ -16,17 +18,28 @@ impl TraitImpl for Clone {
         DeriveTrait::Clone
     }
 
-    fn additional_where_bounds(&self, data: &Data) -> Option<TypeParamBound> {
+    fn additional_where_bounds(&self, data: &Item) -> Option<TypeParamBound> {
         // `Clone` for unions requires the `Copy` bound.
-        if let Data::Union(..) = data {
+        if let Item::Union(..) = data {
             Some(TypeParamBound::Trait(TraitBound {
                 paren_token: None,
                 modifier: TraitBoundModifier::None,
                 lifetimes: None,
-                path: self.default_derive_trait().path(),
+                path: Trait::Copy.default_derive_trait().path(),
             }))
         } else {
             None
+        }
+    }
+
+    fn build_signature(&self, _impl_: &Impl, body: &TokenStream) -> TokenStream {
+        quote! {
+            #[inline]
+            fn clone(&self) -> Self {
+                match self {
+                    #body
+                }
+            }
         }
     }
 }

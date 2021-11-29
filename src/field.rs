@@ -1,63 +1,110 @@
 //! Field parsing.
 
-use proc_macro2::Span;
+use core::fmt::{self, Display, Formatter};
+
+use proc_macro2::{Span, TokenStream};
+use quote::{format_ident, IdentFragment, ToTokens, TokenStreamExt};
 use syn::{Attribute, FieldsNamed, FieldsUnnamed, Ident, Index, Result};
 
 use crate::{FieldAttr, Trait};
 
-/// Struct and struct variant field.
+/// Struct, struct variant or tuple variant field.
+#[cfg_attr(test, derive(Debug))]
 pub struct Field<'a> {
     /// Attributes.
-    attr: FieldAttr,
-    /// [`Ident`](syn::Ident) or [`Index`](syn::Index) for this field.
-    member: Member<'a>,
+    pub attr: FieldAttr,
+    /// [`struct@Ident`] or [`Index`] for this field.
+    pub member: Member<'a>,
+    /// [`struct@Ident`] used as a Temporary variable for destructuring `self`.
+    pub self_ident: Ident,
+    /// [`struct@Ident`] used as a Temporary variable for destructuring `other`.
+    pub other_ident: Ident,
 }
 
-/// Borrowed version of [`syn::Member`] to avoid unnecessary allocations.
-enum Member<'a> {
+/// Borrowed version of [`syn::Member`], to avoid unnecessary allocations.
+#[cfg_attr(test, derive(Debug))]
+pub enum Member<'a> {
     /// Named field.
     Named(&'a Ident),
     /// Unnamed field.
     Unnamed(Index),
 }
 
+impl IdentFragment for Member<'_> {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        Display::fmt(&self, f)
+    }
+}
+
+impl ToTokens for Member<'_> {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        match self {
+            Member::Named(ident) => tokens.append_all(Some(ident)),
+            Member::Unnamed(index) => tokens.append_all(Some(index)),
+        }
+    }
+}
+
+impl Display for Member<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        match self {
+            Member::Named(ident) => f.write_fmt(format_args!("{}", ident)),
+            Member::Unnamed(index) => f.write_fmt(format_args!("{}", index.index)),
+        }
+    }
+}
+
 impl<'a> Field<'a> {
     /// Create [`Field`]s from [`syn::FieldsNamed`].
     pub fn from_named(fields: &'a FieldsNamed) -> Result<Vec<Self>> {
-        let mut output = Vec::with_capacity(fields.named.len());
-
-        for field in &fields.named {
-            output.push(Self::from_field(
-                &field.attrs,
-                Member::Named(field.ident.as_ref().expect("unexpected unnamed field")),
-            )?);
-        }
-
-        Ok(output)
+        fields
+            .named
+            .iter()
+            .map(|field| {
+                Field::from_field(
+                    &field.attrs,
+                    Member::Named(field.ident.as_ref().expect("unexpected unnamed field")),
+                )
+            })
+            .collect()
     }
 
     /// Create [`Field`]s from [`syn::FieldsUnnamed`].
     pub fn from_unnamed(fields: &'a FieldsUnnamed) -> Result<Vec<Self>> {
-        let mut output = Vec::with_capacity(fields.unnamed.len());
-
-        for (index, field) in (0_u32..).zip(&fields.unnamed) {
-            output.push(Self::from_field(
-                &field.attrs,
-                Member::Unnamed(Index {
-                    index,
-                    span: Span::call_site(),
-                }),
-            )?);
-        }
-
-        Ok(output)
+        (0_u32..)
+            .zip(&fields.unnamed)
+            .map(|(index, field)| {
+                Field::from_field(
+                    &field.attrs,
+                    Member::Unnamed(Index {
+                        index,
+                        span: Span::call_site(),
+                    }),
+                )
+            })
+            .collect()
     }
 
     /// Create [`Field`] from [`syn::Field`].
     fn from_field(attrs: &[Attribute], member: Member<'a>) -> Result<Self> {
         let attr = FieldAttr::from_attrs(attrs)?;
+        let self_ident = format_ident!("__{}", member);
+        let other_ident = format_ident!("__other_{}", member);
 
-        Ok(Self { attr, member })
+        Ok(Self {
+            attr,
+            member,
+            self_ident,
+            other_ident,
+        })
+    }
+
+    /// Convert to [`syn::Member`].
+    pub fn to_member(&self) -> syn::Member {
+        match self.member {
+            Member::Named(ident) => syn::Member::Named(ident.clone()),
+            Member::Unnamed(ref index) => syn::Member::Unnamed(index.clone()),
+        }
     }
 
     /// Returns `true` if this field is skipped with the given [`Trait`].

@@ -1,23 +1,29 @@
-error: derive-where doesn't support items without generics, as this can already be handled by standard `#[derive()]`
+error: derive-where doesn't support items without generics, `skip` attributes or `enum`s implementing `Default`, as this can already be handled by standard `#[derive(..)]`
  --> tests/ui/no_generics.rs:2:1
   |
-2 | struct Test1(u8);
-  | ^^^^^^^^^^^^^^^^^
+2 | / #[derive_where(Clone)]
+3 | | struct Test1(u8);
+  | |_________________^
 
-error: derive-where doesn't support items without generics, as this can already be handled by standard `#[derive()]`
- --> tests/ui/no_generics.rs:5:1
+error: derive-where doesn't support items without generics, `skip` attributes or `enum`s implementing `Default`, as this can already be handled by standard `#[derive(..)]`
+ --> tests/ui/no_generics.rs:6:1
   |
-5 | enum Test2 { A }
-  | ^^^^^^^^^^^^^^^^
+6 | / #[derive_where(Clone)]
+7 | | enum Test2 {
+8 | |     A,
+9 | | }
+  | |_^
 
-error: derive-where doesn't support items without generics, as this can already be handled by standard `#[derive()]`
-  --> tests/ui/no_generics.rs:10:1
+error: derive-where doesn't support items without generics, `skip` attributes or `enum`s implementing `Default`, as this can already be handled by standard `#[derive(..)]`
+  --> tests/ui/no_generics.rs:14:1
    |
-10 | struct Test3();
-   | ^^^^^^^^^^^^^^^
+14 | / #[derive_where(Clone)]
+15 | | struct Test3();
+   | |_______________^
 
-error: derive-where doesn't support items without generics, as this can already be handled by standard `#[derive()]`
-  --> tests/ui/no_generics.rs:13:1
+error: derive-where doesn't support items without generics, `skip` attributes or `enum`s implementing `Default`, as this can already be handled by standard `#[derive(..)]`
+  --> tests/ui/no_generics.rs:18:1
    |
-13 | enum Test4 { }
-   | ^^^^^^^^^^^^^^
+18 | / #[derive_where(Clone)]
+19 | | enum Test4 {}
+   | |_____________^

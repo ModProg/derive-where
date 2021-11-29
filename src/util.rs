@@ -5,7 +5,7 @@ use core::iter::FromIterator;
 use proc_macro2::Span;
 use syn::{punctuated::Punctuated, Ident, Path, PathArguments, PathSegment, Token};
 
-use crate::{Data, VariantData};
+use crate::Item;
 
 /// Create [`PathSegment`] from [`str`].
 pub fn path_segment(ident: &str) -> PathSegment {
@@ -23,15 +23,10 @@ pub fn path(segments: &[&str]) -> Path {
     }
 }
 
-/// Return if given `enum` has any empty or unit variants. If not an `enum`, will always return `false`.
-pub fn unit_found(data: &Data) -> bool {
-    if let Data::Enum(variants) = data {
-        variants.iter().any(|variant| match &variant.data {
-            VariantData::Struct(fields) if fields.is_empty() => true,
-            VariantData::Tuple(fields) if fields.is_empty() => true,
-            VariantData::Unit => true,
-            _ => false,
-        })
+/// Return if given enum has any empty or unit variants. If not an enum, will always return `false`.
+pub fn unit_found(data: &Item) -> bool {
+    if let Item::Enum { variants, .. } = data {
+        variants.iter().any(|variant| variant.fields.is_empty())
     } else {
         false
     }

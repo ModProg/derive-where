@@ -1,7 +1,7 @@
 #[derive(derive_where::DeriveWhere)]
-#[derive_where(Default; T)]
+#[derive_where(Clone; T)]
 enum Test<T> {
-    #[derive_where(option)]
+    #[derive_where(default)]
     A(T),
 }
 

@@ -1,7 +1,7 @@
 #[derive(derive_where::DeriveWhere)]
 #[derive_where(Default; T)]
 enum Test<T> {
-	A(T),
+    A(T),
 }
 
 fn main() {}

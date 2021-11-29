@@ -9,33 +9,29 @@
 extern crate proc_macro;
 
 mod attr;
+mod data;
 mod error;
 mod field;
+mod impl_;
 mod input;
 mod trait_;
 mod util;
-mod variant;
+
+use core::iter;
 
 use proc_macro2::TokenStream;
 use syn::{spanned::Spanned, DeriveInput, Result};
 
-use attr::{DeriveTrait, FieldAttr, ItemAttr, VariantAttr};
+use attr::{Default, DeriveTrait, DeriveWhere, FieldAttr, Generic, ItemAttr, Skip, VariantAttr};
+use data::{Data, DataType};
 use error::Error;
-use field::Field;
-use input::{Data, Input};
+use field::{Field, Member};
+use impl_::Impl;
+use input::{Input, Item};
 use trait_::{Trait, TraitImpl};
-use variant::{Variant, VariantData};
 
-/// Token used for the `default` option.
-const DEFAULT: &str = "default";
 /// Token used for attributes.
 const DERIVE_WHERE: &str = "derive_where";
-/// Token used for the `Zeroize(fqs)` option.
-const FQS: &str = "fqs";
-/// Token used for the `skip` option.
-const SKIP: &str = "skip";
-/// Token used for the `skip_inner` option.
-const SKIP_INNER: &str = "skip_inner";
 
 /// Internal derive function for handling errors.
 fn derive_where_internal(input: TokenStream) -> Result<TokenStream> {
@@ -45,7 +41,16 @@ fn derive_where_internal(input: TokenStream) -> Result<TokenStream> {
 
     let input = Input::parse(span, &item)?;
 
-    todo!()
+    input
+        .derive_wheres
+        .iter()
+        .flat_map(|derive_where| iter::repeat(derive_where).zip(&derive_where.traits))
+        .map(|(derive_where, trait_)| {
+            let impl_ = Impl::new(trait_, &derive_where.generics, &input);
+
+            impl_.generate_impl()
+        })
+        .collect()
 }
 
 /// TODO
@@ -299,44 +304,44 @@ mod test {
         #[cfg(all(not(feature = "nightly"), feature = "safe"))]
         let ord = quote! {
             match self {
-                Test::A { .. } =>
+                Test::A { field: ref __field } =>
                     match __other {
-                        Test::B { .. } => ::core::cmp::Ordering::Less,
-                        Test::C(..) => ::core::cmp::Ordering::Less,
-                        Test::D(..) => ::core::cmp::Ordering::Less,
+                        Test::B { } => ::core::cmp::Ordering::Less,
+                        Test::C(ref __other_0) => ::core::cmp::Ordering::Less,
+                        Test::D() => ::core::cmp::Ordering::Less,
                         Test::E => ::core::cmp::Ordering::Less,
                         _ => ::core::unreachable!("comparing variants yielded unexpected results"),
                     },
-                Test::B { .. } =>
+                Test::B { } =>
                     match __other {
-                        Test::A { .. } => ::core::cmp::Ordering::Greater,
-                        Test::C(..) => ::core::cmp::Ordering::Less,
-                        Test::D(..) => ::core::cmp::Ordering::Less,
+                        Test::A { field: ref __other_field } => ::core::cmp::Ordering::Greater,
+                        Test::C(ref __other_0) => ::core::cmp::Ordering::Less,
+                        Test::D() => ::core::cmp::Ordering::Less,
                         Test::E => ::core::cmp::Ordering::Less,
                         _ => ::core::unreachable!("comparing variants yielded unexpected results"),
                     },
-                Test::C(..) =>
+                Test::C(ref __0) =>
                     match __other {
-                        Test::A { .. } => ::core::cmp::Ordering::Greater,
-                        Test::B { .. } => ::core::cmp::Ordering::Greater,
-                        Test::D(..) => ::core::cmp::Ordering::Less,
+                        Test::A { field: ref __other_field } => ::core::cmp::Ordering::Greater,
+                        Test::B { } => ::core::cmp::Ordering::Greater,
+                        Test::D() => ::core::cmp::Ordering::Less,
                         Test::E => ::core::cmp::Ordering::Less,
                         _ => ::core::unreachable!("comparing variants yielded unexpected results"),
                     },
-                Test::D(..) =>
+                Test::D() =>
                     match __other {
-                        Test::A { .. } => ::core::cmp::Ordering::Greater,
-                        Test::B { .. } => ::core::cmp::Ordering::Greater,
-                        Test::C(..) => ::core::cmp::Ordering::Greater,
+                        Test::A { field: ref __other_field } => ::core::cmp::Ordering::Greater,
+                        Test::B { } => ::core::cmp::Ordering::Greater,
+                        Test::C(ref __other_0) => ::core::cmp::Ordering::Greater,
                         Test::E => ::core::cmp::Ordering::Less,
                         _ => ::core::unreachable!("comparing variants yielded unexpected results"),
                     },
                 Test::E =>
                     match __other {
-                        Test::A { .. } => ::core::cmp::Ordering::Greater,
-                        Test::B { .. } => ::core::cmp::Ordering::Greater,
-                        Test::C(..) => ::core::cmp::Ordering::Greater,
-                        Test::D(..) => ::core::cmp::Ordering::Greater,
+                        Test::A { field: ref __other_field } => ::core::cmp::Ordering::Greater,
+                        Test::B { } => ::core::cmp::Ordering::Greater,
+                        Test::C(ref __other_0) => ::core::cmp::Ordering::Greater,
+                        Test::D() => ::core::cmp::Ordering::Greater,
                         _ => ::core::unreachable!("comparing variants yielded unexpected results"),
                     },
             }
@@ -355,44 +360,44 @@ mod test {
         #[cfg(all(not(feature = "nightly"), feature = "safe"))]
         let partial_ord = quote! {
             match self {
-                Test::A { .. } =>
+                Test::A { field: ref __field } =>
                     match __other {
-                        Test::B { .. } => ::core::option::Option::Some(::core::cmp::Ordering::Less),
-                        Test::C(..) => ::core::option::Option::Some(::core::cmp::Ordering::Less),
-                        Test::D(..) => ::core::option::Option::Some(::core::cmp::Ordering::Less),
+                        Test::B { } => ::core::option::Option::Some(::core::cmp::Ordering::Less),
+                        Test::C(ref __other_0) => ::core::option::Option::Some(::core::cmp::Ordering::Less),
+                        Test::D() => ::core::option::Option::Some(::core::cmp::Ordering::Less),
                         Test::E => ::core::option::Option::Some(::core::cmp::Ordering::Less),
                         _ => ::core::unreachable!("comparing variants yielded unexpected results"),
                     },
-                Test::B { .. } =>
+                Test::B { } =>
                     match __other {
-                        Test::A { .. } => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
-                        Test::C(..) => ::core::option::Option::Some(::core::cmp::Ordering::Less),
-                        Test::D(..) => ::core::option::Option::Some(::core::cmp::Ordering::Less),
+                        Test::A { field: ref __other_field } => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
+                        Test::C(ref __other_0) => ::core::option::Option::Some(::core::cmp::Ordering::Less),
+                        Test::D() => ::core::option::Option::Some(::core::cmp::Ordering::Less),
                         Test::E => ::core::option::Option::Some(::core::cmp::Ordering::Less),
                         _ => ::core::unreachable!("comparing variants yielded unexpected results"),
                     },
-                Test::C(..) =>
+                Test::C(ref __0) =>
                     match __other {
-                        Test::A { .. } => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
-                        Test::B { .. } => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
-                        Test::D(..) => ::core::option::Option::Some(::core::cmp::Ordering::Less),
+                        Test::A { field: ref __other_field } => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
+                        Test::B { } => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
+                        Test::D() => ::core::option::Option::Some(::core::cmp::Ordering::Less),
                         Test::E => ::core::option::Option::Some(::core::cmp::Ordering::Less),
-                        _ => ::core::!("comparing variants yielded unexpected results"),
+                        _ => ::core::unreachable!("comparing variants yielded unexpected results"),
                     },
-                Test::D(..) =>
+                Test::D() =>
                     match __other {
-                        Test::A { .. } => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
-                        Test::B { .. } => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
-                        Test::C(..) => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
+                        Test::A { field: ref __other_field } => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
+                        Test::B { } => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
+                        Test::C(ref __other_0) => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
                         Test::E => ::core::option::Option::Some(::core::cmp::Ordering::Less),
                         _ => ::core::unreachable!("comparing variants yielded unexpected results"),
                     },
                 Test::E =>
                     match __other {
-                        Test::A { .. } => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
-                        Test::B { .. } => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
-                        Test::C(..) => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
-                        Test::D(..) => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
+                        Test::A { field: ref __other_field } => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
+                        Test::B { } => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
+                        Test::C(ref __other_0) => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
+                        Test::D() => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
                         _ => ::core::unreachable!("comparing variants yielded unexpected results"),
                     },
             }
@@ -761,14 +766,14 @@ mod test {
         #[cfg(all(not(feature = "nightly"), feature = "safe"))]
         let partial_ord = quote! {
             match self {
-                Test::A(..) =>
+                Test::A(ref __0) =>
                     match __other {
-                        Test::B(..) => ::core::option::Option::Some(::core::cmp::Ordering::Less),
+                        Test::B(ref __other_0) => ::core::option::Option::Some(::core::cmp::Ordering::Less),
                         _ => #unreachable,
                     },
-                Test::B(..) =>
+                Test::B(ref __0) =>
                     match __other {
-                        Test::A(..) => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
+                        Test::A(ref __other_0) => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
                         _ => #unreachable,
                     },
             }
@@ -855,14 +860,14 @@ mod test {
         #[cfg(all(not(feature = "nightly"), feature = "safe"))]
         let partial_ord = quote! {
             match self {
-                Test::A(..) =>
+                Test::A(ref __0) =>
                     match __other {
                         Test::B => ::core::option::Option::Some(::core::cmp::Ordering::Less),
                         _ => ::core::unreachable!("comparing variants yielded unexpected results"),
                     },
                 Test::B =>
                     match __other {
-                        Test::A(..) => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
+                        Test::A(ref __other_0) => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
                         _ => ::core::unreachable!("comparing variants yielded unexpected results"),
                     },
             }
@@ -942,14 +947,14 @@ mod test {
         #[cfg(all(not(feature = "nightly"), feature = "safe"))]
         let partial_ord = quote! {
             match self {
-                Test::A(..) =>
+                Test::A(ref __0) =>
                     match __other {
-                        Test::B { .. } => ::core::option::Option::Some(::core::cmp::Ordering::Less),
+                        Test::B { } => ::core::option::Option::Some(::core::cmp::Ordering::Less),
                         _ => ::core::unreachable!("comparing variants yielded unexpected results"),
                     },
-                Test::B { .. } =>
+                Test::B { } =>
                     match __other {
-                        Test::A(..) => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
+                        Test::A(ref __other_0) => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
                         _ => ::core::unreachable!("comparing variants yielded unexpected results"),
                     },
             }
@@ -1029,14 +1034,14 @@ mod test {
         #[cfg(all(not(feature = "nightly"), feature = "safe"))]
         let partial_ord = quote! {
             match self {
-                Test::A(..) =>
+                Test::A(ref __0) =>
                     match __other {
-                        Test::B(..) => ::core::option::Option::Some(::core::cmp::Ordering::Less),
+                        Test::B() => ::core::option::Option::Some(::core::cmp::Ordering::Less),
                         _ => ::core::unreachable!("comparing variants yielded unexpected results"),
                     },
-                Test::B(..) =>
+                Test::B() =>
                     match __other {
-                        Test::A(..) => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
+                        Test::A(ref __other_0) => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
                         _ => ::core::unreachable!("comparing variants yielded unexpected results"),
                     },
             }
@@ -1216,7 +1221,7 @@ mod test {
                     fn zeroize(&mut self) {
                         match self {
                             Test(ref mut __0) => {
-                                ::zeroize::Zeroize::zeroize(__0);
+                                __0.zeroize();
                             }
                         }
                     }
@@ -1240,7 +1245,7 @@ mod test {
                     fn zeroize(&mut self) {
                         match self {
                             Test(ref mut __0) => {
-                                ::zeroize::Zeroize::zeroize(__0);
+                                __0.zeroize();
                             }
                         }
                     }
@@ -1272,7 +1277,7 @@ mod test {
                     fn zeroize(&mut self) {
                         match self {
                             Test(ref mut __0) => {
-                                zeroize_::Zeroize::zeroize(__0);
+                                __0.zeroize();
                             }
                         }
                     }
@@ -1296,7 +1301,7 @@ mod test {
                     fn zeroize(&mut self) {
                         match self {
                             Test(ref mut __0) => {
-                                zeroize_::Zeroize::zeroize(__0);
+                                __0.zeroize();
                             }
                         }
                     }
@@ -1328,7 +1333,7 @@ mod test {
                     fn zeroize(&mut self) {
                         match self {
                             Test(ref mut __0) => {
-                                zeroize_::Zeroize::zeroize(__0);
+                                __0.zeroize();
                             }
                         }
                     }

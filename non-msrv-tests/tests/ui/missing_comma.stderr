@@ -1,11 +1,11 @@
 error: expected `;` or `,
- --> tests/ui/missing_comma.rs:1:36
+ --> tests/ui/missing_comma.rs:2:22
   |
-1 | #[derive_where::derive_where(Clone Debug; T)]
-  |                                    ^^^^^
+2 | #[derive_where(Clone Debug; T)]
+  |                      ^^^^^
 
 error: expected `,`
- --> tests/ui/missing_comma.rs:4:39
+ --> tests/ui/missing_comma.rs:6:25
   |
-4 | #[derive_where::derive_where(Clone; A B)]
-  |                                       ^
+6 | #[derive_where(Clone; A B)]
+  |                         ^

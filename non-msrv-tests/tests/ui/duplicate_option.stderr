@@ -1,11 +1,11 @@
 error: duplicate `default` option
- --> tests/ui/duplicate_option.rs:3:26
+ --> tests/ui/duplicate_option.rs:4:29
   |
-3 |     #[derive_where(default, default)]
+4 |     #[derive_where(default, default)]
   |                             ^^^^^^^
 
 error: duplicate `default` option
-  --> tests/ui/duplicate_option.rs:10:17
+  --> tests/ui/duplicate_option.rs:12:20
    |
-10 |     #[derive_where(default)]
+12 |     #[derive_where(default)]
    |                    ^^^^^^^

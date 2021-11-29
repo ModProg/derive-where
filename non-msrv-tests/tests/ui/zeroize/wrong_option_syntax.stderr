@@ -1,5 +1,5 @@
-error: Unexpected option syntax
- --> tests/ui/zeroize/wrong_option_syntax.rs:1:38
+error: unexpected option syntax
+ --> tests/ui/zeroize/wrong_option_syntax.rs:2:24
   |
-1 | #[derive_where::derive_where(Zeroize(crate(zeroize_)); T)]
-  |                                      ^^^^^^^^^^^^^^^
+2 | #[derive_where(Zeroize(crate(zeroize_)); T)]
+  |                        ^^^^^^^^^^^^^^^

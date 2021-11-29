@@ -1,5 +1,5 @@
-error: `Debug` doesn't support custom options
- --> tests/ui/item_option.rs:1:30
+error: `Debug` doesn't support any options
+ --> tests/ui/item_option.rs:2:16
   |
-1 | #[derive_where::derive_where(Debug(option); T)]
-  |                              ^^^^^^^^^^^^^
+2 | #[derive_where(Debug(option); T)]
+  |                ^^^^^^^^^^^^^

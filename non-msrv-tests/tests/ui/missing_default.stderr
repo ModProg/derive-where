@@ -1,7 +1,8 @@
-error: `enum`s require specifying a `default` option to implement `Default`
+error: required `default` option on a variant if `Default` is being implemented
  --> tests/ui/missing_default.rs:2:1
   |
-2 | / enum Test<T> {
-3 | |     A(T),
-4 | | }
+2 | / #[derive_where(Default; T)]
+3 | | enum Test<T> {
+4 | |     A(T),
+5 | | }
   | |_^

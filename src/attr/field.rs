@@ -2,21 +2,23 @@
 
 use syn::{spanned::Spanned, Attribute, Meta, NestedMeta, Result};
 
-use crate::{trait_::TraitImpl, Error, Trait, DERIVE_WHERE, SKIP};
+#[cfg(feature = "zeroize")]
+use crate::trait_::TraitImpl;
+use crate::{Error, Trait, DERIVE_WHERE};
 
 use super::Skip;
-
 #[cfg(feature = "zeroize")]
 use super::ZeroizeFqs;
 
 /// Attributes on field.
 #[derive(Default)]
+#[cfg_attr(test, derive(Debug))]
 pub struct FieldAttr {
     /// [`Trait`]s to skip this field for.
-    skip: Skip,
+    pub skip: Skip,
     /// Use fully-qualified-syntax for the [`Zeroize`](https://docs.rs/zeroize/1.4.3/zeroize/trait.Zeroize.html) implementation on this field.
     #[cfg(feature = "zeroize")]
-    zeroize_fqs: ZeroizeFqs,
+    pub zeroize_fqs: ZeroizeFqs,
 }
 
 impl FieldAttr {
@@ -44,7 +46,7 @@ impl FieldAttr {
             for nested_meta in &list.nested {
                 match nested_meta {
                     NestedMeta::Meta(meta) => {
-                        if meta.path().is_ident(SKIP) {
+                        if meta.path().is_ident(Skip::SKIP) {
                             self.skip.add_attribute(meta)?;
                             continue;
                         }

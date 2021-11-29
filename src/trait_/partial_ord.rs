@@ -1,8 +1,13 @@
 //! [`PartialOrd`](core::cmp::PartialOrd) implementation.
 
-use crate::{DeriveTrait, TraitImpl};
+use proc_macro2::TokenStream;
+use quote::quote;
 
-/// Dummy-struct implement [`Trait`] for [`PartialOrd`](core::cmp::PartialOrd).
+use crate::{DeriveTrait, Impl, TraitImpl};
+
+use super::common_ord;
+
+/// Dummy-struct implement [`Trait`](crate::Trait) for [`PartialOrd`](core::cmp::PartialOrd).
 pub struct PartialOrd;
 
 impl TraitImpl for PartialOrd {
@@ -16,5 +21,16 @@ impl TraitImpl for PartialOrd {
 
     fn supports_skip(&self) -> bool {
         true
+    }
+
+    fn build_signature(&self, impl_: &Impl, body: &TokenStream) -> TokenStream {
+        let body = common_ord::build_ord_signature(impl_, body);
+
+        quote! {
+            #[inline]
+            fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
+                #body
+            }
+        }
     }
 }
