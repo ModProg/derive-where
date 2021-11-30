@@ -1,6 +1,6 @@
 //! Attribute parsing for variants.
 
-use syn::{spanned::Spanned, Attribute, Meta, NestedMeta, Result};
+use syn::{spanned::Spanned, Attribute, Fields, Meta, NestedMeta, Result, Variant};
 
 use crate::{Default, DeriveWhere, Error, Skip, DERIVE_WHERE};
 
@@ -19,13 +19,16 @@ impl VariantAttr {
 		attrs: &[Attribute],
 		derive_wheres: &[DeriveWhere],
 		accumulated_defaults: &mut Default,
+		variant: &Variant,
 	) -> Result<Self> {
 		let mut self_ = VariantAttr::default();
 
 		for attr in attrs {
 			if attr.path.is_ident(DERIVE_WHERE) {
 				match attr.parse_meta() {
-					Ok(meta) => self_.add_meta(&meta, derive_wheres, accumulated_defaults)?,
+					Ok(meta) => {
+						self_.add_meta(&meta, derive_wheres, accumulated_defaults, variant)?
+					}
 					Err(error) => return Err(Error::attribute_syntax(attr.span(), error)),
 				}
 			}
@@ -40,6 +43,7 @@ impl VariantAttr {
 		meta: &Meta,
 		derive_wheres: &[DeriveWhere],
 		accumulated_defaults: &mut Default,
+		variant: &Variant,
 	) -> Result<()> {
 		debug_assert!(meta.path().is_ident(DERIVE_WHERE));
 
@@ -48,7 +52,19 @@ impl VariantAttr {
 				match nested_meta {
 					NestedMeta::Meta(meta) => {
 						if meta.path().is_ident(Skip::SKIP_INNER) {
-							self.skip_inner.add_attribute(meta)?;
+							// Don't allow `skip_inner` on empty variants.
+							match &variant.fields {
+								Fields::Named(fields) if fields.named.is_empty() => {
+									return Err(Error::option_skip_empty(variant.span()))
+								}
+								Fields::Unnamed(fields) if fields.unnamed.is_empty() => {
+									return Err(Error::option_skip_empty(variant.span()))
+								}
+								Fields::Unit => {
+									return Err(Error::option_skip_empty(variant.span()))
+								}
+								_ => self.skip_inner.add_attribute(None, meta)?,
+							}
 						} else if meta.path().is_ident(Default::DEFAULT) {
 							self.default.add_attribute(
 								meta,

@@ -6,7 +6,7 @@ use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, IdentFragment, ToTokens, TokenStreamExt};
 use syn::{Attribute, FieldsNamed, FieldsUnnamed, Ident, Index, Result};
 
-use crate::{FieldAttr, Trait};
+use crate::{FieldAttr, Skip, Trait};
 
 /// Struct, union, struct variant or tuple variant field.
 #[cfg_attr(test, derive(Debug))]
@@ -56,12 +56,13 @@ impl Display for Member<'_> {
 
 impl<'a> Field<'a> {
 	/// Create [`Field`]s from [`syn::FieldsNamed`].
-	pub fn from_named(fields: &'a FieldsNamed) -> Result<Vec<Self>> {
+	pub fn from_named(skip_inner: &Skip, fields: &'a FieldsNamed) -> Result<Vec<Self>> {
 		fields
 			.named
 			.iter()
 			.map(|field| {
 				Field::from_field(
+					skip_inner,
 					&field.attrs,
 					Member::Named(field.ident.as_ref().expect("unexpected unnamed field")),
 				)
@@ -70,11 +71,12 @@ impl<'a> Field<'a> {
 	}
 
 	/// Create [`Field`]s from [`syn::FieldsUnnamed`].
-	pub fn from_unnamed(fields: &'a FieldsUnnamed) -> Result<Vec<Self>> {
+	pub fn from_unnamed(skip_inner: &Skip, fields: &'a FieldsUnnamed) -> Result<Vec<Self>> {
 		(0_u32..)
 			.zip(&fields.unnamed)
 			.map(|(index, field)| {
 				Field::from_field(
+					skip_inner,
 					&field.attrs,
 					Member::Unnamed(Index {
 						index,
@@ -86,8 +88,8 @@ impl<'a> Field<'a> {
 	}
 
 	/// Create [`Field`] from [`syn::Field`].
-	fn from_field(attrs: &[Attribute], member: Member<'a>) -> Result<Self> {
-		let attr = FieldAttr::from_attrs(attrs)?;
+	fn from_field(skip_inner: &Skip, attrs: &[Attribute], member: Member<'a>) -> Result<Self> {
+		let attr = FieldAttr::from_attrs(skip_inner, attrs)?;
 		let self_ident = format_ident!("__{}", member);
 		let other_ident = format_ident!("__other_{}", member);
 

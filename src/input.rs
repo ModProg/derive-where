@@ -3,7 +3,7 @@
 use proc_macro2::Span;
 use syn::{DeriveInput, Generics, Result};
 
-use crate::{Data, Default, DeriveWhere, Error, Item, ItemAttr, Trait, VariantAttr};
+use crate::{Data, Default, DeriveWhere, Either, Error, Item, ItemAttr, Trait, VariantAttr};
 
 /// Parsed input.
 pub struct Input<'a> {
@@ -34,7 +34,6 @@ impl<'a> Input<'a> {
 		} = ItemAttr::from_attrs(span, data, attrs)?;
 
 		// Extract fields and variants of this item.
-		// TODO: check for empty structs, tuple structs or enums.
 		let item = match &data {
 			syn::Data::Struct(data) => {
 				Data::from_struct(span, skip_inner, ident, &data.fields).map(Item::Item)?
@@ -54,6 +53,7 @@ impl<'a> Input<'a> {
 							&variant.attrs,
 							&derive_wheres,
 							&mut accumulated_defaults,
+							variant,
 						)?;
 
 						Data::from_variant(
@@ -65,6 +65,14 @@ impl<'a> Input<'a> {
 						)
 					})
 					.collect::<Result<Vec<Data>>>()?;
+
+				// Empty enums aren't allowed.
+				if variants.iter().all(|variant| match variant.fields() {
+					Either::Left(fields) => fields.fields.is_empty(),
+					Either::Right(_) => true,
+				}) {
+					return Err(Error::item_empty(span));
+				}
 
 				// Make sure a variant has the `option` attribute if `Default` is being
 				// implemented.
@@ -81,7 +89,7 @@ impl<'a> Input<'a> {
 				Item::Enum { ident, variants }
 			}
 			syn::Data::Union(data) => {
-				Data::from_union(skip_inner, ident, &data.fields).map(Item::Item)?
+				Data::from_union(span, skip_inner, ident, &data.fields).map(Item::Item)?
 			}
 		};
 

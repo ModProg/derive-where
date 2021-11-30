@@ -15,12 +15,12 @@ impl Error {
 		)
 	}
 
-	/// Unsupported unit struct.
-	pub fn unit_struct(span: Span) -> syn::Error {
+	/// Unsupported empty item.
+	pub fn item_empty(span: Span) -> syn::Error {
 		syn::Error::new(
 			span,
-			"derive-where doesn't support unit structs, as this can already be handled by \
-			 standard `#[derive(..)]`",
+			"derive-where doesn't support empty items, as this can already be handled by standard \
+			 `#[derive(..)]`",
 		)
 	}
 
@@ -72,7 +72,29 @@ impl Error {
 		syn::Error::new(span, format!("duplicate `{}` option", option))
 	}
 
-	/// Unexpected constrained field skipping when configured to skip all fields
+	/// Unsupported `skip_inner` on an enum.
+	pub fn option_enum_skip_inner(span: Span) -> syn::Error {
+		syn::Error::new(
+			span,
+			"enums don't support `skip_inner`, use it on a variant instead",
+		)
+	}
+
+	/// Unexpected `skip` on a field when `skip_inner` is already used on the
+	/// item or variant with this [`Trait`](crate::Trait).
+	pub fn option_skip_inner(span: Span) -> syn::Error {
+		syn::Error::new(
+			span,
+			"unexpected `skip` on a field when parent already uses `skip_inner` with this trait",
+		)
+	}
+
+	/// Unsupported `skip_inner` on empty variant.
+	pub fn option_skip_empty(span: Span) -> syn::Error {
+		syn::Error::new(span, "no fields to skip")
+	}
+
+	/// Unexpected constrained field skipping when configured to skip all traits
 	/// anyway.
 	pub fn option_skip_all(span: Span) -> syn::Error {
 		syn::Error::new(
