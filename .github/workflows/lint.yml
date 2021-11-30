@@ -9,27 +9,30 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        - { channel: stable, features: "" }
-        - { channel: stable, features: safe }
-        - { channel: nightly, features: nightly }
-        - { channel: stable, features: zeroize }
-        - { channel: nightly, features: safe,nightly }
-        - { channel: stable, features: safe,zeroize }
-        - { channel: nightly, features: nightly,zeroize }
-        - { channel: nightly, features: safe,nightly,zeroize }
+        matrix:
+          - { channel: stable, features: "" }
+          - { channel: stable, features: safe }
+          - { channel: nightly, features: nightly }
+          - { channel: stable, features: zeroize }
+          - { channel: nightly, features: safe,nightly }
+          - { channel: stable, features: safe,zeroize }
+          - { channel: nightly, features: nightly,zeroize }
+          - { channel: nightly, features: safe,nightly,zeroize }
 
     runs-on: ubuntu-latest
 
     steps:
       - name: Update Rust
         run:
-          rustup toolchain install ${{ matrix.channel }} --profile minimal --component clippy --allow-downgrade
-          rustup default ${{ matrix.channel }}
+          rustup toolchain install ${{ matrix.matrix.channel }} --profile minimal --component clippy --allow-downgrade
+          rustup default ${{ matrix.matrix.channel }}
+      - name: Checkout
+        uses: actions/checkout@v2
       - name: Clippy
         run:
-          cargo clippy --all-targets --workspace --features ${{ matrix.features }} -- -D warnings
+          cargo clippy --all-targets --workspace --features ${{ matrix.matrix.features }} -- -D warnings
       - name: Rustdoc
         env:
           RUSTDOCFLAGS: -D warnings
         run:
-          cargo doc --no-deps --document-private-items --workspace --features ${{ matrix.features }}
+          cargo doc --no-deps --document-private-items --workspace --features ${{ matrix.matrix.features }}
