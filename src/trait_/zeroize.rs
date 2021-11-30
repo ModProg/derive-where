@@ -4,7 +4,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{spanned::Spanned, Lit, Meta, MetaList, NestedMeta, Path, Result};
 
-use crate::{util, Data, DeriveTrait, Error, Impl, SimpleType, TraitImpl};
+use crate::{util, Data, DeriveTrait, Error, Item, SimpleType, TraitImpl};
 
 /// Dummy-struct implement [`Trait`](crate::Trait) for [`Zeroize`](https://docs.rs/zeroize/1.4.3/zeroize/trait.Zeroize.html) .
 pub struct Zeroize;
@@ -88,7 +88,12 @@ impl TraitImpl for Zeroize {
         }
     }
 
-    fn build_signature(&self, _impl_: &Impl, body: &TokenStream) -> TokenStream {
+    fn build_signature(
+        &self,
+        _item: &Item,
+        _trait_: &DeriveTrait,
+        body: &TokenStream,
+    ) -> TokenStream {
         quote! {
             fn zeroize(&mut self) {
                 match self {

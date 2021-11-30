@@ -3,7 +3,7 @@
 use proc_macro2::TokenStream;
 use quote::quote;
 
-use crate::{Data, DeriveTrait, Impl, SimpleType, TraitImpl};
+use crate::{Data, DeriveTrait, Item, SimpleType, TraitImpl};
 
 use super::common_ord;
 
@@ -23,8 +23,13 @@ impl TraitImpl for PartialOrd {
         true
     }
 
-    fn build_signature(&self, impl_: &Impl, body: &TokenStream) -> TokenStream {
-        let body = common_ord::build_ord_signature(impl_, body);
+    fn build_signature(
+        &self,
+        item: &Item,
+        trait_: &DeriveTrait,
+        body: &TokenStream,
+    ) -> TokenStream {
+        let body = common_ord::build_ord_signature(item, trait_, body);
 
         quote! {
             #[inline]

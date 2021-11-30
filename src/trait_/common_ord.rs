@@ -3,27 +3,24 @@
 use proc_macro2::TokenStream;
 use quote::quote;
 
-use crate::{Data, DeriveTrait, Impl, Item};
+use crate::{Data, DeriveTrait, Item};
 
 /// Build signature for [`PartialOrd`] and [`Ord`].
-pub fn build_ord_signature(impl_: &Impl, body: &TokenStream) -> TokenStream {
+pub fn build_ord_signature(item: &Item, trait_: &DeriveTrait, body: &TokenStream) -> TokenStream {
     use crate::DeriveTrait::*;
 
     let mut equal = quote! { ::core::cmp::Ordering::Equal };
 
     // Add `Option` to `Ordering` if we are implementing `PartialOrd`.
-    if let PartialOrd = impl_.trait_ {
+    if let PartialOrd = trait_ {
         equal = quote! { ::core::option::Option::Some(#equal) };
     }
 
-    match &impl_.input.item {
+    match item {
         // Only check for discriminators if there is more than one variant.
         Item::Enum { variants, .. } if variants.len() > 1 => {
             // Return `Equal` in the rest pattern if there are any empty variants.
-            let rest = if variants
-                .iter()
-                .any(|variant| variant.is_empty(impl_.trait_))
-            {
+            let rest = if variants.iter().any(|variant| variant.is_empty(trait_)) {
                 quote! { #equal }
             } else {
                 #[cfg(not(feature = "safe"))]
@@ -36,8 +33,8 @@ pub fn build_ord_signature(impl_: &Impl, body: &TokenStream) -> TokenStream {
             // Nightly or unsafe (default) implementation.
             #[cfg(any(feature = "nightly", not(feature = "safe")))]
             {
-                let path = impl_.trait_.path();
-                let method = match impl_.trait_ {
+                let path = trait_.path();
+                let method = match trait_ {
                     PartialOrd => quote! { partial_cmp },
                     Ord => quote! { cmp },
                     _ => unreachable!("unsupported trait in `prepare_ord`"),

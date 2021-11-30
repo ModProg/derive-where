@@ -11,7 +11,6 @@ extern crate proc_macro;
 mod attr;
 mod data;
 mod error;
-mod impl_;
 mod input;
 mod trait_;
 mod util;
@@ -19,12 +18,15 @@ mod util;
 use core::iter;
 
 use proc_macro2::TokenStream;
-use syn::{spanned::Spanned, DeriveInput, Result};
+use quote::quote;
+use syn::{
+    punctuated::Punctuated, spanned::Spanned, DeriveInput, PredicateType, Result, Token,
+    WhereClause, WherePredicate,
+};
 
 use attr::{Default, DeriveTrait, DeriveWhere, FieldAttr, Generic, ItemAttr, Skip, VariantAttr};
 use data::{Data, DataType, Field, Member, SimpleType};
 use error::Error;
-use impl_::Impl;
 use input::{Input, Item};
 use trait_::{Trait, TraitImpl};
 use util::Either;
@@ -45,9 +47,71 @@ fn derive_where_internal(input: TokenStream) -> Result<TokenStream> {
         .iter()
         .flat_map(|derive_where| iter::repeat(derive_where).zip(&derive_where.traits))
         .map(|(derive_where, trait_)| {
-            let impl_ = Impl::new(trait_, &derive_where.generics, &input);
+            let (impl_generics, type_generics, where_clause) = input.generics.split_for_impl();
+            let mut where_clause = where_clause.cloned();
 
-            impl_.generate_impl()
+            // Only create a where clause if required
+            if !derive_where.generics.is_empty() {
+                // We use the existing where clause or create a new one if required.
+                let where_clause = where_clause.get_or_insert(WhereClause {
+                    where_token: <Token![where]>::default(),
+                    predicates: Punctuated::default(),
+                });
+
+                // Insert bounds into the `where` clause.
+                for generic in &derive_where.generics {
+                    where_clause
+                        .predicates
+                        .push(WherePredicate::Type(match generic {
+                            Generic::CoustomBound(type_bound) => type_bound.clone(),
+                            Generic::NoBound(path) => PredicateType {
+                                lifetimes: None,
+                                bounded_ty: path.clone(),
+                                colon_token: <Token![:]>::default(),
+                                bounds: trait_.where_bounds(&input.item),
+                            },
+                        }));
+                }
+            }
+
+            let body = {
+                match &input.item {
+                    Item::Item(data) => {
+                        let body = trait_.build_body(trait_, data);
+                        trait_.build_signature(&input.item, trait_, &body)
+                    }
+                    Item::Enum { variants, .. } => {
+                        let body: TokenStream = variants
+                            .iter()
+                            .map(|data| trait_.build_body(trait_, data))
+                            .collect();
+
+                        trait_.build_signature(&input.item, trait_, &body)
+                    }
+                }
+            };
+
+            let ident = input.item.ident();
+            let path = trait_.path();
+            let mut output = quote! {
+                impl #impl_generics #path for #ident #type_generics
+                #where_clause
+                {
+                    #body
+                }
+            };
+
+            if let Some((path, body)) = trait_.additional_impl(trait_) {
+                output.extend(quote! {
+                    impl #impl_generics #path for #ident #type_generics
+                    #where_clause
+                    {
+                        #body
+                    }
+                })
+            }
+
+            output
         })
         .collect())
 }

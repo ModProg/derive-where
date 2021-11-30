@@ -16,7 +16,7 @@ mod zeroize;
 use proc_macro2::TokenStream;
 use syn::{spanned::Spanned, MetaList, Path, Result, TypeParamBound};
 
-use crate::{Data, DeriveTrait, Error, Impl, Item};
+use crate::{Data, DeriveTrait, Error, Item};
 
 /// Type implementing [`TraitImpl`] for every trait.
 #[derive(Eq, PartialEq)]
@@ -117,8 +117,13 @@ impl TraitImpl for Trait {
         self.implementation().additional_impl(trait_)
     }
 
-    fn build_signature(&self, impl_: &Impl, body: &TokenStream) -> TokenStream {
-        self.implementation().build_signature(impl_, body)
+    fn build_signature(
+        &self,
+        item: &Item,
+        trait_: &DeriveTrait,
+        body: &TokenStream,
+    ) -> TokenStream {
+        self.implementation().build_signature(item, trait_, body)
     }
 
     fn build_body(&self, trait_: &DeriveTrait, data: &Data) -> TokenStream {
@@ -161,7 +166,12 @@ pub trait TraitImpl {
     }
 
     /// Build method signature for this [`Trait`].
-    fn build_signature(&self, _impl_: &Impl, _body: &TokenStream) -> TokenStream {
+    fn build_signature(
+        &self,
+        _item: &Item,
+        _trait_: &DeriveTrait,
+        _body: &TokenStream,
+    ) -> TokenStream {
         TokenStream::new()
     }
 

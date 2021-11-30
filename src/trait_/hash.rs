@@ -3,7 +3,7 @@
 use proc_macro2::TokenStream;
 use quote::quote;
 
-use crate::{Data, DataType, DeriveTrait, Impl, SimpleType, TraitImpl};
+use crate::{Data, DataType, DeriveTrait, Item, SimpleType, TraitImpl};
 
 /// Dummy-struct implement [`Trait`](crate::Trait) for [`Hash`](core::hash::Hash).
 pub struct Hash;
@@ -21,7 +21,12 @@ impl TraitImpl for Hash {
         true
     }
 
-    fn build_signature(&self, _impl_: &Impl, body: &TokenStream) -> TokenStream {
+    fn build_signature(
+        &self,
+        _item: &Item,
+        _trait_: &DeriveTrait,
+        body: &TokenStream,
+    ) -> TokenStream {
         quote! {
             fn hash<__H: ::core::hash::Hasher>(&self, __state: &mut __H) {
                 match self {

@@ -3,7 +3,7 @@
 use proc_macro2::TokenStream;
 use quote::quote;
 
-use crate::{Data, DeriveTrait, Impl, SimpleType, TraitImpl};
+use crate::{Data, DeriveTrait, Item, SimpleType, TraitImpl};
 
 /// Dummy-struct implement [`Trait`](crate::Trait) for [`Default`](core::default::Default).
 pub struct Default;
@@ -17,7 +17,12 @@ impl TraitImpl for Default {
         DeriveTrait::Default
     }
 
-    fn build_signature(&self, _impl_: &Impl, body: &TokenStream) -> TokenStream {
+    fn build_signature(
+        &self,
+        _item: &Item,
+        _trait_: &DeriveTrait,
+        body: &TokenStream,
+    ) -> TokenStream {
         quote! {
             fn default() -> Self {
                 #body
