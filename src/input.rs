@@ -1,7 +1,7 @@
 //! Parses [`DeriveInput`] into something more useful.
 
 use proc_macro2::Span;
-use syn::{DeriveInput, Fields, Generics, Result};
+use syn::{DeriveInput, Generics, Result};
 
 use crate::{Data, Default, DeriveWhere, Error, Item, ItemAttr, Trait, VariantAttr};
 
@@ -36,15 +36,9 @@ impl<'a> Input<'a> {
         // Extract fields and variants of this item.
         // TODO: check for empty structs, tuple structs or enums.
         let item = match &data {
-            syn::Data::Struct(data) => match &data.fields {
-                Fields::Named(fields) => {
-                    Data::from_struct(skip_inner, ident, fields).map(Item::Item)
-                }
-                Fields::Unnamed(fields) => {
-                    Data::from_tuple(skip_inner, ident, fields).map(Item::Item)
-                }
-                Fields::Unit => Err(Error::unit_struct(span)),
-            }?,
+            syn::Data::Struct(data) => {
+                Data::from_struct(span, skip_inner, ident, &data.fields).map(Item::Item)?
+            }
             syn::Data::Enum(data) => {
                 let mut accumulated_defaults = Default::default();
 
@@ -62,25 +56,13 @@ impl<'a> Input<'a> {
                             &mut accumulated_defaults,
                         )?;
 
-                        match &variant.fields {
-                            Fields::Named(fields) => Data::from_struct_variant(
-                                ident,
-                                skip_inner,
-                                default,
-                                &variant.ident,
-                                fields,
-                            ),
-                            Fields::Unnamed(fields) => Data::from_tuple_variant(
-                                ident,
-                                skip_inner,
-                                default,
-                                &variant.ident,
-                                fields,
-                            ),
-                            Fields::Unit => {
-                                Data::from_unit_variant(ident, skip_inner, default, &variant.ident)
-                            }
-                        }
+                        Data::from_variant(
+                            ident,
+                            skip_inner,
+                            default,
+                            &variant.ident,
+                            &variant.fields,
+                        )
                     })
                     .collect::<Result<Vec<Data>>>()?;
 
