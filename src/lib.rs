@@ -34,6 +34,16 @@ use util::Either;
 /// Token used for attributes.
 const DERIVE_WHERE: &str = "derive_where";
 
+/// TODO
+#[proc_macro_derive(DeriveWhere, attributes(derive_where))]
+#[cfg_attr(feature = "nightly", allow_internal_unstable(core_intrinsics))]
+pub fn derive_where(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    match derive_where_internal(input.into()) {
+        Ok(output) => output.into(),
+        Err(error) => error.into_compile_error().into(),
+    }
+}
+
 /// Internal derive function for handling errors.
 fn derive_where_internal(input: TokenStream) -> Result<TokenStream> {
     // Save `Span` before we consume `input` when parsing it.
@@ -114,16 +124,6 @@ fn derive_where_internal(input: TokenStream) -> Result<TokenStream> {
             output
         })
         .collect())
-}
-
-/// TODO
-#[proc_macro_derive(DeriveWhere, attributes(derive_where))]
-#[cfg_attr(feature = "nightly", allow_internal_unstable(core_intrinsics))]
-pub fn derive_where(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    match derive_where_internal(input.into()) {
-        Ok(output) => output.into(),
-        Err(error) => error.into_compile_error().into(),
-    }
 }
 
 #[cfg(test)]
