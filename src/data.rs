@@ -3,9 +3,10 @@
 mod field;
 mod fields;
 
-use syn::{FieldsNamed, FieldsUnnamed, Ident, Pat, PatPath, Path, Result};
+use proc_macro2::Span;
+use syn::{FieldsNamed, Ident, Pat, PatPath, Path, Result};
 
-use crate::{util, Default, Either, Skip, Trait};
+use crate::{util, Default, Either, Error, Skip, Trait};
 
 pub use field::{Field, Member};
 pub use fields::Fields;
@@ -65,41 +66,41 @@ pub enum SimpleType<'a> {
 }
 
 impl<'a> Data<'a> {
-    /// Create [`Data`]s from [`FieldsNamed`].
+    /// Create [`Data`]s from [`syn::Fields`] of a struct.
     pub fn from_struct(
+        span: Span,
         skip_inner: Skip,
         ident: &'a Ident,
-        fields: &'a FieldsNamed,
+        fields: &'a syn::Fields,
     ) -> Result<Self> {
         let path = util::path_from_idents(&[ident]);
-        let fields = Fields::from_named(path.clone(), fields)?;
 
-        Ok(Self {
-            skip_inner,
-            ident,
-            path,
-            type_: DataType::Struct(fields),
-        })
+        match fields {
+            syn::Fields::Named(fields) => {
+                let fields = Fields::from_named(path.clone(), fields)?;
+
+                Ok(Self {
+                    skip_inner,
+                    ident,
+                    path,
+                    type_: DataType::Struct(fields),
+                })
+            }
+            syn::Fields::Unnamed(fields) => {
+                let fields = Fields::from_unnamed(path.clone(), fields)?;
+
+                Ok(Self {
+                    skip_inner,
+                    ident,
+                    path,
+                    type_: DataType::Tuple(fields),
+                })
+            }
+            syn::Fields::Unit => Err(Error::unit_struct(span)),
+        }
     }
 
-    /// Create [`Data`]s from [`FieldsUnnamed`].
-    pub fn from_tuple(
-        skip_inner: Skip,
-        ident: &'a Ident,
-        fields: &'a FieldsUnnamed,
-    ) -> Result<Self> {
-        let path = util::path_from_idents(&[ident]);
-        let fields = Fields::from_unnamed(path.clone(), fields)?;
-
-        Ok(Self {
-            skip_inner,
-            ident,
-            path,
-            type_: DataType::Tuple(fields),
-        })
-    }
-
-    /// Create [`Data`]s from [`FieldsNamed`].
+    /// Create [`Data`]s from [`FieldsNamed`] of an union.
     pub fn from_union(skip_inner: Skip, ident: &'a Ident, fields: &'a FieldsNamed) -> Result<Self> {
         let path = util::path_from_idents(&[ident]);
         let fields = Fields::from_named(path.clone(), fields)?;
@@ -112,73 +113,61 @@ impl<'a> Data<'a> {
         })
     }
 
-    /// Create [`Data`]s from [`FieldsNamed`].
-    pub fn from_struct_variant(
+    /// Create [`Data`]s from [`syn::Fields`] of a variant.
+    pub fn from_variant(
         item_ident: &'a Ident,
         skip_inner: Skip,
         default: Default,
         variant_ident: &'a Ident,
-        fields: &'a FieldsNamed,
+        fields: &'a syn::Fields,
     ) -> Result<Self> {
         let path = util::path_from_idents(&[item_ident, variant_ident]);
-        let fields = Fields::from_named(path.clone(), fields)?;
 
-        Ok(Self {
-            skip_inner,
-            ident: variant_ident,
-            path,
-            type_: DataType::Variant {
-                default,
-                type_: VariantType::Struct(fields),
-            },
-        })
-    }
+        match fields {
+            syn::Fields::Named(fields) => {
+                let fields = Fields::from_named(path.clone(), fields)?;
 
-    /// Create [`Data`]s from [`FieldsUnnamed`].
-    pub fn from_tuple_variant(
-        item_ident: &'a Ident,
-        skip_inner: Skip,
-        default: Default,
-        variant_ident: &'a Ident,
-        fields: &'a FieldsUnnamed,
-    ) -> Result<Self> {
-        let path = util::path_from_idents(&[item_ident, variant_ident]);
-        let fields = Fields::from_unnamed(path.clone(), fields)?;
+                Ok(Self {
+                    skip_inner,
+                    ident: variant_ident,
+                    path,
+                    type_: DataType::Variant {
+                        default,
+                        type_: VariantType::Struct(fields),
+                    },
+                })
+            }
+            syn::Fields::Unnamed(fields) => {
+                let fields = Fields::from_unnamed(path.clone(), fields)?;
 
-        Ok(Self {
-            skip_inner,
-            ident: variant_ident,
-            path,
-            type_: DataType::Variant {
-                default,
-                type_: VariantType::Tuple(fields),
-            },
-        })
-    }
+                Ok(Self {
+                    skip_inner,
+                    ident: variant_ident,
+                    path,
+                    type_: DataType::Variant {
+                        default,
+                        type_: VariantType::Tuple(fields),
+                    },
+                })
+            }
+            syn::Fields::Unit => {
+                let pattern = Pat::Path(PatPath {
+                    attrs: Vec::new(),
+                    qself: None,
+                    path: path.clone(),
+                });
 
-    /// Create [`Data`]s from unit variant.
-    pub fn from_unit_variant(
-        item_ident: &'a Ident,
-        skip_inner: Skip,
-        default: Default,
-        variant_ident: &'a Ident,
-    ) -> Result<Self> {
-        let path = util::path_from_idents(&[item_ident, variant_ident]);
-        let pattern = Pat::Path(PatPath {
-            attrs: Vec::new(),
-            qself: None,
-            path: path.clone(),
-        });
-
-        Ok(Self {
-            skip_inner,
-            ident: variant_ident,
-            path,
-            type_: DataType::Variant {
-                default,
-                type_: VariantType::Unit(pattern),
-            },
-        })
+                Ok(Self {
+                    skip_inner,
+                    ident: variant_ident,
+                    path,
+                    type_: DataType::Variant {
+                        default,
+                        type_: VariantType::Unit(pattern),
+                    },
+                })
+            }
+        }
     }
 
     /// Returns the [`Fields`] of this [`Data`]. If [`Data`] is a unit variant returns [`Pat`] instead.
