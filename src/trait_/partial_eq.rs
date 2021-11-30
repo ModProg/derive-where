@@ -1,6 +1,6 @@
 //! [`PartialEq`](core::cmp::PartialEq) implementation.
 
-use crate::{util, DeriveTrait, Impl, Item, TraitImpl};
+use crate::{Data, DeriveTrait, Impl, Item, SimpleType, TraitImpl};
 use proc_macro2::TokenStream;
 use quote::quote;
 
@@ -25,8 +25,11 @@ impl TraitImpl for PartialEq {
             match &impl_.input.item {
                 // Only check for discriminators if there is more than one variant.
                 Item::Enum { variants, .. } if variants.len() > 1 => {
-                    // If there are any unit variants, skip comparing them and instead return `true`. Otherwise panic as it should be unreachable.
-                    let rest = if util::unit_found(&impl_.input.item) {
+                    // Return `true` in the rest pattern if there are any empty variants.
+                    let rest = if variants
+                        .iter()
+                        .any(|variant| variant.is_empty(impl_.trait_))
+                    {
                         quote! { true }
                     } else {
                         #[cfg(not(feature = "safe"))]
@@ -47,14 +50,6 @@ impl TraitImpl for PartialEq {
                         }
                     }
                 }
-                // If only one variant was found and it's a unit variant, return `true`.
-                Item::Enum { variants, .. }
-                    if variants.len() == 1 && util::unit_found(&impl_.input.item) =>
-                {
-                    quote! {
-                        true
-                    }
-                }
                 _ => {
                     quote! {
                         match (self, __other) {
@@ -69,6 +64,29 @@ impl TraitImpl for PartialEq {
             #[inline]
             fn eq(&self, __other: &Self) -> bool {
                 #body
+            }
+        }
+    }
+
+    fn build_body(&self, trait_: &DeriveTrait, data: &Data) -> TokenStream {
+        if data.is_empty(trait_) {
+            TokenStream::new()
+        } else {
+            match data.simple_type() {
+                SimpleType::Struct(fields) | SimpleType::Tuple(fields) => {
+                    let self_pattern = &fields.self_pattern;
+                    let other_pattern = &fields.other_pattern;
+                    let trait_path = trait_.path();
+                    let self_ident = fields.iter_self_ident(trait_);
+                    let other_ident = fields.iter_other_ident(trait_);
+
+                    quote! {
+                        (#self_pattern, #other_pattern) =>
+                            true #(&& #trait_path::eq(#self_ident, #other_ident))*,
+                    }
+                }
+                SimpleType::Unit(_) => TokenStream::new(),
+                SimpleType::Union(_) => unreachable!("unexpected trait for union"),
             }
         }
     }

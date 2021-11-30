@@ -8,7 +8,7 @@ use syn::{Attribute, FieldsNamed, FieldsUnnamed, Ident, Index, Result};
 
 use crate::{FieldAttr, Trait};
 
-/// Struct, struct variant or tuple variant field.
+/// Struct, union, struct variant or tuple variant field.
 #[cfg_attr(test, derive(Debug))]
 pub struct Field<'a> {
     /// Attributes.

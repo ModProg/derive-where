@@ -1,12 +1,7 @@
 //! Saves an intermediate representation of the input.
 
-use core::iter::FromIterator;
-
 use proc_macro2::Span;
-use syn::{
-    punctuated::Punctuated, DeriveInput, Fields, Generics, Ident, Path, PathArguments, PathSegment,
-    Result,
-};
+use syn::{DeriveInput, Fields, Generics, Ident, Result};
 
 use crate::{Data, Default, DeriveWhere, Error, ItemAttr, Trait, VariantAttr};
 
@@ -23,11 +18,8 @@ pub struct Input<'a> {
 }
 
 /// Fields or variants of an item.
+#[allow(clippy::large_enum_variant)]
 pub enum Item<'a> {
-    /// Struct.
-    Struct(Data<'a>),
-    /// Tuple struct.
-    Tuple(Data<'a>),
     /// Enum.
     Enum {
         /// [`struct@Ident`] of this enum.
@@ -35,8 +27,8 @@ pub enum Item<'a> {
         /// Variants of this enum.
         variants: Vec<Data<'a>>,
     },
-    /// Union.
-    Union(Data<'a>),
+    /// Struct, tuple struct or union.
+    Item(Data<'a>),
 }
 
 impl<'a> Input<'a> {
@@ -55,34 +47,17 @@ impl<'a> Input<'a> {
         let ItemAttr {
             skip_inner,
             derive_wheres,
-        } = ItemAttr::from_attrs(attrs)?;
+        } = ItemAttr::from_attrs(span, data, attrs)?;
 
         // Extract fields and variants of this item.
+        // TODO: check for empty structs, tuple structs or enums.
         let item = match &data {
             syn::Data::Struct(data) => match &data.fields {
                 Fields::Named(fields) => {
-                    let path = Path {
-                        leading_colon: None,
-                        segments: Punctuated::from_iter(Some(PathSegment {
-                            ident: ident.clone(),
-                            arguments: PathArguments::None,
-                        })),
-                    };
-
-                    Data::from_named(skip_inner, Default(true), ident, path, fields)
-                        .map(Item::Struct)
+                    Data::from_struct(skip_inner, ident, fields).map(Item::Item)
                 }
                 Fields::Unnamed(fields) => {
-                    let path = Path {
-                        leading_colon: None,
-                        segments: Punctuated::from_iter(Some(PathSegment {
-                            ident: ident.clone(),
-                            arguments: PathArguments::None,
-                        })),
-                    };
-
-                    Data::from_unnamed(skip_inner, Default(true), ident, path, fields)
-                        .map(Item::Tuple)
+                    Data::from_tuple(skip_inner, ident, fields).map(Item::Item)
                 }
                 Fields::Unit => Err(Error::unit_struct(span)),
             }?,
@@ -93,16 +68,6 @@ impl<'a> Input<'a> {
                     .variants
                     .iter()
                     .map(|variant| {
-                        let path = Path {
-                            leading_colon: None,
-                            segments: Punctuated::from_iter([ident, &variant.ident].iter().map(
-                                |ident| PathSegment {
-                                    ident: (*ident).clone(),
-                                    arguments: PathArguments::None,
-                                },
-                            )),
-                        };
-
                         // Parse `Attribute`s on variant.
                         let VariantAttr {
                             default,
@@ -114,62 +79,43 @@ impl<'a> Input<'a> {
                         )?;
 
                         match &variant.fields {
-                            Fields::Named(fields) => {
-                                Data::from_named(skip_inner, default, &variant.ident, path, fields)
-                            }
-                            Fields::Unnamed(fields) => Data::from_unnamed(
+                            Fields::Named(fields) => Data::from_struct_variant(
+                                ident,
                                 skip_inner,
                                 default,
                                 &variant.ident,
-                                path,
+                                fields,
+                            ),
+                            Fields::Unnamed(fields) => Data::from_tuple_variant(
+                                ident,
+                                skip_inner,
+                                default,
+                                &variant.ident,
                                 fields,
                             ),
                             Fields::Unit => {
-                                Data::from_unit(skip_inner, default, &variant.ident, path)
+                                Data::from_unit_variant(ident, skip_inner, default, &variant.ident)
                             }
                         }
                     })
                     .collect::<Result<Vec<Data>>>()?;
 
                 // Make sure a variant has the `option` attribute if `Default` is being implemented.
-                if derive_wheres.iter().any(|derive_where| {
-                    derive_where
-                        .traits
-                        .iter()
-                        .any(|trait_| **trait_ == Trait::Default)
-                }) {
-                    let mut default_found = false;
-
-                    for variant in &variants {
-                        if variant.default.0 {
-                            default_found = true;
-                            break;
-                        }
-                    }
-
-                    if !default_found {
-                        return Err(Error::default_missing(span));
-                    }
+                if !accumulated_defaults.0
+                    && derive_wheres.iter().any(|derive_where| {
+                        derive_where
+                            .traits
+                            .iter()
+                            .any(|trait_| **trait_ == Trait::Default)
+                    })
+                {
+                    return Err(Error::default_missing(span));
                 }
 
                 Item::Enum { ident, variants }
             }
             syn::Data::Union(data) => {
-                let path = Path {
-                    leading_colon: None,
-                    segments: Punctuated::from_iter(Some(PathSegment {
-                        ident: ident.clone(),
-                        arguments: PathArguments::None,
-                    })),
-                };
-
-                Item::Union(Data::from_named(
-                    skip_inner,
-                    Default(true),
-                    ident,
-                    path,
-                    &data.fields,
-                )?)
+                Data::from_union(skip_inner, ident, &data.fields).map(Item::Item)?
             }
         };
 
@@ -216,24 +162,16 @@ impl Item<'_> {
     /// Return [`struct@Ident`] of this [`Item`].
     pub fn ident(&self) -> &Ident {
         match self {
-            Item::Struct(data) => data.ident,
-            Item::Tuple(data) => data.ident,
+            Item::Item(data) => data.ident,
             Item::Enum { ident, .. } => ident,
-            Item::Union(data) => data.ident,
         }
     }
 
     /// Returns `true` if any field is skipped.
     fn any_skip(&self) -> bool {
         match self {
-            Item::Struct(data) | Item::Tuple(data) | Item::Union(data) => {
-                data.skip_inner.any_skip()
-                    || data.fields.iter().any(|field| field.attr.skip.any_skip())
-            }
-            Item::Enum { variants, .. } => variants.iter().any(|data| {
-                data.skip_inner.any_skip()
-                    || data.fields.iter().any(|field| field.attr.skip.any_skip())
-            }),
+            Item::Item(data) => data.any_skip(),
+            Item::Enum { variants, .. } => variants.iter().any(|data| data.any_skip()),
         }
     }
 
@@ -255,13 +193,17 @@ impl Item<'_> {
     /// Returns `true` if any field uses `Zeroize(fqs)`.
     #[cfg(feature = "zeroize")]
     fn any_fqs(&self) -> bool {
+        use crate::util::Either;
+
         match self {
-            Item::Struct(data) | Item::Tuple(data) | Item::Union(data) => {
-                data.fields.iter().any(|field| field.attr.zeroize_fqs.0)
-            }
-            Item::Enum { variants, .. } => variants
-                .iter()
-                .any(|data| data.fields.iter().any(|field| field.attr.zeroize_fqs.0)),
+            Item::Item(data) => match data.fields() {
+                Either::Left(fields) => fields.fields.iter().any(|field| field.attr.zeroize_fqs.0),
+                Either::Right(_) => false,
+            },
+            Item::Enum { variants, .. } => variants.iter().any(|data| match data.fields() {
+                Either::Left(fields) => fields.fields.iter().any(|field| field.attr.zeroize_fqs.0),
+                Either::Right(_) => false,
+            }),
         }
     }
 }

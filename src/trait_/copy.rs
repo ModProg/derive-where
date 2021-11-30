@@ -13,4 +13,8 @@ impl TraitImpl for Copy {
     fn default_derive_trait(&self) -> DeriveTrait {
         DeriveTrait::Copy
     }
+
+    fn supports_union(&self) -> bool {
+        true
+    }
 }

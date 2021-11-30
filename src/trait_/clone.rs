@@ -4,7 +4,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{TraitBound, TraitBoundModifier, TypeParamBound};
 
-use crate::{DeriveTrait, Impl, Item, Trait, TraitImpl};
+use crate::{Data, DataType, DeriveTrait, Impl, Item, SimpleType, Trait, TraitImpl};
 
 /// Dummy-struct implement [`Trait`] for [`Clone`](core::clone::Clone).
 pub struct Clone;
@@ -18,9 +18,17 @@ impl TraitImpl for Clone {
         DeriveTrait::Clone
     }
 
+    fn supports_union(&self) -> bool {
+        true
+    }
+
     fn additional_where_bounds(&self, data: &Item) -> Option<TypeParamBound> {
         // `Clone` for unions requires the `Copy` bound.
-        if let Item::Union(..) = data {
+        if let Item::Item(Data {
+            type_: DataType::Union(..),
+            ..
+        }) = data
+        {
             Some(TypeParamBound::Trait(TraitBound {
                 paren_token: None,
                 modifier: TraitBoundModifier::None,
@@ -32,14 +40,60 @@ impl TraitImpl for Clone {
         }
     }
 
-    fn build_signature(&self, _impl_: &Impl, body: &TokenStream) -> TokenStream {
-        quote! {
-            #[inline]
-            fn clone(&self) -> Self {
-                match self {
-                    #body
+    fn build_signature(&self, impl_: &Impl, body: &TokenStream) -> TokenStream {
+        // Special implementation for unions.
+        if let Item::Item(Data {
+            type_: DataType::Union(..),
+            ..
+        }) = impl_.input.item
+        {
+            quote! {
+                #[inline]
+                fn clone(&self) -> Self {
+                    struct __AssertCopy<__T: ::core::marker::Copy + ?::core::marker::Sized>(::core::marker::PhantomData<__T>);
+                    let _: __AssertCopy<Self>;
+                    *self
                 }
             }
+        } else {
+            quote! {
+                #[inline]
+                fn clone(&self) -> Self {
+                    match self {
+                        #body
+                    }
+                }
+            }
+        }
+    }
+
+    fn build_body(&self, trait_: &DeriveTrait, data: &Data) -> TokenStream {
+        match data.simple_type() {
+            SimpleType::Struct(fields) => {
+                let self_pattern = &fields.self_pattern;
+                let item_path = &data.path;
+                let self_ident = fields.iter_self_ident(trait_);
+                let fields = fields.iter_field_ident(trait_);
+                let trait_path = trait_.path();
+
+                quote! {
+                    #self_pattern => #item_path { #(#fields: #trait_path::clone(#self_ident)),* },
+                }
+            }
+            SimpleType::Tuple(fields) => {
+                let self_pattern = &fields.self_pattern;
+                let item_path = &data.path;
+                let self_ident = fields.iter_self_ident(trait_);
+                let trait_path = trait_.path();
+
+                quote! {
+                    #self_pattern => #item_path(#(#trait_path::clone(#self_ident)),*),
+                }
+            }
+            SimpleType::Unit(pattern) => {
+                quote! { #pattern => #pattern, }
+            }
+            SimpleType::Union(_) => TokenStream::new(),
         }
     }
 }

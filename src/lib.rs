@@ -11,7 +11,6 @@ extern crate proc_macro;
 mod attr;
 mod data;
 mod error;
-mod field;
 mod impl_;
 mod input;
 mod trait_;
@@ -23,12 +22,12 @@ use proc_macro2::TokenStream;
 use syn::{spanned::Spanned, DeriveInput, Result};
 
 use attr::{Default, DeriveTrait, DeriveWhere, FieldAttr, Generic, ItemAttr, Skip, VariantAttr};
-use data::{Data, DataType};
+use data::{Data, DataType, Field, Member, SimpleType};
 use error::Error;
-use field::{Field, Member};
 use impl_::Impl;
 use input::{Input, Item};
 use trait_::{Trait, TraitImpl};
+use util::Either;
 
 /// Token used for attributes.
 const DERIVE_WHERE: &str = "derive_where";
@@ -41,7 +40,7 @@ fn derive_where_internal(input: TokenStream) -> Result<TokenStream> {
 
     let input = Input::parse(span, &item)?;
 
-    input
+    Ok(input
         .derive_wheres
         .iter()
         .flat_map(|derive_where| iter::repeat(derive_where).zip(&derive_where.traits))
@@ -50,7 +49,7 @@ fn derive_where_internal(input: TokenStream) -> Result<TokenStream> {
 
             impl_.generate_impl()
         })
-        .collect()
+        .collect())
 }
 
 /// TODO

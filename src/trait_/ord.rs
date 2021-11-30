@@ -3,7 +3,7 @@
 use proc_macro2::TokenStream;
 use quote::quote;
 
-use crate::{DeriveTrait, Impl, TraitImpl};
+use crate::{Data, DeriveTrait, Impl, SimpleType, TraitImpl};
 
 use super::common_ord;
 
@@ -30,6 +30,26 @@ impl TraitImpl for Ord {
             #[inline]
             fn cmp(&self, __other: &Self) -> ::core::cmp::Ordering {
                 #body
+            }
+        }
+    }
+
+    fn build_body(&self, trait_: &DeriveTrait, data: &Data) -> TokenStream {
+        if data.is_empty(trait_) {
+            TokenStream::new()
+        } else {
+            match data.simple_type() {
+                SimpleType::Struct(fields) | SimpleType::Tuple(fields) => {
+                    let self_pattern = &fields.self_pattern;
+                    let other_pattern = &fields.other_pattern;
+                    let body = common_ord::build_ord_body(trait_, data);
+
+                    quote! {
+                        (#self_pattern, #other_pattern) => #body,
+                    }
+                }
+                SimpleType::Unit(_) => TokenStream::new(),
+                SimpleType::Union(_) => unreachable!("unexpected trait for union"),
             }
         }
     }

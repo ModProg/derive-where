@@ -22,6 +22,14 @@ impl Error {
 		)
     }
 
+    /// Unsupported trait for union.
+    pub fn union(span: Span) -> syn::Error {
+        syn::Error::new(
+            span,
+            "traits other then `Clone` and `Copy` aren't supported by unions",
+        )
+    }
+
     /// Invalid syntax for attribute.
     pub fn attribute_syntax(span: Span, parse_error: syn::Error) -> syn::Error {
         syn::Error::new(
