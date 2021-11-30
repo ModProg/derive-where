@@ -1,0 +1,108 @@
+name: Test
+
+on: [push, pull_request]
+
+jobs:
+  build-test:
+    name: Build + Test
+
+    strategy:
+      fail-fast: false
+      matrix:
+        rust:
+          - { version: 1.33.0, workspace: "" }
+          - { version: stable, workspace: "--workspace" }
+          - { version: beta, workspace: "--workspace" }
+          - { version: nightly, workspace: "--workspace" }
+        features:
+          - ""
+          - --features safe
+          - --features zeroize
+          - --features safe,zeroize
+        exclude:
+          - rust: { version: 1.33.0, workspace: "" }
+            features: --features zeroize
+          - rust: { version: 1.33.0, workspace: "" }
+            features: --features safe,zeroize
+        include:
+          - rust: { version: nightly, workspace: "--workspace" }
+            features: --features nightly
+          - rust: { version: nightly, workspace: "--workspace" }
+            features: --features safe,nightly
+          - rust: { version: nightly, workspace: "--workspace" }
+            features: --features nightly,zeroize
+          - rust: { version: nightly, workspace: "--workspace" }
+            features: --all-features
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Update Rust
+        run: |
+          rustup toolchain install ${{ matrix.rust.version }} --profile minimal --allow-downgrade
+          rustup default ${{ matrix.rust.version }}
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Build
+        continue-on-error: true
+        run:
+          cargo build ${{ matrix.rust.workspace }} ${{ matrix.features }}
+      - name: Test
+        continue-on-error: true
+        run:
+          cargo test ${{ matrix.rust.workspace }} ${{ matrix.features }} --all-targets
+      - name: Doc Test
+        run:
+          cargo test ${{ matrix.rust.workspace }} ${{ matrix.features }} --doc
+
+  no-std-build:
+    name: no_std Build
+
+    strategy:
+      fail-fast: false
+      matrix:
+        rust:
+          - 1.33.0
+          - stable
+          - beta
+          - nightly
+        features:
+          - ""
+          - --features safe
+          - --features zeroize
+          - --features safe,zeroize
+        exclude:
+          - rust: 1.33.0
+            features: --features zeroize
+          - rust: 1.33.0
+            features: --features safe,zeroize
+        include:
+          - rust: nightly
+            features: --features nightly
+          - rust: nightly
+            features: --features safe,nightly
+          - rust: nightly
+            features: --features nightly,zeroize
+          - rust: nightly
+            features: --all-features
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Update Rust
+        run: |
+          rustup toolchain install ${{ matrix.rust }} --target thumbv6m-none-eabi --profile minimal --allow-downgrade
+          rustup default ${{ matrix.rust }}
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Build
+        continue-on-error: true
+        run:
+          cargo build --target thumbv6m-none-eabi ${{ matrix.features }}
+      - name: Test
+        continue-on-error: true
+        run:
+          cargo test --target thumbv6m-none-eabi ${{ matrix.features }} --all-targets --no-run
+      - name: Doc Test
+        run:
+          cargo test --target thumbv6m-none-eabi ${{ matrix.features }} --doc --no-run
