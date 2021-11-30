@@ -29,7 +29,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Clippy
-        continue-on-error: true
         run:
           cargo clippy --all-targets --workspace ${{ matrix.matrix.features }} -- -D warnings
       - name: Rustdoc

@@ -44,16 +44,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Build
-        continue-on-error: true
         run:
           cargo build ${{ matrix.rust.workspace }} ${{ matrix.features }}
       - name: Test
-        continue-on-error: true
         run:
-          cargo test ${{ matrix.rust.workspace }} ${{ matrix.features }} --all-targets
+          cargo test ${{ matrix.rust.workspace }} ${{ matrix.features }} --all-targets --no-fail-fast
       - name: Doc Test
         run:
-          cargo test ${{ matrix.rust.workspace }} ${{ matrix.features }} --doc
+          cargo test ${{ matrix.rust.workspace }} ${{ matrix.features }} --doc --no-fail-fast
 
   no-std-build:
     name: no_std Build
@@ -96,13 +94,5 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Build
-        continue-on-error: true
         run:
-          cargo build --target thumbv6m-none-eabi ${{ matrix.features }}
-      - name: Test
-        continue-on-error: true
-        run:
-          cargo test --target thumbv6m-none-eabi ${{ matrix.features }} --all-targets --no-run
-      - name: Doc Test
-        run:
-          cargo test --target thumbv6m-none-eabi ${{ matrix.features }} --doc --no-run
+          cargo build --target thumbv6m-none-eabi ${{ matrix.features }} -p ensure-no-std

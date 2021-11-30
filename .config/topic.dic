@@ -1,7 +1,8 @@
-6
+7
 destructure/G
-enum
+enum/S
 FQS
+MSRV
 struct/S
 TODO
 tuple
