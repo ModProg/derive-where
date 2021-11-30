@@ -127,8 +127,8 @@
 //
 // #[test]
 // fn test_all() {
-//     #[derive_where(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd; T, S)]
-//     #[allow(clippy::enum_variant_names)]
+//     #[derive_where(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd;
+// T, S)]     #[allow(clippy::enum_variant_names)]
 //     enum TestEnum<T, S> {
 //         VariantStruct { field: T },
 //         VariantTupel(S),

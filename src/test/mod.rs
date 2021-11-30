@@ -10,9 +10,9 @@ use quote::quote;
 use syn::Result;
 
 fn test_derive(input: TokenStream, expected: TokenStream) -> Result<()> {
-    let left = crate::derive_where_internal(input)?.to_string();
-    let right = quote! { #expected }.to_string();
+	let left = crate::derive_where_internal(input)?.to_string();
+	let right = quote! { #expected }.to_string();
 
-    assert_eq!(left, right);
-    Ok(())
+	assert_eq!(left, right);
+	Ok(())
 }

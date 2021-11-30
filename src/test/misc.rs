@@ -1,27 +1,28 @@
-use super::test_derive;
 use quote::quote;
 use syn::Result;
 
+use super::test_derive;
+
 #[test]
 fn ignore_foreign_attribute() -> Result<()> {
-    test_derive(
-        quote! {
-            #[derive_where(Default; T)]
-            enum Test<T> {
-                #[foreign(default)]
-                A { field: T },
-                #[derive_where(default)]
-                B { field: T },
-            }
-        },
-        quote! {
-            impl<T> ::core::default::Default for Test<T>
-            where T: ::core::default::Default
-            {
-                fn default() -> Self {
-                    Test::B { field: ::core::default::Default::default() }
-                }
-            }
-        },
-    )
+	test_derive(
+		quote! {
+			#[derive_where(Default; T)]
+			enum Test<T> {
+				#[foreign(default)]
+				A { field: T },
+				#[derive_where(default)]
+				B { field: T },
+			}
+		},
+		quote! {
+			impl<T> ::core::default::Default for Test<T>
+			where T: ::core::default::Default
+			{
+				fn default() -> Self {
+					Test::B { field: ::core::default::Default::default() }
+				}
+			}
+		},
+	)
 }

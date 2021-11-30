@@ -5,71 +5,72 @@ use quote::quote;
 
 use crate::{Data, DeriveTrait, Item, SimpleType, TraitImpl};
 
-/// Dummy-struct implement [`Trait`](crate::Trait) for [`Debug`](core::fmt::Debug).
+/// Dummy-struct implement [`Trait`](crate::Trait) for
+/// [`Debug`](core::fmt::Debug).
 pub struct Debug;
 
 impl TraitImpl for Debug {
-    fn as_str(&self) -> &'static str {
-        "Debug"
-    }
+	fn as_str(&self) -> &'static str {
+		"Debug"
+	}
 
-    fn default_derive_trait(&self) -> DeriveTrait {
-        DeriveTrait::Debug
-    }
+	fn default_derive_trait(&self) -> DeriveTrait {
+		DeriveTrait::Debug
+	}
 
-    fn supports_skip(&self) -> bool {
-        true
-    }
+	fn supports_skip(&self) -> bool {
+		true
+	}
 
-    fn build_signature(
-        &self,
-        _item: &Item,
-        _trait_: &DeriveTrait,
-        body: &TokenStream,
-    ) -> TokenStream {
-        quote! {
-            fn fmt(&self, __f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-                match self {
-                    #body
-                }
-            }
-        }
-    }
+	fn build_signature(
+		&self,
+		_item: &Item,
+		_trait_: &DeriveTrait,
+		body: &TokenStream,
+	) -> TokenStream {
+		quote! {
+			fn fmt(&self, __f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+				match self {
+					#body
+				}
+			}
+		}
+	}
 
-    fn build_body(&self, trait_: &DeriveTrait, data: &Data) -> TokenStream {
-        let self_pattern = &data.self_pattern();
-        let debug_name = data.ident.to_string();
+	fn build_body(&self, trait_: &DeriveTrait, data: &Data) -> TokenStream {
+		let self_pattern = &data.self_pattern();
+		let debug_name = data.ident.to_string();
 
-        match data.simple_type() {
-            SimpleType::Struct(fields) => {
-                let self_ident = fields.iter_self_ident(trait_);
-                let debug_fields = fields
-                    .iter_field_ident(trait_)
-                    .map(|field| field.to_string());
+		match data.simple_type() {
+			SimpleType::Struct(fields) => {
+				let self_ident = fields.iter_self_ident(trait_);
+				let debug_fields = fields
+					.iter_field_ident(trait_)
+					.map(|field| field.to_string());
 
-                quote! {
-                    #self_pattern => {
-                        let mut __builder = ::core::fmt::Formatter::debug_struct(__f, #debug_name);
-                        #(::core::fmt::DebugStruct::field(&mut __builder, #debug_fields, #self_ident);)*
-                        ::core::fmt::DebugStruct::finish(&mut __builder)
-                    }
-                }
-            }
-            SimpleType::Tuple(fields) => {
-                let self_ident = fields.iter_self_ident(trait_);
+				quote! {
+					#self_pattern => {
+						let mut __builder = ::core::fmt::Formatter::debug_struct(__f, #debug_name);
+						#(::core::fmt::DebugStruct::field(&mut __builder, #debug_fields, #self_ident);)*
+						::core::fmt::DebugStruct::finish(&mut __builder)
+					}
+				}
+			}
+			SimpleType::Tuple(fields) => {
+				let self_ident = fields.iter_self_ident(trait_);
 
-                quote! {
-                    #self_pattern => {
-                        let mut __builder = ::core::fmt::Formatter::debug_tuple(__f, #debug_name);
-                        #(::core::fmt::DebugTuple::field(&mut __builder, #self_ident);)*
-                        ::core::fmt::DebugTuple::finish(&mut __builder)
-                    }
-                }
-            }
-            SimpleType::Unit(_) => {
-                quote! { #self_pattern => ::core::fmt::Formatter::write_str(__f, #debug_name), }
-            }
-            SimpleType::Union(_) => unreachable!("unexpected trait for union"),
-        }
-    }
+				quote! {
+					#self_pattern => {
+						let mut __builder = ::core::fmt::Formatter::debug_tuple(__f, #debug_name);
+						#(::core::fmt::DebugTuple::field(&mut __builder, #self_ident);)*
+						::core::fmt::DebugTuple::finish(&mut __builder)
+					}
+				}
+			}
+			SimpleType::Unit(_) => {
+				quote! { #self_pattern => ::core::fmt::Formatter::write_str(__f, #debug_name), }
+			}
+			SimpleType::Union(_) => unreachable!("unexpected trait for union"),
+		}
+	}
 }
