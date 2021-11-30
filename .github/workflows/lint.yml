@@ -23,7 +23,7 @@ jobs:
 
     steps:
       - name: Update Rust
-        run:
+        run: |
           rustup toolchain install ${{ matrix.matrix.channel }} --profile minimal --component clippy --allow-downgrade
           rustup default ${{ matrix.matrix.channel }}
       - name: Checkout
