@@ -1,0 +1,13 @@
+[package]
+edition = "2018"
+name = "ensure-no-std"
+publish = false
+version = "0.0.0"
+
+[features]
+nightly = ["derive-where/nightly"]
+safe = ["derive-where/safe"]
+zeroize = ["derive-where/zeroize"]
+
+[dependencies]
+derive-where = { path = ".." }

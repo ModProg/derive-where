@@ -1,3 +1,5 @@
+dev_comments = true
+
 [Hunspell]
 extra_dictionaries = ["topic.dic"]
 search_dirs = ["."]
