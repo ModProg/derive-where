@@ -4,7 +4,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{TraitBound, TraitBoundModifier, TypeParamBound};
 
-use crate::{Data, DataType, DeriveTrait, Impl, Item, SimpleType, Trait, TraitImpl};
+use crate::{Data, DataType, DeriveTrait, Item, SimpleType, Trait, TraitImpl};
 
 /// Dummy-struct implement [`Trait`] for [`Clone`](core::clone::Clone).
 pub struct Clone;
@@ -40,12 +40,17 @@ impl TraitImpl for Clone {
         }
     }
 
-    fn build_signature(&self, impl_: &Impl, body: &TokenStream) -> TokenStream {
+    fn build_signature(
+        &self,
+        item: &Item,
+        _trait_: &DeriveTrait,
+        body: &TokenStream,
+    ) -> TokenStream {
         // Special implementation for unions.
         if let Item::Item(Data {
             type_: DataType::Union(..),
             ..
-        }) = impl_.input.item
+        }) = item
         {
             quote! {
                 #[inline]

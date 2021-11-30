@@ -1,6 +1,6 @@
 //! [`PartialEq`](core::cmp::PartialEq) implementation.
 
-use crate::{Data, DeriveTrait, Impl, Item, SimpleType, TraitImpl};
+use crate::{Data, DeriveTrait, Item, SimpleType, TraitImpl};
 use proc_macro2::TokenStream;
 use quote::quote;
 
@@ -20,16 +20,18 @@ impl TraitImpl for PartialEq {
         true
     }
 
-    fn build_signature(&self, impl_: &Impl, body: &TokenStream) -> TokenStream {
+    fn build_signature(
+        &self,
+        item: &Item,
+        trait_: &DeriveTrait,
+        body: &TokenStream,
+    ) -> TokenStream {
         let body = {
-            match &impl_.input.item {
+            match item {
                 // Only check for discriminators if there is more than one variant.
                 Item::Enum { variants, .. } if variants.len() > 1 => {
                     // Return `true` in the rest pattern if there are any empty variants.
-                    let rest = if variants
-                        .iter()
-                        .any(|variant| variant.is_empty(impl_.trait_))
-                    {
+                    let rest = if variants.iter().any(|variant| variant.is_empty(trait_)) {
                         quote! { true }
                     } else {
                         #[cfg(not(feature = "safe"))]

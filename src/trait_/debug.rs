@@ -3,7 +3,7 @@
 use proc_macro2::TokenStream;
 use quote::quote;
 
-use crate::{Data, DeriveTrait, Impl, SimpleType, TraitImpl};
+use crate::{Data, DeriveTrait, Item, SimpleType, TraitImpl};
 
 /// Dummy-struct implement [`Trait`](crate::Trait) for [`Debug`](core::fmt::Debug).
 pub struct Debug;
@@ -21,7 +21,12 @@ impl TraitImpl for Debug {
         true
     }
 
-    fn build_signature(&self, _impl_: &Impl, body: &TokenStream) -> TokenStream {
+    fn build_signature(
+        &self,
+        _item: &Item,
+        _trait_: &DeriveTrait,
+        body: &TokenStream,
+    ) -> TokenStream {
         quote! {
             fn fmt(&self, __f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
                 match self {
