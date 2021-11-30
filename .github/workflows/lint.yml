@@ -11,13 +11,13 @@ jobs:
       matrix:
         matrix:
           - { channel: stable, features: "" }
-          - { channel: stable, features: safe }
-          - { channel: nightly, features: nightly }
-          - { channel: stable, features: zeroize }
-          - { channel: nightly, features: safe,nightly }
-          - { channel: stable, features: safe,zeroize }
-          - { channel: nightly, features: nightly,zeroize }
-          - { channel: nightly, features: safe,nightly,zeroize }
+          - { channel: stable, features: --features safe }
+          - { channel: nightly, features: --features nightly }
+          - { channel: stable, features: --features zeroize }
+          - { channel: nightly, features: --features safe,nightly }
+          - { channel: stable, features: --features safe,zeroize }
+          - { channel: nightly, features: --features nightly,zeroize }
+          - { channel: nightly, features: --all-features }
 
     runs-on: ubuntu-latest
 
@@ -29,10 +29,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Clippy
+        continue-on-error: true
         run:
-          cargo clippy --all-targets --workspace --features ${{ matrix.matrix.features }} -- -D warnings
+          cargo clippy --all-targets --workspace ${{ matrix.matrix.features }} -- -D warnings
       - name: Rustdoc
         env:
           RUSTDOCFLAGS: -D warnings
         run:
-          cargo doc --no-deps --document-private-items --workspace --features ${{ matrix.matrix.features }}
+          cargo doc --no-deps --document-private-items --workspace ${{ matrix.matrix.features }}
