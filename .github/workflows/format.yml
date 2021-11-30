@@ -1,0 +1,20 @@
+name: Format
+
+on: [push, pull_request]
+
+jobs:
+  rustfmt:
+    name: rustfmt
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Update Rust
+        run:
+          rustup toolchain install nightly --profile minimal --component rustfmt --allow-downgrade
+          rustup default nightly
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: rustfmt
+        run:
+          cargo fmt --check
