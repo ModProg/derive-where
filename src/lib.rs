@@ -12,6 +12,7 @@ mod attr;
 mod data;
 mod error;
 mod input;
+mod item;
 mod trait_;
 mod util;
 
@@ -27,7 +28,8 @@ use syn::{
 use attr::{Default, DeriveTrait, DeriveWhere, FieldAttr, Generic, ItemAttr, Skip, VariantAttr};
 use data::{Data, DataType, Field, Member, SimpleType};
 use error::Error;
-use input::{Input, Item};
+use input::Input;
+use item::Item;
 use trait_::{Trait, TraitImpl};
 use util::Either;
 
@@ -50,14 +52,17 @@ fn derive_where_internal(input: TokenStream) -> Result<TokenStream> {
     let span = input.span();
     let item = syn::parse2::<DeriveInput>(input).expect("derive on unparsable item");
 
-    let input = Input::parse(span, &item)?;
+    let Input {
+        derive_wheres,
+        generics,
+        item,
+    } = Input::parse(span, &item)?;
 
-    Ok(input
-        .derive_wheres
+    Ok(derive_wheres
         .iter()
         .flat_map(|derive_where| iter::repeat(derive_where).zip(&derive_where.traits))
         .map(|(derive_where, trait_)| {
-            let (impl_generics, type_generics, where_clause) = input.generics.split_for_impl();
+            let (impl_generics, type_generics, where_clause) = generics.split_for_impl();
             let mut where_clause = where_clause.cloned();
 
             // Only create a where clause if required
@@ -78,17 +83,17 @@ fn derive_where_internal(input: TokenStream) -> Result<TokenStream> {
                                 lifetimes: None,
                                 bounded_ty: path.clone(),
                                 colon_token: <Token![:]>::default(),
-                                bounds: trait_.where_bounds(&input.item),
+                                bounds: trait_.where_bounds(&item),
                             },
                         }));
                 }
             }
 
             let body = {
-                match &input.item {
+                match &item {
                     Item::Item(data) => {
                         let body = trait_.build_body(trait_, data);
-                        trait_.build_signature(&input.item, trait_, &body)
+                        trait_.build_signature(&item, trait_, &body)
                     }
                     Item::Enum { variants, .. } => {
                         let body: TokenStream = variants
@@ -96,12 +101,12 @@ fn derive_where_internal(input: TokenStream) -> Result<TokenStream> {
                             .map(|data| trait_.build_body(trait_, data))
                             .collect();
 
-                        trait_.build_signature(&input.item, trait_, &body)
+                        trait_.build_signature(&item, trait_, &body)
                     }
                 }
             };
 
-            let ident = input.item.ident();
+            let ident = item.ident();
             let path = trait_.path();
             let mut output = quote! {
                 impl #impl_generics #path for #ident #type_generics
