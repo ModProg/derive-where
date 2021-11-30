@@ -2,11 +2,12 @@
 
 use core::ops::Deref;
 
+use proc_macro2::Span;
 use syn::{
     parse::{discouraged::Speculative, Parse, ParseStream},
     punctuated::Punctuated,
     spanned::Spanned,
-    Attribute, Meta, NestedMeta, Path, PredicateType, Result, Token, TraitBound, Type,
+    Attribute, Data, Meta, NestedMeta, Path, PredicateType, Result, Token, TraitBound, Type,
     TypeParamBound, WherePredicate,
 };
 
@@ -25,7 +26,7 @@ pub struct ItemAttr {
 
 impl ItemAttr {
     /// Create [`ItemAttr`] from [`Attribute`]s.
-    pub fn from_attrs(attrs: &[Attribute]) -> Result<Self> {
+    pub fn from_attrs(span: Span, data: &Data, attrs: &[Attribute]) -> Result<Self> {
         let mut self_ = ItemAttr::default();
 
         for attr in attrs {
@@ -36,6 +37,7 @@ impl ItemAttr {
                             if let NestedMeta::Meta(meta) = nested_meta {
                                 if list.nested.len() == 1 && meta.path().is_ident(Skip::SKIP_INNER)
                                 {
+                                    // TODO: don't allow `skip_inner` on enums.
                                     self_.skip_inner.add_attribute(meta)?;
                                 } else {
                                     self_.derive_wheres.push(attr.parse_args()?)
@@ -49,6 +51,16 @@ impl ItemAttr {
                     }
                 } else {
                     self_.derive_wheres.push(attr.parse_args()?)
+                }
+            }
+        }
+
+        if let Data::Union(_) = data {
+            for derive_where in &self_.derive_wheres {
+                for trait_ in &derive_where.traits {
+                    if !trait_.supports_union() {
+                        return Err(Error::union(span));
+                    }
                 }
             }
         }
@@ -69,7 +81,7 @@ impl Parse for DeriveWhere {
     /// Parse the macro input, this should either be:
     /// - Comma separated traits.
     /// - Comma separated traits `;` Comma separated generics.
-    fn parse(input: ParseStream) -> syn::Result<Self> {
+    fn parse(input: ParseStream) -> Result<Self> {
         let mut traits = Vec::new();
         let mut generics = Vec::new();
 
@@ -206,15 +218,15 @@ impl DeriveTrait {
         use DeriveTrait::*;
 
         match self {
-            Clone => util::path(&["core", "clone", "Clone"]),
-            Copy => util::path(&["core", "marker", "Copy"]),
-            Debug => util::path(&["core", "fmt", "Debug"]),
-            Default => util::path(&["core", "default", "Default"]),
-            Eq => util::path(&["core", "cmp", "Eq"]),
-            Hash => util::path(&["core", "hash", "Hash"]),
-            Ord => util::path(&["core", "cmp", "Ord"]),
-            PartialEq => util::path(&["core", "cmp", "PartialEq"]),
-            PartialOrd => util::path(&["core", "cmp", "PartialOrd"]),
+            Clone => util::path_from_strs(&["core", "clone", "Clone"]),
+            Copy => util::path_from_strs(&["core", "marker", "Copy"]),
+            Debug => util::path_from_strs(&["core", "fmt", "Debug"]),
+            Default => util::path_from_strs(&["core", "default", "Default"]),
+            Eq => util::path_from_strs(&["core", "cmp", "Eq"]),
+            Hash => util::path_from_strs(&["core", "hash", "Hash"]),
+            Ord => util::path_from_strs(&["core", "cmp", "Ord"]),
+            PartialEq => util::path_from_strs(&["core", "cmp", "PartialEq"]),
+            PartialOrd => util::path_from_strs(&["core", "cmp", "PartialOrd"]),
             #[cfg(feature = "zeroize")]
             Zeroize { crate_, .. } => {
                 if let Some(crate_) = crate_ {
@@ -222,7 +234,7 @@ impl DeriveTrait {
                     crate_.segments.push(util::path_segment("Zeroize"));
                     crate_
                 } else {
-                    util::path(&["zeroize", "Zeroize"])
+                    util::path_from_strs(&["zeroize", "Zeroize"])
                 }
             }
         }

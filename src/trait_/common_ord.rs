@@ -3,7 +3,7 @@
 use proc_macro2::TokenStream;
 use quote::quote;
 
-use crate::{util, Impl, Item};
+use crate::{Data, DeriveTrait, Impl, Item};
 
 /// Build signature for [`PartialOrd`] and [`Ord`].
 pub fn build_ord_signature(impl_: &Impl, body: &TokenStream) -> TokenStream {
@@ -19,7 +19,11 @@ pub fn build_ord_signature(impl_: &Impl, body: &TokenStream) -> TokenStream {
     match &impl_.input.item {
         // Only check for discriminators if there is more than one variant.
         Item::Enum { variants, .. } if variants.len() > 1 => {
-            let rest = if util::unit_found(&impl_.input.item) {
+            // Return `Equal` in the rest pattern if there are any empty variants.
+            let rest = if variants
+                .iter()
+                .any(|variant| variant.is_empty(impl_.trait_))
+            {
                 quote! { #equal }
             } else {
                 #[cfg(not(feature = "safe"))]
@@ -29,6 +33,7 @@ pub fn build_ord_signature(impl_: &Impl, body: &TokenStream) -> TokenStream {
                 quote! { ::core::unreachable!("comparing variants yielded unexpected results") }
             };
 
+            // Nightly or unsafe (default) implementation.
             #[cfg(any(feature = "nightly", not(feature = "safe")))]
             {
                 let path = impl_.trait_.path();
@@ -38,6 +43,7 @@ pub fn build_ord_signature(impl_: &Impl, body: &TokenStream) -> TokenStream {
                     _ => unreachable!("unsupported trait in `prepare_ord`"),
                 };
 
+                // Nightly implementation.
                 #[cfg(feature = "nightly")]
                 quote! {
                     let __self_disc = ::core::intrinsics::discriminant_value(&self);
@@ -52,6 +58,7 @@ pub fn build_ord_signature(impl_: &Impl, body: &TokenStream) -> TokenStream {
                         #path::#method(&__self_disc, &__other_disc)
                     }
                 }
+                // Unsafe (default) implementation.
                 #[cfg(not(feature = "nightly"))]
                 quote! {
                     let __self_disc = ::core::mem::discriminant(self);
@@ -70,6 +77,7 @@ pub fn build_ord_signature(impl_: &Impl, body: &TokenStream) -> TokenStream {
                     }
                 }
             }
+            // Safe implementation when not on nightly.
             #[cfg(all(not(feature = "nightly"), feature = "safe"))]
             {
                 let mut less = quote! { ::core::cmp::Ordering::Less };
@@ -100,7 +108,7 @@ pub fn build_ord_signature(impl_: &Impl, body: &TokenStream) -> TokenStream {
                                 Greater => &greater,
                             };
 
-                            let pattern = &variant_other.other_pattern;
+                            let pattern = &variant_other.other_pattern();
 
                             arms.push(quote! {
                                 #pattern => #ordering,
@@ -108,7 +116,7 @@ pub fn build_ord_signature(impl_: &Impl, body: &TokenStream) -> TokenStream {
                         }
                     }
 
-                    let pattern = &variant.self_pattern;
+                    let pattern = &variant.self_pattern();
 
                     different.push(quote! {
                                 #pattern => match __other {
@@ -135,14 +143,6 @@ pub fn build_ord_signature(impl_: &Impl, body: &TokenStream) -> TokenStream {
                 }
             }
         }
-        // If only one variant was found and it's a unit variant, return `Eq`.
-        Item::Enum { variants, .. }
-            if variants.len() == 1 && util::unit_found(&impl_.input.item) =>
-        {
-            quote! {
-                #equal
-            }
-        }
         _ => {
             quote! {
                 match (self, __other) {
@@ -151,4 +151,43 @@ pub fn build_ord_signature(impl_: &Impl, body: &TokenStream) -> TokenStream {
             }
         }
     }
+}
+
+/// Build `match` arms for [`PartialOrd`] and [`Ord`].
+pub fn build_ord_body(trait_: &DeriveTrait, data: &Data) -> TokenStream {
+    use DeriveTrait::*;
+
+    let path = trait_.path();
+    let mut equal = quote! { ::core::cmp::Ordering::Equal };
+
+    // Add `Option` to `Ordering` if we are implementing `PartialOrd`.
+    let method = match trait_ {
+        PartialOrd => {
+            equal = quote! { ::core::option::Option::Some(#equal) };
+            quote! { partial_cmp }
+        }
+        Ord => quote! { cmp },
+        _ => unreachable!("unsupported trait in `build_ord`"),
+    };
+
+    // The match arm starts with `Ordering::Equal`. This will become the
+    // whole `match` arm if no fields are present.
+    let mut body = quote! { #equal };
+
+    // Builds `match` arms backwards, using the `match` arm of the field coming afterwards.
+    // `rev` has to be called twice separately because it can't be called on `zip`
+    for (field_temp, field_other) in data
+        .iter_self_ident(trait_)
+        .rev()
+        .zip(data.iter_other_ident(trait_).rev())
+    {
+        body = quote! {
+            match #path::#method(#field_temp, #field_other) {
+                #equal => #body,
+                __cmp => __cmp,
+            }
+        };
+    }
+
+    body
 }

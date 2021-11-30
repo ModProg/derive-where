@@ -4,7 +4,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{spanned::Spanned, Lit, Meta, MetaList, NestedMeta, Path, Result};
 
-use crate::{util, DeriveTrait, Error, Impl, TraitImpl};
+use crate::{util, Data, DeriveTrait, Error, Impl, SimpleType, TraitImpl};
 
 /// Dummy-struct implement [`Trait`](crate::Trait) for [`Zeroize`](https://docs.rs/zeroize/1.4.3/zeroize/trait.Zeroize.html) .
 pub struct Zeroize;
@@ -76,7 +76,7 @@ impl TraitImpl for Zeroize {
             let path = trait_.path();
 
             Some((
-                util::path(&["core", "ops", "Drop"]),
+                util::path_from_strs(&["core", "ops", "Drop"]),
                 quote! {
                     fn drop(&mut self) {
                         #path::zeroize(self);
@@ -94,6 +94,38 @@ impl TraitImpl for Zeroize {
                 match self {
                     #body
                 }
+            }
+        }
+    }
+
+    fn build_body(&self, trait_: &DeriveTrait, data: &Data) -> TokenStream {
+        if data.is_empty(trait_) {
+            TokenStream::new()
+        } else {
+            match data.simple_type() {
+                SimpleType::Struct(fields) | SimpleType::Tuple(fields) => {
+                    let trait_path = trait_.path();
+                    let self_pattern = fields.self_pattern_mut();
+
+                    let body = data
+                        .iter_fields(trait_)
+                        .zip(fields.iter_self_ident(trait_))
+                        .map(|(field, self_ident)| {
+                            if field.attr.zeroize_fqs.0 {
+                                quote! { #trait_path::zeroize(#self_ident); }
+                            } else {
+                                quote! { #self_ident.zeroize(); }
+                            }
+                        });
+
+                    quote! {
+                        #self_pattern => {
+                            #(#body)*
+                        }
+                    }
+                }
+                SimpleType::Unit(_) => TokenStream::new(),
+                SimpleType::Union(_) => unreachable!("unexpected trait for union"),
             }
         }
     }
