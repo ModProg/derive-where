@@ -1,0 +1,25 @@
+name: Spellcheck
+
+on: [push, pull_request]
+
+jobs:
+  rustfmt:
+    name: Spellcheck
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/.crates.toml
+            ~/.cargo/.crates2.json
+            ~/.cargo/bin/cargo-spellcheck
+          key: cargo-spellcheck
+      - name: Install cargo-spellcheck
+        run: cargo install cargo-spellcheck
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Spellcheck
+        run: cargo spellcheck
