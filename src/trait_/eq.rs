@@ -6,11 +6,11 @@ use crate::{DeriveTrait, TraitImpl};
 pub struct Eq;
 
 impl TraitImpl for Eq {
-    fn as_str(&self) -> &'static str {
-        "Eq"
-    }
+	fn as_str(&self) -> &'static str {
+		"Eq"
+	}
 
-    fn default_derive_trait(&self) -> DeriveTrait {
-        DeriveTrait::Eq
-    }
+	fn default_derive_trait(&self) -> DeriveTrait {
+		DeriveTrait::Eq
+	}
 }

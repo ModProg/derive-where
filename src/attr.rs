@@ -8,10 +8,12 @@ mod variant;
 #[cfg(feature = "zeroize")]
 mod zeroize_fqs;
 
-pub use default::Default;
-pub use field::FieldAttr;
-pub use item::{DeriveTrait, DeriveWhere, Generic, ItemAttr};
-pub use skip::Skip;
-pub use variant::VariantAttr;
 #[cfg(feature = "zeroize")]
-use zeroize_fqs::ZeroizeFqs;
+pub use self::zeroize_fqs::ZeroizeFqs;
+pub use self::{
+	default::Default,
+	field::FieldAttr,
+	item::{DeriveTrait, DeriveWhere, Generic, ItemAttr},
+	skip::Skip,
+	variant::VariantAttr,
+};
