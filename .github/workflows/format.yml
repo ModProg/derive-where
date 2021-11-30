@@ -10,7 +10,7 @@ jobs:
 
     steps:
       - name: Update Rust
-        run:
+        run: |
           rustup toolchain install nightly --profile minimal --component rustfmt --allow-downgrade
           rustup default nightly
       - name: Checkout
