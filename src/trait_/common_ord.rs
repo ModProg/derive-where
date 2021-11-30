@@ -81,7 +81,7 @@ pub fn build_ord_signature(item: &Item, trait_: &DeriveTrait, body: &TokenStream
 				let mut greater = quote! { ::core::cmp::Ordering::Greater };
 
 				// Add `Option` to `Ordering` if we are implementing `PartialOrd`.
-				if let PartialOrd = impl_.trait_ {
+				if let PartialOrd = trait_ {
 					less = quote! { ::core::option::Option::Some(#less) };
 					greater = quote! { ::core::option::Option::Some(#greater) };
 				}
