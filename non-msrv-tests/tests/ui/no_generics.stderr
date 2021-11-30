@@ -10,20 +10,6 @@ error: derive-where doesn't support items without generics, `skip` attributes or
   |
 6 | / #[derive_where(Clone)]
 7 | | enum Test2 {
-8 | |     A,
+8 | |     A(u8),
 9 | | }
   | |_^
-
-error: derive-where doesn't support items without generics, `skip` attributes or `enum`s implementing `Default`, as this can already be handled by standard `#[derive(..)]`
-  --> tests/ui/no_generics.rs:14:1
-   |
-14 | / #[derive_where(Clone)]
-15 | | struct Test3();
-   | |_______________^
-
-error: derive-where doesn't support items without generics, `skip` attributes or `enum`s implementing `Default`, as this can already be handled by standard `#[derive(..)]`
-  --> tests/ui/no_generics.rs:18:1
-   |
-18 | / #[derive_where(Clone)]
-19 | | enum Test4 {}
-   | |_____________^

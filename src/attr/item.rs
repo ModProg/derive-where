@@ -33,10 +33,15 @@ impl ItemAttr {
 					if let Meta::List(list) = meta {
 						for nested_meta in &list.nested {
 							if let NestedMeta::Meta(meta) = nested_meta {
+								// If list has only one item that is `skip_inner`.
 								if list.nested.len() == 1 && meta.path().is_ident(Skip::SKIP_INNER)
 								{
-									// TODO: don't allow `skip_inner` on enums.
-									self_.skip_inner.add_attribute(meta)?;
+									// Don't allow `skip_inner` on the item level for enums.
+									if let Data::Enum(_) = data {
+										return Err(Error::option_enum_skip_inner(meta.span()));
+									} else {
+										self_.skip_inner.add_attribute(None, meta)?;
+									}
 								} else {
 									self_.derive_wheres.push(attr.parse_args()?)
 								}

@@ -41,14 +41,18 @@ impl Skip {
 	}
 
 	/// Adds a [`Meta`] to this [`Skip`].
-	pub fn add_attribute(&mut self, meta: &Meta) -> Result<()> {
+	pub fn add_attribute(&mut self, skip_inner: Option<&Skip>, meta: &Meta) -> Result<()> {
 		debug_assert!(meta.path().is_ident(Self::SKIP) || meta.path().is_ident(Self::SKIP_INNER));
 
 		match meta {
 			Meta::Path(path) => {
 				if self.is_none() {
-					*self = Skip::All;
-					Ok(())
+					if let Some(Skip::None) = skip_inner {
+						*self = Skip::All;
+						Ok(())
+					} else {
+						Err(Error::option_skip_inner(path.span()))
+					}
 				} else {
 					Err(Error::option_duplicate(
 						path.span(),
@@ -86,7 +90,12 @@ impl Skip {
 									trait_.as_str(),
 								));
 							} else {
-								traits.push(trait_)
+								match skip_inner {
+									Some(skip_inner) if skip_inner.skip(&trait_) => {
+										return Err(Error::option_skip_inner(path.span()))
+									}
+									_ => traits.push(trait_),
+								}
 							}
 						} else {
 							return Err(Error::option_skip_support(path.span(), trait_.as_str()));
