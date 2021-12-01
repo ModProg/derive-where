@@ -1,3 +1,5 @@
+// TODO: Remove this constraint when `Span`s stabilize.
+#[cfg(feature = "nightly")]
 #[test]
 fn ui() {
 	use trybuild::TestCases;

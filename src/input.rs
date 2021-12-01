@@ -95,6 +95,8 @@ impl<'a> Input<'a> {
 			}
 		};
 
+		// TODO: don't allow generic constraints be the same as generics on item.
+
 		#[cfg(feature = "zeroize")]
 		{
 			if !(
