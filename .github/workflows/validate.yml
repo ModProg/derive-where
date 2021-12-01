@@ -9,8 +9,8 @@ on:
     - cron:  '0 2 * * *'
 
 jobs:
-  miri:
-    name: Miri
+  test:
+    name: Test
 
     strategy:
       fail-fast: false
@@ -19,12 +19,6 @@ jobs:
           - 1.34.2
           - stable
           - beta
-          - nightly
-        features:
-          - ""
-        include:
-          - rust: nightly
-            features: --features nightly
 
     runs-on: ubuntu-latest
 
@@ -32,7 +26,28 @@ jobs:
       - name: Update Rust
         run: |
           rustup toolchain install ${{ matrix.rust }} --profile minimal --component miri --allow-downgrade
-          rustup default ${{ matrix.rust.version }}
+          rustup default ${{ matrix.rust }}
+      - name: Test
+        run:
+          cargo test --all-targets --no-fail-fast
+
+  miri:
+    name: Miri
+
+    strategy:
+      fail-fast: false
+      matrix:
+        features:
+          - ""
+          - --features nightly
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Update Rust
+        run: |
+          rustup toolchain install nightly --profile minimal --component miri --allow-downgrade
+          rustup default nightly
       - name: Cache
         uses: actions/cache@v2
         with:
