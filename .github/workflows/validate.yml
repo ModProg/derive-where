@@ -57,11 +57,12 @@ jobs:
             ~/.cargo/.crates.toml
             ~/.cargo/.crates2.json
             ~/.cargo/bin/xargo
+            ~/.cargo/bin/xargo-check
           key: xargo
       - name: Install xargo
         run: cargo install xargo
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Test
-        run:
-          cargo miri test ${{ matrix.features }} --all-targets --no-fail-fast
+      #- name: Test
+      #  run:
+      #    cargo miri test ${{ matrix.features }} --all-targets --no-fail-fast
