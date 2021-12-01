@@ -27,6 +27,8 @@ jobs:
         run: |
           rustup toolchain install ${{ matrix.rust }} --profile minimal --allow-downgrade
           rustup default ${{ matrix.rust }}
+      - name: Checkout
+        uses: actions/checkout@v2
       - name: Test
         run:
           cargo test --all-targets --no-fail-fast
