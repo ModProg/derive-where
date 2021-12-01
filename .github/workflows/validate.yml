@@ -1,9 +1,9 @@
 name: Validate
 
 on:
-  - push
-  - pull_request
-  - schedule:
+  push:
+  pull_request:
+  schedule:
     # Give nightly release some time to complete.
     # See <https://github.com/rust-lang/rustup-components-history/blob/dc6890bde289ac72d9d16959e4432f72f30c051b/.github/workflows/rust.yml#L9-L10>
     - cron:  '0 2 * * *'
