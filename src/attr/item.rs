@@ -31,6 +31,10 @@ impl ItemAttr {
 			if attr.path.is_ident(DERIVE_WHERE) {
 				if let Ok(meta) = attr.parse_meta() {
 					if let Meta::List(list) = meta {
+						if list.nested.is_empty() {
+							return Err(Error::empty(list.span()));
+						}
+
 						for nested_meta in &list.nested {
 							if let NestedMeta::Meta(meta) = nested_meta {
 								// If list has only one item that is `skip_inner`.

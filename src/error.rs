@@ -6,6 +6,11 @@ use proc_macro2::Span;
 pub struct Error;
 
 impl Error {
+	/// Unsupported empty `derive_where` on item.
+	pub fn empty(span: Span) -> syn::Error {
+		syn::Error::new(span, "empty `derive_where` found")
+	}
+
 	/// Unsupported item.
 	pub fn item(span: Span) -> syn::Error {
 		syn::Error::new(

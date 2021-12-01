@@ -1,0 +1,5 @@
+error: empty `derive_where` found
+ --> tests/ui/empty.rs:2:3
+  |
+2 | #[derive_where()]
+  |   ^^^^^^^^^^^^^^
