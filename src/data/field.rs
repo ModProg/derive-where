@@ -48,8 +48,8 @@ impl ToTokens for Member<'_> {
 impl Display for Member<'_> {
 	fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
 		match self {
-			Member::Named(ident) => f.write_fmt(format_args!("{}", ident)),
-			Member::Unnamed(index) => f.write_fmt(format_args!("{}", index.index)),
+			Member::Named(ident) => write!(f, "{}", ident),
+			Member::Unnamed(index) => write!(f, "{}", index.index),
 		}
 	}
 }
