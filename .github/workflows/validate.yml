@@ -25,7 +25,7 @@ jobs:
     steps:
       - name: Update Rust
         run: |
-          rustup toolchain install ${{ matrix.rust }} --profile minimal --component miri --allow-downgrade
+          rustup toolchain install ${{ matrix.rust }} --profile minimal --allow-downgrade
           rustup default ${{ matrix.rust }}
       - name: Test
         run:
