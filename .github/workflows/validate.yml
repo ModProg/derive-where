@@ -48,7 +48,7 @@ jobs:
     steps:
       - name: Update Rust
         run: |
-          rustup toolchain install nightly --profile minimal --component miri --allow-downgrade
+          rustup toolchain install nightly --profile minimal --component miri,rust-src --allow-downgrade
           rustup default nightly
       - name: Cache
         uses: actions/cache@v2
