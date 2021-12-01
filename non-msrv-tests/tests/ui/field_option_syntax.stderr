@@ -1,5 +1,23 @@
 error: unexpected option syntax
- --> tests/ui/field_option_syntax.rs:4:7
+ --> tests/ui/field_option_syntax.rs:3:19
   |
-4 |     #[derive_where = "default"]
-  |       ^^^^^^^^^^^^^^^^^^^^^^^^
+3 | struct Test1<T>(#[derive_where] T);
+  |                   ^^^^^^^^^^^^
+
+error: unexpected option syntax
+ --> tests/ui/field_option_syntax.rs:7:19
+  |
+7 | struct Test2<T>(#[derive_where = "default"] T);
+  |                   ^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: unexpected option syntax
+  --> tests/ui/field_option_syntax.rs:12:4
+   |
+12 |     #[derive_where]
+   |       ^^^^^^^^^^^^
+
+error: unexpected option syntax
+  --> tests/ui/field_option_syntax.rs:19:4
+   |
+19 |     #[derive_where = "default"]
+   |       ^^^^^^^^^^^^^^^^^^^^^^^^
