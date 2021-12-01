@@ -93,7 +93,18 @@ impl Parse for DeriveWhere {
 			traits.push(DeriveTrait::parse(input)?);
 
 			if !input.is_empty() {
-				let fork = input.fork();
+				let mut fork = input.fork();
+				let mut delimiter_found = None;
+
+				match <Token![,]>::parse(&fork) {
+					Ok(_) => {
+						input.advance_to(&fork);
+					}
+					Err(error) => {
+						delimiter_found = Some(error.span());
+						fork = input.fork();
+					}
+				}
 
 				if <Token![;]>::parse(&fork).is_ok() {
 					input.advance_to(&fork);
@@ -104,8 +115,8 @@ impl Parse for DeriveWhere {
 							.into_iter()
 							.collect();
 					}
-				} else if let Err(error) = <Token![,]>::parse(input) {
-					return Err(Error::derive_where_delimiter(error.span()));
+				} else if let Some(span) = delimiter_found {
+					return Err(Error::derive_where_delimiter(span));
 				}
 			}
 		}
