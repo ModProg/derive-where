@@ -29,7 +29,7 @@ error: duplicate `crate` option
    |                                            ^^^^^^^^^^^^^^^^^^
 
 error: duplicate `drop` option
-  --> tests/ui/zeroize/duplicate_option.rs:25:50
+  --> tests/ui/zeroize/duplicate_option.rs:24:50
    |
-25 | #[derive_where(Zeroize(crate = "zeroize_", drop, drop); T)]
+24 | #[derive_where(Zeroize(crate = "zeroize_", drop, drop); T)]
    |                                                  ^^^^

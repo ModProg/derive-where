@@ -1,5 +1,5 @@
 error: `default` is only supported if `Default` is being implemented
- --> tests/ui/default.rs:4:20
+ --> tests/ui/default.rs:4:17
   |
 4 |     #[derive_where(default)]
   |                    ^^^^^^^
