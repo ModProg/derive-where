@@ -33,8 +33,6 @@ impl<'a> Input<'a> {
 			derive_wheres,
 		} = ItemAttr::from_attrs(span, data, attrs)?;
 
-		// TODO: check if any derive trait was specified.
-
 		// Extract fields and variants of this item.
 		let item = match &data {
 			syn::Data::Struct(data) => {

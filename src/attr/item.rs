@@ -62,6 +62,10 @@ impl ItemAttr {
 			}
 		}
 
+		if self_.derive_wheres.is_empty() {
+			return Err(Error::none(span));
+		}
+
 		if let Data::Union(_) = data {
 			for derive_where in &self_.derive_wheres {
 				for trait_ in &derive_where.traits {
