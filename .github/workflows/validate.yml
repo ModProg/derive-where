@@ -1,0 +1,50 @@
+name: Validate
+
+on:
+  - push
+  - pull_request
+  - schedule:
+    # Give nightly release some time to complete.
+    # See <https://github.com/rust-lang/rustup-components-history/blob/dc6890bde289ac72d9d16959e4432f72f30c051b/.github/workflows/rust.yml#L9-L10>
+    - cron:  '0 2 * * *'
+
+jobs:
+  miri:
+    name: Miri
+
+    strategy:
+      fail-fast: false
+      matrix:
+        rust:
+          - 1.34.2
+          - stable
+          - beta
+          - nightly
+        features:
+          - ""
+        include:
+          - rust: nightly
+            features: --features nightly
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Update Rust
+        run: |
+          rustup toolchain install ${{ matrix.rust }} --profile minimal --component miri --allow-downgrade
+          rustup default ${{ matrix.rust.version }}
+      - name: Cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/.crates.toml
+            ~/.cargo/.crates2.json
+            ~/.cargo/bin/xargo
+          key: xargo
+      - name: Install xargo
+        run: cargo install xargo
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Test
+        run:
+          cargo miri test ${{ matrix.features }} --all-targets --no-fail-fast
