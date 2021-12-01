@@ -44,6 +44,8 @@ impl Skip {
 	pub fn add_attribute(&mut self, skip_inner: Option<&Skip>, meta: &Meta) -> Result<()> {
 		debug_assert!(meta.path().is_ident(Self::SKIP) || meta.path().is_ident(Self::SKIP_INNER));
 
+		// TODO: don't allow `skip` with traits not being implemented.
+
 		match meta {
 			Meta::Path(path) => {
 				if self.is_none() {
