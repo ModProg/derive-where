@@ -20,7 +20,6 @@ struct Test4<T>(T);
 #[derive_where(Zeroize(crate = "zeroize_", crate = "zeroize_", drop); T)]
 struct Test5<T>(T);
 
-
 #[derive(derive_where::DeriveWhere)]
 #[derive_where(Zeroize(crate = "zeroize_", drop, drop); T)]
 struct Test6<T>(T);
