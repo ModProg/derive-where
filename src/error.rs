@@ -6,6 +6,14 @@ use proc_macro2::Span;
 pub struct Error;
 
 impl Error {
+	/// No `derive_where` with [`Trait`](crate::Trait) found.
+	pub fn none(span: Span) -> syn::Error {
+		syn::Error::new(
+			span,
+			"no traits found to implement, use `#[derive_where(..)` to specify some",
+		)
+	}
+
 	/// Unsupported empty `derive_where` on item.
 	pub fn empty(span: Span) -> syn::Error {
 		syn::Error::new(span, "empty `derive_where` found")

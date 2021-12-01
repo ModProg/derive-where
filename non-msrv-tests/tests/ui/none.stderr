@@ -1,0 +1,5 @@
+error: no traits found to implement, use `#[derive_where(..)` to specify some
+ --> tests/ui/none.rs:2:1
+  |
+2 | struct Test<T>(T);
+  | ^^^^^^^^^^^^^^^^^^
