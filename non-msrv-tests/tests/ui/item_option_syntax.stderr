@@ -1,5 +1,11 @@
 error: unexpected option syntax
- --> tests/ui/item_option_syntax.rs:2:16
+ --> tests/ui/item_option_syntax.rs:2:3
   |
-2 | #[derive_where(Debug = "option"; T)]
+2 | #[derive_where]
+  |   ^^^^^^^^^^^^
+
+error: unexpected option syntax
+ --> tests/ui/item_option_syntax.rs:6:16
+  |
+6 | #[derive_where(Debug = "option"; T)]
   |                ^^^^^^^^^^^^^^^^
