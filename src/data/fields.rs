@@ -6,7 +6,7 @@ use syn::{
 	PatTupleStruct, Path, Result, Token,
 };
 
-use crate::{Field, Member, Skip, Trait};
+use crate::{DeriveWhere, Field, Member, Skip, Trait};
 
 /// Struct, union, struct variant or tuple variant fields.
 #[cfg_attr(test, derive(Debug))]
@@ -21,8 +21,13 @@ pub struct Fields<'a> {
 
 impl<'a> Fields<'a> {
 	/// Create [`Fields`]s from [`FieldsNamed`].
-	pub fn from_named(skip_inner: &Skip, path: Path, fields: &'a FieldsNamed) -> Result<Self> {
-		let fields = Field::from_named(skip_inner, fields)?;
+	pub fn from_named(
+		derive_wheres: &[DeriveWhere],
+		skip_inner: &Skip,
+		path: Path,
+		fields: &'a FieldsNamed,
+	) -> Result<Self> {
+		let fields = Field::from_named(derive_wheres, skip_inner, fields)?;
 
 		let self_pattern = Self::struct_pattern(path.clone(), &fields, |field| &field.self_ident);
 		let other_pattern = Self::struct_pattern(path, &fields, |field| &field.other_ident);
@@ -35,8 +40,13 @@ impl<'a> Fields<'a> {
 	}
 
 	/// Create [`Fields`]s from [`FieldsUnnamed`].
-	pub fn from_unnamed(skip_inner: &Skip, path: Path, fields: &'a FieldsUnnamed) -> Result<Self> {
-		let fields = Field::from_unnamed(skip_inner, fields)?;
+	pub fn from_unnamed(
+		derive_wheres: &[DeriveWhere],
+		skip_inner: &Skip,
+		path: Path,
+		fields: &'a FieldsUnnamed,
+	) -> Result<Self> {
+		let fields = Field::from_unnamed(derive_wheres, skip_inner, fields)?;
 
 		let self_pattern = Self::tuple_pattern(path.clone(), &fields, |field| &field.self_ident);
 		let other_pattern = Self::tuple_pattern(path, &fields, |field| &field.other_ident);

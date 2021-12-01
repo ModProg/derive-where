@@ -10,7 +10,7 @@ pub use self::{
 	field::{Field, Member},
 	fields::Fields,
 };
-use crate::{util, Default, Either, Error, Skip, Trait};
+use crate::{util, Default, DeriveWhere, Either, Error, Skip, Trait};
 
 /// Holds all relevant data of a struct, union or variant.
 #[cfg_attr(test, derive(Debug))]
@@ -72,6 +72,7 @@ impl<'a> Data<'a> {
 	/// Create [`Data`]s from [`syn::Fields`] of a struct.
 	pub fn from_struct(
 		span: Span,
+		derive_wheres: &[DeriveWhere],
 		skip_inner: Skip,
 		ident: &'a Ident,
 		fields: &'a syn::Fields,
@@ -83,7 +84,8 @@ impl<'a> Data<'a> {
 				if fields.named.is_empty() {
 					Err(Error::item_empty(span))
 				} else {
-					let fields = Fields::from_named(&skip_inner, path.clone(), fields)?;
+					let fields =
+						Fields::from_named(derive_wheres, &skip_inner, path.clone(), fields)?;
 
 					Ok(Self {
 						skip_inner,
@@ -97,7 +99,8 @@ impl<'a> Data<'a> {
 				if fields.unnamed.is_empty() {
 					Err(Error::item_empty(span))
 				} else {
-					let fields = Fields::from_unnamed(&skip_inner, path.clone(), fields)?;
+					let fields =
+						Fields::from_unnamed(derive_wheres, &skip_inner, path.clone(), fields)?;
 
 					Ok(Self {
 						skip_inner,
@@ -114,6 +117,7 @@ impl<'a> Data<'a> {
 	/// Create [`Data`]s from [`FieldsNamed`] of an union.
 	pub fn from_union(
 		span: Span,
+		derive_wheres: &[DeriveWhere],
 		skip_inner: Skip,
 		ident: &'a Ident,
 		fields: &'a FieldsNamed,
@@ -122,7 +126,7 @@ impl<'a> Data<'a> {
 			Err(Error::item_empty(span))
 		} else {
 			let path = util::path_from_idents(&[ident]);
-			let fields = Fields::from_named(&skip_inner, path.clone(), fields)?;
+			let fields = Fields::from_named(derive_wheres, &skip_inner, path.clone(), fields)?;
 
 			Ok(Self {
 				skip_inner,
@@ -136,6 +140,7 @@ impl<'a> Data<'a> {
 	/// Create [`Data`]s from [`syn::Fields`] of a variant.
 	pub fn from_variant(
 		item_ident: &'a Ident,
+		derive_wheres: &[DeriveWhere],
 		skip_inner: Skip,
 		default: Default,
 		variant_ident: &'a Ident,
@@ -145,7 +150,7 @@ impl<'a> Data<'a> {
 
 		match fields {
 			syn::Fields::Named(fields) => {
-				let fields = Fields::from_named(&skip_inner, path.clone(), fields)?;
+				let fields = Fields::from_named(derive_wheres, &skip_inner, path.clone(), fields)?;
 
 				Ok(Self {
 					skip_inner,
@@ -158,7 +163,8 @@ impl<'a> Data<'a> {
 				})
 			}
 			syn::Fields::Unnamed(fields) => {
-				let fields = Fields::from_unnamed(&skip_inner, path.clone(), fields)?;
+				let fields =
+					Fields::from_unnamed(derive_wheres, &skip_inner, path.clone(), fields)?;
 
 				Ok(Self {
 					skip_inner,

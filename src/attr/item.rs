@@ -26,32 +26,39 @@ impl ItemAttr {
 	/// Create [`ItemAttr`] from [`Attribute`]s.
 	pub fn from_attrs(span: Span, data: &Data, attrs: &[Attribute]) -> Result<Self> {
 		let mut self_ = ItemAttr::default();
+		let mut skip_inner = None;
 
 		for attr in attrs {
 			if attr.path.is_ident(DERIVE_WHERE) {
 				if let Ok(meta) = attr.parse_meta() {
 					if let Meta::List(list) = meta {
-						if list.nested.is_empty() {
-							return Err(Error::empty(list.span()));
-						}
-
-						for nested_meta in &list.nested {
-							if let NestedMeta::Meta(meta) = nested_meta {
-								// If list has only one item that is `skip_inner`.
-								if list.nested.len() == 1 && meta.path().is_ident(Skip::SKIP_INNER)
-								{
-									// Don't allow `skip_inner` on the item level for enums.
-									if let Data::Enum(_) = data {
-										return Err(Error::option_enum_skip_inner(meta.span()));
+						match list.nested.len() {
+							// Don't allow empty list.
+							0 => return Err(Error::empty(list.span())),
+							// Allow `skip_inner` if list only has one item.
+							1 => match list
+								.nested
+								.into_iter()
+								.next()
+								.expect("unexpected empty list")
+							{
+								NestedMeta::Meta(meta) => {
+									if meta.path().is_ident(Skip::SKIP_INNER) {
+										// Don't allow `skip_inner` on the item level for enums.
+										if let Data::Enum(_) = data {
+											return Err(Error::option_enum_skip_inner(meta.span()));
+										} else {
+											skip_inner = Some(meta);
+										}
 									} else {
-										self_.skip_inner.add_attribute(None, meta)?;
+										self_.derive_wheres.push(attr.parse_args()?);
 									}
-								} else {
-									self_.derive_wheres.push(attr.parse_args()?)
 								}
-							} else {
-								return Err(Error::option_syntax(nested_meta.span()));
-							}
+								nested_meta => {
+									return Err(Error::option_syntax(nested_meta.span()))
+								}
+							},
+							_ => self_.derive_wheres.push(attr.parse_args()?),
 						}
 					} else {
 						return Err(Error::option_syntax(meta.span()));
@@ -60,6 +67,13 @@ impl ItemAttr {
 					self_.derive_wheres.push(attr.parse_args()?)
 				}
 			}
+		}
+
+		// Delay parsing of `skip_inner` to get access to all traits to be implemented.
+		if let Some(meta) = skip_inner {
+			self_
+				.skip_inner
+				.add_attribute(&self_.derive_wheres, None, &meta)?;
 		}
 
 		if self_.derive_wheres.is_empty() {

@@ -63,7 +63,7 @@ impl VariantAttr {
 								Fields::Unit => {
 									return Err(Error::option_skip_empty(variant.span()))
 								}
-								_ => self.skip_inner.add_attribute(None, meta)?,
+								_ => self.skip_inner.add_attribute(derive_wheres, None, meta)?,
 							}
 						} else if meta.path().is_ident(Default::DEFAULT) {
 							self.default.add_attribute(
