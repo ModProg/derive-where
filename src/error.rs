@@ -129,6 +129,11 @@ impl Error {
 		)
 	}
 
+	/// No relevant trait to `skip` found.
+	pub fn option_skip_trait(span: Span) -> syn::Error {
+		syn::Error::new(span, "no trait to skip found")
+	}
+
 	/// Invalid value for the `Zeroize` `crate` option.
 	#[cfg(feature = "zeroize")]
 	pub fn path(span: Span, parse_error: syn::Error) -> syn::Error {

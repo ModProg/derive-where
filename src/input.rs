@@ -36,7 +36,8 @@ impl<'a> Input<'a> {
 		// Extract fields and variants of this item.
 		let item = match &data {
 			syn::Data::Struct(data) => {
-				Data::from_struct(span, skip_inner, ident, &data.fields).map(Item::Item)?
+				Data::from_struct(span, &derive_wheres, skip_inner, ident, &data.fields)
+					.map(Item::Item)?
 			}
 			syn::Data::Enum(data) => {
 				let mut accumulated_defaults = Default::default();
@@ -58,6 +59,7 @@ impl<'a> Input<'a> {
 
 						Data::from_variant(
 							ident,
+							&derive_wheres,
 							skip_inner,
 							default,
 							&variant.ident,
@@ -89,7 +91,8 @@ impl<'a> Input<'a> {
 				Item::Enum { ident, variants }
 			}
 			syn::Data::Union(data) => {
-				Data::from_union(span, skip_inner, ident, &data.fields).map(Item::Item)?
+				Data::from_union(span, &derive_wheres, skip_inner, ident, &data.fields)
+					.map(Item::Item)?
 			}
 		};
 

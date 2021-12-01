@@ -2,7 +2,7 @@
 
 use syn::{spanned::Spanned, Meta, NestedMeta, Result};
 
-use crate::{Error, Trait, TraitImpl};
+use crate::{DeriveWhere, Error, Trait, TraitImpl};
 
 /// Stores what [`Trait`]s to skip this field or variant for.
 #[cfg_attr(test, derive(Debug))]
@@ -41,29 +41,31 @@ impl Skip {
 	}
 
 	/// Adds a [`Meta`] to this [`Skip`].
-	pub fn add_attribute(&mut self, skip_inner: Option<&Skip>, meta: &Meta) -> Result<()> {
+	pub fn add_attribute(
+		&mut self,
+		derive_wheres: &[DeriveWhere],
+		skip_inner: Option<&Skip>,
+		meta: &Meta,
+	) -> Result<()> {
 		debug_assert!(meta.path().is_ident(Self::SKIP) || meta.path().is_ident(Self::SKIP_INNER));
-
-		// TODO: don't allow `skip` with traits not being implemented.
 
 		match meta {
 			Meta::Path(path) => {
 				if self.is_none() {
 					if let Some(Skip::None) = skip_inner {
 						*self = Skip::All;
-						Ok(())
 					} else {
-						Err(Error::option_skip_inner(path.span()))
+						return Err(Error::option_skip_inner(path.span()));
 					}
 				} else {
-					Err(Error::option_duplicate(
+					return Err(Error::option_duplicate(
 						path.span(),
 						&meta
 							.path()
 							.get_ident()
 							.expect("unexpected skip syntax")
 							.to_string(),
-					))
+					));
 				}
 			}
 			Meta::List(list) => {
@@ -106,11 +108,19 @@ impl Skip {
 						return Err(Error::option_syntax(nested_meta.span()));
 					}
 				}
-
-				Ok(())
 			}
-			_ => Err(Error::option_syntax(meta.span())),
+			_ => return Err(Error::option_syntax(meta.span())),
 		}
+
+		// Don't allow `skip` with traits not implemented.
+		if !derive_wheres
+			.iter()
+			.any(|derive_where| derive_where.traits.iter().any(|trait_| self.skip(trait_)))
+		{
+			return Err(Error::option_skip_trait(meta.span()));
+		}
+
+		Ok(())
 	}
 
 	/// Returns `true` if this item, variant or field is skipped with the given

@@ -2,7 +2,7 @@
 
 use syn::{spanned::Spanned, Attribute, Meta, NestedMeta, Result};
 
-use crate::{Error, Skip, Trait, DERIVE_WHERE};
+use crate::{DeriveWhere, Error, Skip, Trait, DERIVE_WHERE};
 #[cfg(feature = "zeroize")]
 use crate::{TraitImpl, ZeroizeFqs};
 
@@ -19,13 +19,17 @@ pub struct FieldAttr {
 
 impl FieldAttr {
 	/// Create [`FieldAttr`] from [`Attribute`]s.
-	pub fn from_attrs(skip_inner: &Skip, attrs: &[Attribute]) -> Result<Self> {
+	pub fn from_attrs(
+		derive_wheres: &[DeriveWhere],
+		skip_inner: &Skip,
+		attrs: &[Attribute],
+	) -> Result<Self> {
 		let mut self_ = FieldAttr::default();
 
 		for attr in attrs {
 			if attr.path.is_ident(DERIVE_WHERE) {
 				match attr.parse_meta() {
-					Ok(meta) => self_.add_meta(skip_inner, &meta)?,
+					Ok(meta) => self_.add_meta(derive_wheres, skip_inner, &meta)?,
 					Err(error) => return Err(Error::attribute_syntax(attr.span(), error)),
 				}
 			}
@@ -35,7 +39,12 @@ impl FieldAttr {
 	}
 
 	/// Add [`Meta`] to [`FieldAttr`].
-	fn add_meta(&mut self, skip_inner: &Skip, meta: &Meta) -> Result<()> {
+	fn add_meta(
+		&mut self,
+		derive_wheres: &[DeriveWhere],
+		skip_inner: &Skip,
+		meta: &Meta,
+	) -> Result<()> {
 		debug_assert!(meta.path().is_ident(DERIVE_WHERE));
 
 		if let Meta::List(list) = meta {
@@ -43,7 +52,8 @@ impl FieldAttr {
 				match nested_meta {
 					NestedMeta::Meta(meta) => {
 						if meta.path().is_ident(Skip::SKIP) {
-							self.skip.add_attribute(Some(skip_inner), meta)?;
+							self.skip
+								.add_attribute(derive_wheres, Some(skip_inner), meta)?;
 							continue;
 						}
 
