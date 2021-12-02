@@ -260,6 +260,15 @@ impl<'a> Data<'a> {
 			}
 	}
 
+	/// Returns `true` if any field is skipped with that [`Trait`].
+	pub fn skip(&self, trait_: &Trait) -> bool {
+		self.skip_inner.skip(trait_)
+			|| match self.fields() {
+				Either::Left(fields) => fields.skip(trait_),
+				Either::Right(_) => false,
+			}
+	}
+
 	/// Return a [`SimpleType`].
 	pub fn simple_type(&self) -> SimpleType {
 		match &self.type_ {

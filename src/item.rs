@@ -27,6 +27,14 @@ impl Item<'_> {
 		}
 	}
 
+	/// Returns `true` if any field is skipped with that [`Trait`].
+	pub fn skip(&self, trait_: &Trait) -> bool {
+		match self {
+			Item::Item(data) => data.skip(trait_),
+			Item::Enum { variants, .. } => variants.iter().any(|data| data.skip(trait_)),
+		}
+	}
+
 	/// Returns `true` if any field is skipped.
 	pub fn any_skip(&self) -> bool {
 		match self {
@@ -39,15 +47,12 @@ impl Item<'_> {
 	// MSRV: `matches!` was added in 1.42.0.
 	#[allow(clippy::match_like_matches_macro)]
 	pub fn any_default(&self, derive_wheres: &[DeriveWhere]) -> bool {
-		(match self {
-			Item::Enum { .. } => true,
-			_ => false,
-		}) && derive_wheres.iter().any(|derive_where| {
-			derive_where
-				.traits
+		match self {
+			Item::Enum { .. } => derive_wheres
 				.iter()
-				.any(|trait_| **trait_ == Trait::Default)
-		})
+				.any(|derive_where| derive_where.trait_(Trait::Default).is_some()),
+			_ => false,
+		}
 	}
 
 	/// Returns `true` if any field uses `Zeroize(fqs)`.
