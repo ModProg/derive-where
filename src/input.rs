@@ -3,9 +3,10 @@
 use proc_macro2::Span;
 use syn::{DeriveInput, GenericParam, Generics, Result, Type, TypePath};
 
+#[cfg(feature = "zeroize")]
+use crate::DeriveTrait;
 use crate::{
-	Data, Default, DeriveTrait, DeriveWhere, Either, Error, Generic, Item, ItemAttr, Trait,
-	VariantAttr,
+	Data, Default, DeriveWhere, Either, Error, Generic, Item, ItemAttr, Trait, VariantAttr,
 };
 
 /// Parsed input.
