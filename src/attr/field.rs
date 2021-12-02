@@ -48,6 +48,10 @@ impl FieldAttr {
 		debug_assert!(meta.path().is_ident(DERIVE_WHERE));
 
 		if let Meta::List(list) = meta {
+			if list.nested.is_empty() {
+				return Err(Error::empty(list.span()));
+			}
+
 			for nested_meta in &list.nested {
 				match nested_meta {
 					NestedMeta::Meta(meta) => {
@@ -60,7 +64,7 @@ impl FieldAttr {
 						#[cfg(feature = "zeroize")]
 						{
 							if meta.path().is_ident(Trait::Zeroize.as_str()) {
-								self.zeroize_fqs.add_attribute(meta)?;
+								self.zeroize_fqs.add_attribute(meta, derive_wheres)?;
 								continue;
 							}
 						}

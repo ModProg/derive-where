@@ -84,6 +84,11 @@ impl Error {
 		syn::Error::new(span, "unexpected option syntax")
 	}
 
+	/// Unsupported empty attribute option.
+	pub fn option_empty(span: Span) -> syn::Error {
+		syn::Error::new(span, "empty attribute option found")
+	}
+
 	/// Missing sub-option for an option.
 	#[cfg(feature = "zeroize")]
 	pub fn option_required(span: Span, option: &str) -> syn::Error {
@@ -227,5 +232,14 @@ impl Error {
 			"Zeroize",
 		]
 		.join(", ")
+	}
+
+	/// Unsupported `Zeroize` option if [`Zeroize`](https://docs.rs/zeroize/1.4.3/zeroize/trait.Zeroize.html) isn't implemented.
+	#[cfg(feature = "zeroize")]
+	pub fn zeroize(span: Span) -> syn::Error {
+		syn::Error::new(
+			span,
+			"`Zeroize` option is only supported if `Zeroize` is being implemented",
+		)
 	}
 }

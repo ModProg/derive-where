@@ -98,8 +98,6 @@ impl<'a> Input<'a> {
 			}
 		};
 
-		// TODO: don't allow generic constraints be the same as generics on item.
-
 		// Don't allow no use-case compared to std `derive`.
 		let mut found_use_case = false;
 		// Any generics used.
@@ -214,12 +212,12 @@ impl<'a> Input<'a> {
 						}
 					}
 				};
-				// ).is_some(); `Zeroize(fqs)` is used on any field.
+				// `Zeroize(fqs)` is used on any field.
 				found_use_case |= derive_where.trait_(Trait::Zeroize).is_some() && item.any_fqs();
 			}
 
 			if !found_use_case {
-				return Err(Error::generics(span));
+				return Err(Error::generics(derive_where.span));
 			}
 		}
 
