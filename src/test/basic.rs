@@ -7,12 +7,11 @@ use super::test_derive;
 fn struct_() -> Result<()> {
 	test_derive(
 		quote! {
-			#[derive_where(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd; T)]
-			struct Test<T> { field: T }
+			#[derive_where(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
+			struct Test<T> { field: core::marker::PhatomData<T> }
 		},
 		quote! {
 			impl<T> ::core::clone::Clone for Test<T>
-			where T: ::core::clone::Clone
 			{
 				#[inline]
 				fn clone(&self) -> Self {
@@ -23,11 +22,9 @@ fn struct_() -> Result<()> {
 			}
 
 			impl<T> ::core::marker::Copy for Test<T>
-			where T: ::core::marker::Copy
 			{ }
 
 			impl<T> ::core::fmt::Debug for Test<T>
-			where T: ::core::fmt::Debug
 			{
 				fn fmt(&self, __f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
 					match self {
@@ -41,7 +38,6 @@ fn struct_() -> Result<()> {
 			}
 
 			impl<T> ::core::default::Default for Test<T>
-			where T: ::core::default::Default
 			{
 				fn default() -> Self {
 					Test { field: ::core::default::Default::default() }
@@ -49,11 +45,9 @@ fn struct_() -> Result<()> {
 			}
 
 			impl<T> ::core::cmp::Eq for Test<T>
-			where T: ::core::cmp::Eq
 			{ }
 
 			impl<T> ::core::hash::Hash for Test<T>
-			where T: ::core::hash::Hash
 			{
 				fn hash<__H: ::core::hash::Hasher>(&self, __state: &mut __H) {
 					match self {
@@ -63,7 +57,6 @@ fn struct_() -> Result<()> {
 			}
 
 			impl<T> ::core::cmp::Ord for Test<T>
-			where T: ::core::cmp::Ord
 			{
 				#[inline]
 				fn cmp(&self, __other: &Self) -> ::core::cmp::Ordering {
@@ -78,7 +71,6 @@ fn struct_() -> Result<()> {
 			}
 
 			impl<T> ::core::cmp::PartialEq for Test<T>
-			where T: ::core::cmp::PartialEq
 			{
 				#[inline]
 				fn eq(&self, __other: &Self) -> bool {
@@ -90,7 +82,6 @@ fn struct_() -> Result<()> {
 			}
 
 			impl<T> ::core::cmp::PartialOrd for Test<T>
-			where T: ::core::cmp::PartialOrd
 			{
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -111,12 +102,11 @@ fn struct_() -> Result<()> {
 fn tuple() -> Result<()> {
 	test_derive(
 		quote! {
-			#[derive_where(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd; T)]
-			struct Test<T>(T);
+			#[derive_where(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
+			struct Test<T>(core::marker::PhatomData<T>);
 		},
 		quote! {
 			impl<T> ::core::clone::Clone for Test<T>
-			where T: ::core::clone::Clone
 			{
 				#[inline]
 				fn clone(&self) -> Self {
@@ -127,11 +117,9 @@ fn tuple() -> Result<()> {
 			}
 
 			impl<T> ::core::marker::Copy for Test<T>
-			where T: ::core::marker::Copy
 			{ }
 
 			impl<T> ::core::fmt::Debug for Test<T>
-			where T: ::core::fmt::Debug
 			{
 				fn fmt(&self, __f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
 					match self {
@@ -145,7 +133,6 @@ fn tuple() -> Result<()> {
 			}
 
 			impl<T> ::core::default::Default for Test<T>
-			where T: ::core::default::Default
 			{
 				fn default() -> Self {
 					Test(::core::default::Default::default())
@@ -153,11 +140,9 @@ fn tuple() -> Result<()> {
 			}
 
 			impl<T> ::core::cmp::Eq for Test<T>
-			where T: ::core::cmp::Eq
 			{ }
 
 			impl<T> ::core::hash::Hash for Test<T>
-			where T: ::core::hash::Hash
 			{
 				fn hash<__H: ::core::hash::Hasher>(&self, __state: &mut __H) {
 					match self {
@@ -167,7 +152,6 @@ fn tuple() -> Result<()> {
 			}
 
 			impl<T> ::core::cmp::Ord for Test<T>
-			where T: ::core::cmp::Ord
 			{
 				#[inline]
 				fn cmp(&self, __other: &Self) -> ::core::cmp::Ordering {
@@ -182,7 +166,6 @@ fn tuple() -> Result<()> {
 			}
 
 			impl<T> ::core::cmp::PartialEq for Test<T>
-			where T: ::core::cmp::PartialEq
 			{
 				#[inline]
 				fn eq(&self, __other: &Self) -> bool {
@@ -194,7 +177,6 @@ fn tuple() -> Result<()> {
 			}
 
 			impl<T> ::core::cmp::PartialOrd for Test<T>
-			where T: ::core::cmp::PartialOrd
 			{
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -339,11 +321,11 @@ fn enum_() -> Result<()> {
 
 	test_derive(
 		quote! {
-			#[derive_where(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd; T)]
+			#[derive_where(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 			enum Test<T> {
-				A { field: T},
+				A { field: core::marker::PhatomData<T>},
 				B { },
-				C(T),
+				C(core::marker::PhatomData<T>),
 				D(),
 				#[derive_where(default)]
 				E,
@@ -351,7 +333,6 @@ fn enum_() -> Result<()> {
 		},
 		quote! {
 			impl<T> ::core::clone::Clone for Test<T>
-			where T: ::core::clone::Clone
 			{
 				#[inline]
 				fn clone(&self) -> Self {
@@ -366,11 +347,9 @@ fn enum_() -> Result<()> {
 			}
 
 			impl<T> ::core::marker::Copy for Test<T>
-			where T: ::core::marker::Copy
 			{ }
 
 			impl<T> ::core::fmt::Debug for Test<T>
-			where T: ::core::fmt::Debug
 			{
 				fn fmt(&self, __f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
 					match self {
@@ -398,7 +377,6 @@ fn enum_() -> Result<()> {
 			}
 
 			impl<T> ::core::default::Default for Test<T>
-			where T: ::core::default::Default
 			{
 				fn default() -> Self {
 					Test::E
@@ -406,11 +384,9 @@ fn enum_() -> Result<()> {
 			}
 
 			impl<T> ::core::cmp::Eq for Test<T>
-			where T: ::core::cmp::Eq
 			{ }
 
 			impl<T> ::core::hash::Hash for Test<T>
-			where T: ::core::hash::Hash
 			{
 				fn hash<__H: ::core::hash::Hasher>(&self, __state: &mut __H) {
 					match self {
@@ -436,7 +412,6 @@ fn enum_() -> Result<()> {
 			}
 
 			impl<T> ::core::cmp::Ord for Test<T>
-			where T: ::core::cmp::Ord
 			{
 				#[inline]
 				fn cmp(&self, __other: &Self) -> ::core::cmp::Ordering {
@@ -463,7 +438,6 @@ fn enum_() -> Result<()> {
 			}
 
 			impl<T> ::core::cmp::PartialEq for Test<T>
-			where T: ::core::cmp::PartialEq
 			{
 				#[inline]
 				fn eq(&self, __other: &Self) -> bool {
@@ -482,7 +456,6 @@ fn enum_() -> Result<()> {
 			}
 
 			impl<T> ::core::cmp::PartialOrd for Test<T>
-			where T: ::core::cmp::PartialOrd
 			{
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -515,7 +488,7 @@ fn enum_() -> Result<()> {
 fn union_() -> Result<()> {
 	test_derive(
 		quote! {
-			#[derive_where(Clone, Copy; T)]
+			#[derive_where(Clone, Copy)]
 			union Test<T> {
 				a: core::marker::PhantomData<T>,
 				b: u8,
@@ -523,7 +496,6 @@ fn union_() -> Result<()> {
 		},
 		quote! {
 			impl<T> ::core::clone::Clone for Test<T>
-			where T: ::core::clone::Clone + ::core::marker::Copy
 			{
 				#[inline]
 				fn clone(&self) -> Self {
@@ -534,7 +506,6 @@ fn union_() -> Result<()> {
 			}
 
 			impl<T> ::core::marker::Copy for Test<T>
-			where T: ::core::marker::Copy
 			{ }
 		},
 	)

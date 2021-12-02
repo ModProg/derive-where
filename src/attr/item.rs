@@ -147,6 +147,15 @@ impl Parse for DeriveWhere {
 	}
 }
 
+impl DeriveWhere {
+	/// Returns selected [`DeriveTrait`] if present.
+	pub fn trait_(&self, trait_: Trait) -> Option<&DeriveTrait> {
+		self.traits
+			.iter()
+			.find(|derive_trait| ***derive_trait == trait_)
+	}
+}
+
 /// Holds a single generic [type](Type) or [type with bound](PredicateType).
 pub enum Generic {
 	/// Generic type with custom [specified bounds](PredicateType).

@@ -30,11 +30,7 @@ impl Default {
 				let mut impl_default = false;
 
 				for derive_where in derive_wheres {
-					if derive_where
-						.traits
-						.iter()
-						.any(|trait_| **trait_ == Trait::Default)
-					{
+					if derive_where.trait_(Trait::Default).is_some() {
 						impl_default = true;
 						break;
 					}

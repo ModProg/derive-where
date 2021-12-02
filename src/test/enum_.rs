@@ -74,12 +74,11 @@ fn enum_default_unit() -> Result<()> {
 fn enum_one_data() -> Result<()> {
 	test_derive(
 		quote! {
-			#[derive_where(PartialEq, PartialOrd; T)]
-			enum Test<T> { A(T) }
+			#[derive_where(PartialEq, PartialOrd)]
+			enum Test<T> { A(core::marker::PhantomData<T>) }
 		},
 		quote! {
 			impl<T> ::core::cmp::PartialEq for Test<T>
-			where T: ::core::cmp::PartialEq
 			{
 				#[inline]
 				fn eq(&self, __other: &Self) -> bool {
@@ -91,7 +90,6 @@ fn enum_one_data() -> Result<()> {
 			}
 
 			impl<T> ::core::cmp::PartialOrd for Test<T>
-			where T: ::core::cmp::PartialOrd
 			{
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -153,12 +151,11 @@ fn enum_two_data() -> Result<()> {
 
 	test_derive(
 		quote! {
-			#[derive_where(PartialEq, PartialOrd; T)]
-			enum Test<T> { A(T), B(T) }
+			#[derive_where(PartialEq, PartialOrd)]
+			enum Test<T> { A(core::marker::PhantomData<T>), B(core::marker::PhantomData<T>) }
 		},
 		quote! {
 			impl<T> ::core::cmp::PartialEq for Test<T>
-			where T: ::core::cmp::PartialEq
 			{
 				#[inline]
 				fn eq(&self, __other: &Self) -> bool {
@@ -177,7 +174,6 @@ fn enum_two_data() -> Result<()> {
 			}
 
 			impl<T> ::core::cmp::PartialOrd for Test<T>
-			where T: ::core::cmp::PartialOrd
 			{
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -247,12 +243,11 @@ fn enum_unit() -> Result<()> {
 
 	test_derive(
 		quote! {
-			#[derive_where(PartialEq, PartialOrd; T)]
-			enum Test<T> { A(T), B }
+			#[derive_where(PartialEq, PartialOrd)]
+			enum Test<T> { A(core::marker::PhantomData<T>), B }
 		},
 		quote! {
 			impl<T> ::core::cmp::PartialEq for Test<T>
-			where T: ::core::cmp::PartialEq
 			{
 				#[inline]
 				fn eq(&self, __other: &Self) -> bool {
@@ -269,7 +264,6 @@ fn enum_unit() -> Result<()> {
 			}
 
 			impl<T> ::core::cmp::PartialOrd for Test<T>
-			where T: ::core::cmp::PartialOrd
 			{
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -334,12 +328,11 @@ fn enum_struct_unit() -> Result<()> {
 
 	test_derive(
 		quote! {
-			#[derive_where(PartialEq, PartialOrd; T)]
-			enum Test<T> { A(T), B { } }
+			#[derive_where(PartialEq, PartialOrd)]
+			enum Test<T> { A(core::marker::PhantomData<T>), B { } }
 		},
 		quote! {
 			impl<T> ::core::cmp::PartialEq for Test<T>
-			where T: ::core::cmp::PartialEq
 			{
 				#[inline]
 				fn eq(&self, __other: &Self) -> bool {
@@ -356,7 +349,6 @@ fn enum_struct_unit() -> Result<()> {
 			}
 
 			impl<T> ::core::cmp::PartialOrd for Test<T>
-			where T: ::core::cmp::PartialOrd
 			{
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -421,12 +413,11 @@ fn enum_tuple_unit() -> Result<()> {
 
 	test_derive(
 		quote! {
-			#[derive_where(PartialEq, PartialOrd; T)]
-			enum Test<T> { A(T), B() }
+			#[derive_where(PartialEq, PartialOrd)]
+			enum Test<T> { A(core::marker::PhantomData<T>), B() }
 		},
 		quote! {
 			impl<T> ::core::cmp::PartialEq for Test<T>
-			where T: ::core::cmp::PartialEq
 			{
 				#[inline]
 				fn eq(&self, __other: &Self) -> bool {
@@ -443,7 +434,6 @@ fn enum_tuple_unit() -> Result<()> {
 			}
 
 			impl<T> ::core::cmp::PartialOrd for Test<T>
-			where T: ::core::cmp::PartialOrd
 			{
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {

@@ -17,6 +17,8 @@ impl ZeroizeFqs {
 	pub fn add_attribute(&mut self, meta: &Meta) -> Result<()> {
 		debug_assert!(meta.path().is_ident(Trait::Zeroize.as_str()));
 
+		// TODO: don't allow `Zeroize(fqs)` if `Zeroize` isn't being implemented
+
 		match meta {
 			Meta::List(list) => {
 				for nested_meta in &list.nested {

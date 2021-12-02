@@ -1,10 +1,12 @@
-#![allow(dead_code)]
+#![cfg(feature = "zeroize")]
 
-#[cfg(feature = "zeroize")]
 extern crate zeroize_ as zeroize;
 
+mod util;
+
+use self::util::Wrapper;
+
 #[test]
-#[cfg(feature = "zeroize")]
 fn test_zeroize() {
 	use derive_where::DeriveWhere;
 
@@ -12,19 +14,19 @@ fn test_zeroize() {
 	use crate::zeroize::Zeroize;
 
 	#[derive(DeriveWhere)]
-	#[derive_where(Zeroize; T)]
-	struct Test1<T>(T);
+	#[derive_where(Zeroize)]
+	struct Test1<T>(Wrapper<T>);
 
-	let mut test = Test1(42);
+	let mut test = Test1(42.into());
 	test.zeroize();
 
 	assert_eq!(test.0, 0);
 
 	#[derive(DeriveWhere)]
-	#[derive_where(Zeroize(crate = "zeroize_"); T)]
-	struct Test2<T>(T);
+	#[derive_where(Zeroize(crate = "zeroize_"))]
+	struct Test2<T>(Wrapper<T>);
 
-	let mut test = Test2(42);
+	let mut test = Test2(42.into());
 	test.zeroize();
 
 	assert_eq!(test.0, 0);

@@ -1,5 +1,7 @@
 #![allow(clippy::clone_on_copy)]
 
+mod util;
+
 use core::{
 	fmt::Debug,
 	hash::{Hash, Hasher},
@@ -7,6 +9,8 @@ use core::{
 use std::collections::hash_map::DefaultHasher;
 
 use derive_where::DeriveWhere;
+
+use self::util::Wrapper;
 
 struct AssertClone<T: Clone>(T);
 struct AssertCopy<T: Copy>(T);
@@ -20,13 +24,13 @@ struct AssertPartialOrd<T: PartialOrd>(T);
 #[test]
 fn struct_single() {
 	#[derive(DeriveWhere)]
-	#[derive_where(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd; T)]
+	#[derive_where(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 	struct Test<T> {
-		a: T,
+		a: Wrapper<T>,
 	}
 
-	let test_1 = Test { a: 42 };
-	let test_2 = Test { a: 42 };
+	let test_1 = Test { a: 42.into() };
+	let test_2 = Test { a: 42.into() };
 
 	let _ = AssertClone(test_1);
 	let _ = AssertCopy(test_1);
@@ -57,31 +61,31 @@ fn struct_single() {
 	assert_eq!(hash_1, hash_2);
 
 	assert!(test_1 == test_2);
-	assert!(test_1 != Test { a: 43 });
+	assert!(test_1 != Test { a: 43.into() });
 
-	assert!(test_1 > Test { a: 41 });
-	assert!(test_1 < Test { a: 43 });
+	assert!(test_1 > Test { a: 41.into() });
+	assert!(test_1 < Test { a: 43.into() });
 }
 
 #[test]
 fn struct_multiple() {
 	#[derive(DeriveWhere)]
-	#[derive_where(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd; T)]
+	#[derive_where(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 	struct Test<T> {
-		a: T,
-		b: T,
-		c: T,
+		a: Wrapper<T>,
+		b: Wrapper<T>,
+		c: Wrapper<T>,
 	}
 
 	let test_1 = Test {
-		a: 42,
-		b: 43,
-		c: 44,
+		a: 42.into(),
+		b: 43.into(),
+		c: 44.into(),
 	};
 	let test_2 = Test {
-		a: 42,
-		b: 43,
-		c: 44,
+		a: 42.into(),
+		b: 43.into(),
+		c: 44.into(),
 	};
 
 	let _ = AssertClone(test_1);
@@ -122,82 +126,82 @@ fn struct_multiple() {
 	assert!(
 		test_1
 			!= Test {
-				a: 43,
-				b: 43,
-				c: 44
+				a: 43.into(),
+				b: 43.into(),
+				c: 44.into(),
 			}
 	);
 	assert!(
 		test_1
 			!= Test {
-				a: 42,
-				b: 44,
-				c: 44
+				a: 42.into(),
+				b: 44.into(),
+				c: 44.into(),
 			}
 	);
 	assert!(
 		test_1
 			!= Test {
-				a: 42,
-				b: 43,
-				c: 45
+				a: 42.into(),
+				b: 43.into(),
+				c: 45.into(),
 			}
 	);
 	assert!(
 		test_1
 			!= Test {
-				a: 45,
-				b: 45,
-				c: 45
+				a: 45.into(),
+				b: 45.into(),
+				c: 45.into(),
 			}
 	);
 
 	assert!(
 		test_1
 			> Test {
-				a: 41,
-				b: 43,
-				c: 44
+				a: 41.into(),
+				b: 43.into(),
+				c: 44.into(),
 			}
 	);
 	assert!(
 		test_1
 			> Test {
-				a: 42,
-				b: 42,
-				c: 44
+				a: 42.into(),
+				b: 42.into(),
+				c: 44.into(),
 			}
 	);
 	assert!(
 		test_1
 			> Test {
-				a: 42,
-				b: 43,
-				c: 43
+				a: 42.into(),
+				b: 43.into(),
+				c: 43.into(),
 			}
 	);
 	assert!(
 		test_1
 			< Test {
-				a: 43,
-				b: 43,
-				c: 44
+				a: 43.into(),
+				b: 43.into(),
+				c: 44.into(),
 			}
 	);
 	assert!(
 		test_1
 			< Test {
-				a: 42,
-				b: 44,
-				c: 44
+				a: 42.into(),
+				b: 44.into(),
+				c: 44.into(),
 			}
 	);
 	assert!(
 		test_1
 			< Test {
-				a: 42,
-				b: 43,
-				c: 45
+				a: 42.into(),
+				b: 43.into(),
+				c: 45.into(),
 			}
 	);
 }

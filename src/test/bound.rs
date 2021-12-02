@@ -4,14 +4,15 @@ use syn::Result;
 use super::test_derive;
 
 #[test]
-fn no_bound() -> Result<()> {
+fn bound() -> Result<()> {
 	test_derive(
 		quote! {
-			#[derive_where(Clone)]
-			struct Test<T>(u8, core::marker::PhantomData<T>);
+			#[derive_where(Clone; T)]
+			struct Test<T, U>(T, core::marker::PhantomData<U>);
 		},
 		quote! {
-			impl<T> ::core::clone::Clone for Test<T>
+			impl<T, U> ::core::clone::Clone for Test<T, U>
+			where T: ::core::clone::Clone
 			{
 				#[inline]
 				fn clone(&self) -> Self {
@@ -25,14 +26,17 @@ fn no_bound() -> Result<()> {
 }
 
 #[test]
-fn no_bound_multiple() -> Result<()> {
+fn bound_multiple() -> Result<()> {
 	test_derive(
 		quote! {
-			#[derive_where(Clone, Copy)]
-			struct Test<T>(u8, core::marker::PhantomData<T>);
+			#[derive_where(Clone; T, U)]
+			struct Test<T, U, V>((T, U), core::marker::PhantomData<V>);
 		},
 		quote! {
-			impl<T> ::core::clone::Clone for Test<T>
+			impl<T, U, V> ::core::clone::Clone for Test<T, U, V>
+			where
+				T: ::core::clone::Clone,
+				U: ::core::clone::Clone
 			{
 				#[inline]
 				fn clone(&self) -> Self {
@@ -41,8 +45,6 @@ fn no_bound_multiple() -> Result<()> {
 					}
 				}
 			}
-
-			impl<T> ::core::marker::Copy for Test<T> { }
 		},
 	)
 }
@@ -74,10 +76,10 @@ fn where_() -> Result<()> {
 	test_derive(
 		quote! {
 			#[derive_where(Clone; T)]
-			struct Test<T>(T) where T: core::fmt::Debug;
+			struct Test<T, U>(T, core::marker::PhantomData<U>) where T: core::fmt::Debug;
 		},
 		quote! {
-			impl<T> ::core::clone::Clone for Test<T>
+			impl<T, U> ::core::clone::Clone for Test<T, U>
 			where
 				T: core::fmt::Debug,
 				T: ::core::clone::Clone
@@ -85,7 +87,7 @@ fn where_() -> Result<()> {
 				#[inline]
 				fn clone(&self) -> Self {
 					match self {
-						Test(ref __0) => Test(::core::clone::Clone::clone(__0)),
+						Test(ref __0, ref __1) => Test(::core::clone::Clone::clone(__0), ::core::clone::Clone::clone(__1)),
 					}
 				}
 			}
