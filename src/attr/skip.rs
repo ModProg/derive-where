@@ -83,6 +83,10 @@ impl Skip {
 					Skip::Traits(traits) => traits,
 				};
 
+				if list.nested.is_empty() {
+					return Err(Error::option_empty(list.span()));
+				}
+
 				for nested_meta in &list.nested {
 					if let NestedMeta::Meta(Meta::Path(path)) = nested_meta {
 						let trait_ = Trait::from_path(path)?;

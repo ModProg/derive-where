@@ -2,7 +2,7 @@
 
 use syn::{spanned::Spanned, Meta, NestedMeta, Result};
 
-use crate::{Error, Trait, TraitImpl};
+use crate::{DeriveWhere, Error, Trait, TraitImpl};
 
 /// Stores if this field should use FQS to call [`Zeroize::zeroize`](https://docs.rs/zeroize/1.4.3/zeroize/trait.Zeroize.html#tymethod.zeroize).
 #[derive(Default)]
@@ -14,13 +14,22 @@ impl ZeroizeFqs {
 	const FQS: &'static str = "fqs";
 
 	/// Adds a [`Meta`] to this [`ZeroizeFqs`].
-	pub fn add_attribute(&mut self, meta: &Meta) -> Result<()> {
+	pub fn add_attribute(&mut self, meta: &Meta, derive_wheres: &[DeriveWhere]) -> Result<()> {
 		debug_assert!(meta.path().is_ident(Trait::Zeroize.as_str()));
 
-		// TODO: don't allow `Zeroize(fqs)` if `Zeroize` isn't being implemented
+		if !derive_wheres
+			.iter()
+			.any(|derive_where| derive_where.trait_(Trait::Zeroize).is_some())
+		{
+			return Err(Error::zeroize(meta.span()));
+		}
 
 		match meta {
 			Meta::List(list) => {
+				if list.nested.is_empty() {
+					return Err(Error::option_empty(list.span()));
+				}
+
 				for nested_meta in &list.nested {
 					match nested_meta {
 						NestedMeta::Meta(Meta::Path(path)) => {

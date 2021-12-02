@@ -48,6 +48,10 @@ impl VariantAttr {
 		debug_assert!(meta.path().is_ident(DERIVE_WHERE));
 
 		if let Meta::List(list) = meta {
+			if list.nested.is_empty() {
+				return Err(Error::empty(list.span()));
+			}
+
 			for nested_meta in &list.nested {
 				match nested_meta {
 					NestedMeta::Meta(meta) => {

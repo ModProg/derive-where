@@ -51,20 +51,20 @@ impl ItemAttr {
 											skip_inner = Some(meta);
 										}
 									} else {
-										self_.derive_wheres.push(attr.parse_args()?);
+										self_.derive_wheres.push(DeriveWhere::from_attr(attr)?);
 									}
 								}
 								nested_meta => {
 									return Err(Error::option_syntax(nested_meta.span()))
 								}
 							},
-							_ => self_.derive_wheres.push(attr.parse_args()?),
+							_ => self_.derive_wheres.push(DeriveWhere::from_attr(attr)?),
 						}
 					} else {
 						return Err(Error::option_syntax(meta.span()));
 					}
 				} else {
-					self_.derive_wheres.push(attr.parse_args()?)
+					self_.derive_wheres.push(DeriveWhere::from_attr(attr)?)
 				}
 			}
 		}
@@ -96,6 +96,8 @@ impl ItemAttr {
 
 /// Holds parsed [generics](Generic) and [traits](crate::Trait).
 pub struct DeriveWhere {
+	/// Save [`Span`] for error messages.
+	pub span: Span,
 	/// [traits](DeriveTrait) to implement.
 	pub traits: Vec<DeriveTrait>,
 	/// [generics](Generic) for where clause.
@@ -143,11 +145,23 @@ impl Parse for DeriveWhere {
 			}
 		}
 
-		Ok(Self { generics, traits })
+		Ok(Self {
+			span: Span::call_site(),
+			generics,
+			traits,
+		})
 	}
 }
 
 impl DeriveWhere {
+	/// Create [`DeriveWhere`] from [`Attribute`].
+	fn from_attr(attr: &Attribute) -> Result<Self> {
+		let span = attr.span();
+		let mut derive_where: DeriveWhere = attr.parse_args()?;
+		derive_where.span = span;
+		Ok(derive_where)
+	}
+
 	/// Returns selected [`DeriveTrait`] if present.
 	pub fn trait_(&self, trait_: Trait) -> Option<&DeriveTrait> {
 		self.traits
@@ -226,7 +240,13 @@ impl Parse for DeriveTrait {
 
 				match meta {
 					Meta::Path(_) => Ok(trait_.default_derive_trait()),
-					Meta::List(list) => trait_.parse_derive_trait(list),
+					Meta::List(list) => {
+						if list.nested.is_empty() {
+							return Err(Error::option_empty(list.span()));
+						}
+
+						trait_.parse_derive_trait(list)
+					}
 					Meta::NameValue(name_value) => Err(Error::option_syntax(name_value.span())),
 				}
 			}
