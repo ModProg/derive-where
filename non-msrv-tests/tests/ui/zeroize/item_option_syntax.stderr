@@ -1,0 +1,11 @@
+error: unsupported trait, expected one of expected one of Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd, Zeroize
+ --> tests/ui/zeroize/item_option_syntax.rs:2:16
+  |
+2 | #[derive_where(skip_inner, Clone)]
+  |                ^^^^^^^^^^
+
+error: unsupported trait syntax, expected one of expected one of Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd, Zeroize
+ --> tests/ui/zeroize/item_option_syntax.rs:6:24
+  |
+6 | #[derive_where(Debug = invalid; T)]
+  |                        ^^^^^^^

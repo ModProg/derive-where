@@ -22,6 +22,9 @@ impl TraitImpl for Zeroize {
 	}
 
 	fn parse_derive_trait(&self, list: MetaList) -> Result<DeriveTrait> {
+		// This is already checked in `DeriveTrait::from_stream`.
+		debug_assert!(!list.nested.is_empty());
+
 		let mut crate_ = None;
 		let mut drop = false;
 
@@ -29,6 +32,7 @@ impl TraitImpl for Zeroize {
 			match &nested_meta {
 				NestedMeta::Meta(Meta::Path(path)) => {
 					if path.is_ident("drop") {
+						// Check for duplicate `drop` option.
 						if !drop {
 							drop = true;
 						} else {
@@ -40,6 +44,7 @@ impl TraitImpl for Zeroize {
 				}
 				NestedMeta::Meta(Meta::NameValue(name_value)) => {
 					if name_value.path.is_ident("crate") {
+						// Check for duplicate `crate` option.
 						if crate_.is_none() {
 							if let Lit::Str(lit_str) = &name_value.lit {
 								match lit_str.parse() {

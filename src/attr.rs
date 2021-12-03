@@ -1,4 +1,4 @@
-//! Attribute parsing on items, variants and fields.
+//! [`Attribute`](syn::Attribute) parsing for items, variants and fields.
 
 mod default;
 mod field;

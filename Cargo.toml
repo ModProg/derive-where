@@ -38,3 +38,7 @@ syn = { version = "1", default-features = false, features = [
 
 [dev-dependencies]
 syn = { version = "1", default-features = false, features = ["extra-traits"] }
+
+[[test]]
+name = "util"
+test = false

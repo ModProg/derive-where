@@ -8,6 +8,7 @@ fn ignore_foreign_attribute() -> Result<()> {
 	test_derive(
 		quote! {
 			#[derive_where(Default; T)]
+			#[foreign(default)]
 			enum Test<T> {
 				#[foreign(default)]
 				A { field: T },

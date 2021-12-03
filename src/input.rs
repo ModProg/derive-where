@@ -1,13 +1,11 @@
 //! Parses [`DeriveInput`] into something more useful.
 
 use proc_macro2::Span;
-use syn::{DeriveInput, GenericParam, Generics, Result, Type, TypePath};
+use syn::{DeriveInput, GenericParam, Generics, Result};
 
 #[cfg(feature = "zeroize")]
 use crate::DeriveTrait;
-use crate::{
-	Data, Default, DeriveWhere, Either, Error, Generic, Item, ItemAttr, Trait, VariantAttr,
-};
+use crate::{Data, Default, DeriveWhere, Either, Error, Item, ItemAttr, Trait, VariantAttr};
 
 /// Parsed input.
 pub struct Input<'a> {
@@ -21,7 +19,7 @@ pub struct Input<'a> {
 
 impl<'a> Input<'a> {
 	/// Create [`Input`] from `proc_macro_derive` parameter.
-	pub fn parse(
+	pub fn from_input(
 		span: Span,
 		DeriveInput {
 			attrs,
@@ -150,16 +148,17 @@ impl<'a> Input<'a> {
 
 		'outer: for derive_where in &derive_wheres {
 			// No point in starting to compare both if not even the length is the same.
+			// This can be easily circumvented by doing the following:
+			// `#[derive_where(..; T: Clone)]`, or `#[derive_where(..; T, T)]`, which
+			// apparently is valid Rust syntax: `where T: Clone, T: Clone`, we are only here
+			// to help though.
 			if derive_where.generics.len() != generics_len {
 				continue;
 			}
 
 			// No point in starting to check if there is no use-case if a custom bound was
 			// used, which is a use-case.
-			if derive_where.generics.iter().any(|generic| match generic {
-				Generic::CoustomBound(_) => true,
-				Generic::NoBound(_) => false,
-			}) {
+			if derive_where.any_custom_bound() {
 				continue;
 			}
 
@@ -168,17 +167,7 @@ impl<'a> Input<'a> {
 			for generic_param in &generics.params {
 				// Only check generic type parameters.
 				if let GenericParam::Type(type_param) = generic_param {
-					if !derive_where.generics.iter().any(|generic| match generic {
-						Generic::NoBound(Type::Path(TypePath { qself: None, path })) => {
-							if let Some(ident) = path.get_ident() {
-								ident == &type_param.ident
-							} else {
-								false
-							}
-						}
-						Generic::NoBound(_) => false,
-						_ => unreachable!("earlier check for custom bounds failed"),
-					}) {
+					if !derive_where.has_type_param(&type_param.ident) {
 						continue 'outer;
 					}
 				}

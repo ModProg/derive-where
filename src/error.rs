@@ -144,9 +144,14 @@ impl Error {
 		)
 	}
 
-	/// No relevant trait to `skip` found.
+	/// No trait that can be skipped is being implemented.
+	pub fn option_skip_no_trait(span: Span) -> syn::Error {
+		syn::Error::new(span, "no trait that can be skipped is being implemented")
+	}
+
+	/// Trait to be skipped isn't being implemented
 	pub fn option_skip_trait(span: Span) -> syn::Error {
-		syn::Error::new(span, "no trait to skip found")
+		syn::Error::new(span, "trait to be skipped isn't being implemented")
 	}
 
 	/// Invalid value for the `Zeroize` `crate` option.

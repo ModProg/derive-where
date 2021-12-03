@@ -1,5 +1,17 @@
 error: unexpected option syntax
  --> tests/ui/zeroize/wrong_option_syntax.rs:2:24
   |
-2 | #[derive_where(Zeroize(crate(zeroize_)); T)]
+2 | #[derive_where(Zeroize("option"); T)]
+  |                        ^^^^^^^^
+
+error: unexpected option syntax
+ --> tests/ui/zeroize/wrong_option_syntax.rs:6:24
+  |
+6 | #[derive_where(Zeroize(crate(zeroize_)); T)]
   |                        ^^^^^^^^^^^^^^^
+
+error: expected path, expected identifier
+  --> tests/ui/zeroize/wrong_option_syntax.rs:10:32
+   |
+10 | #[derive_where(Zeroize(crate = "struct Test"); T)]
+   |                                ^^^^^^^^^^^^^

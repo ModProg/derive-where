@@ -19,18 +19,16 @@ mod trait_;
 mod util;
 
 use core::iter;
+use std::borrow::Cow;
 
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::{
-	punctuated::Punctuated, spanned::Spanned, DeriveInput, Generics, PredicateType, Result, Token,
-	WhereClause, WherePredicate,
-};
+use syn::{spanned::Spanned, DeriveInput, Generics, Result};
 
 #[cfg(feature = "zeroize")]
 use self::attr::ZeroizeFqs;
 use self::{
-	attr::{Default, DeriveTrait, DeriveWhere, FieldAttr, Generic, ItemAttr, Skip, VariantAttr},
+	attr::{Default, DeriveTrait, DeriveWhere, FieldAttr, ItemAttr, Skip, VariantAttr},
 	data::{Data, DataType, Field, Member, SimpleType},
 	error::Error,
 	input::Input,
@@ -62,7 +60,7 @@ fn derive_where_internal(input: TokenStream) -> Result<TokenStream> {
 		derive_wheres,
 		generics,
 		item,
-	} = Input::parse(span, &item)?;
+	} = Input::from_input(span, &item)?;
 
 	Ok(derive_wheres
 		.iter()
@@ -79,31 +77,8 @@ fn generate_impl(
 	generics: &Generics,
 ) -> TokenStream {
 	let (impl_generics, type_generics, where_clause) = generics.split_for_impl();
-	let mut where_clause = where_clause.cloned();
-
-	// Only create a where clause if required
-	if !derive_where.generics.is_empty() {
-		// We use the existing where clause or create a new one if required.
-		let where_clause = where_clause.get_or_insert(WhereClause {
-			where_token: <Token![where]>::default(),
-			predicates: Punctuated::default(),
-		});
-
-		// Insert bounds into the `where` clause.
-		for generic in &derive_where.generics {
-			where_clause
-				.predicates
-				.push(WherePredicate::Type(match generic {
-					Generic::CoustomBound(type_bound) => type_bound.clone(),
-					Generic::NoBound(path) => PredicateType {
-						lifetimes: None,
-						bounded_ty: path.clone(),
-						colon_token: <Token![:]>::default(),
-						bounds: trait_.where_bounds(item),
-					},
-				}));
-		}
-	}
+	let mut where_clause = where_clause.map(Cow::Borrowed);
+	derive_where.where_clause(&mut where_clause, trait_, item);
 
 	let body = generate_body(trait_, item);
 
