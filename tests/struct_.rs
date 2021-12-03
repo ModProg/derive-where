@@ -2,27 +2,18 @@
 
 mod util;
 
-use core::{
-	fmt::Debug,
-	hash::{Hash, Hasher},
-};
+use core::hash::{Hash, Hasher};
 use std::collections::hash_map::DefaultHasher;
 
 use derive_where::DeriveWhere;
 
-use self::util::Wrapper;
-
-struct AssertClone<T: Clone>(T);
-struct AssertCopy<T: Copy>(T);
-struct AssertDebug<T: Debug>(T);
-struct AssertEq<T: Eq>(T);
-struct AssertHash<T: Hash>(T);
-struct AssertOrd<T: Ord>(T);
-struct AssertPartialEq<T: PartialEq>(T);
-struct AssertPartialOrd<T: PartialOrd>(T);
+use self::util::{
+	AssertClone, AssertCopy, AssertDebug, AssertEq, AssertHash, AssertOrd, AssertPartialEq,
+	AssertPartialOrd, Wrapper,
+};
 
 #[test]
-fn struct_single() {
+fn single() {
 	#[derive(DeriveWhere)]
 	#[derive_where(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 	struct Test<T> {
@@ -68,7 +59,7 @@ fn struct_single() {
 }
 
 #[test]
-fn struct_multiple() {
+fn multiple() {
 	#[derive(DeriveWhere)]
 	#[derive_where(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 	struct Test<T> {
