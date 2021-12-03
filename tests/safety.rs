@@ -1,6 +1,6 @@
 #[test]
 fn discriminant() {
-	use core::mem::{discriminant, size_of, size_of_val, transmute};
+	use std::mem::{discriminant, size_of, size_of_val, transmute};
 
 	enum Test {
 		A,

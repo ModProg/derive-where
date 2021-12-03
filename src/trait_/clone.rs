@@ -1,4 +1,4 @@
-//! [`Clone`](core::clone::Clone) implementation.
+//! [`Clone`](std::clone::Clone) implementation.
 
 use proc_macro2::TokenStream;
 use quote::quote;
@@ -6,7 +6,7 @@ use syn::{TraitBound, TraitBoundModifier, TypeParamBound};
 
 use crate::{Data, DataType, DeriveTrait, Item, SimpleType, Trait, TraitImpl};
 
-/// Dummy-struct implement [`Trait`] for [`Clone`](core::clone::Clone).
+/// Dummy-struct implement [`Trait`] for [`Clone`](std::clone::Clone).
 pub struct Clone;
 
 impl TraitImpl for Clone {

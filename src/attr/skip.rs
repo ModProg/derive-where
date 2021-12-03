@@ -1,6 +1,6 @@
 //! Attribute parsing for the `skip` and `skip_inner` options.
 
-use core::default::Default;
+use std::default::Default;
 
 use syn::{spanned::Spanned, Meta, NestedMeta, Result};
 

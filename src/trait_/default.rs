@@ -1,4 +1,4 @@
-//! [`Default`](core::default::Default) implementation.
+//! [`Default`](std::default::Default) implementation.
 
 use proc_macro2::TokenStream;
 use quote::quote;
@@ -6,7 +6,7 @@ use quote::quote;
 use crate::{Data, DeriveTrait, Item, SimpleType, TraitImpl};
 
 /// Dummy-struct implement [`Trait`](crate::Trait) for
-/// [`Default`](core::default::Default).
+/// [`Default`](std::default::Default).
 pub struct Default;
 
 impl TraitImpl for Default {

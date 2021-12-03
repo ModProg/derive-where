@@ -1,6 +1,6 @@
 //! Field parsing.
 
-use core::fmt::{self, Display, Formatter};
+use std::fmt::{self, Display, Formatter};
 
 use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, IdentFragment, ToTokens, TokenStreamExt};

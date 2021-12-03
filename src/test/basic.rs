@@ -8,7 +8,7 @@ fn struct_() -> Result<()> {
 	test_derive(
 		quote! {
 			#[derive_where(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
-			struct Test<T> { field: core::marker::PhatomData<T> }
+			struct Test<T> { field: std::marker::PhatomData<T> }
 		},
 		quote! {
 			impl<T> ::core::clone::Clone for Test<T>
@@ -103,7 +103,7 @@ fn tuple() -> Result<()> {
 	test_derive(
 		quote! {
 			#[derive_where(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
-			struct Test<T>(core::marker::PhatomData<T>);
+			struct Test<T>(std::marker::PhatomData<T>);
 		},
 		quote! {
 			impl<T> ::core::clone::Clone for Test<T>
@@ -323,9 +323,9 @@ fn enum_() -> Result<()> {
 		quote! {
 			#[derive_where(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 			enum Test<T> {
-				A { field: core::marker::PhatomData<T>},
+				A { field: std::marker::PhatomData<T>},
 				B { },
-				C(core::marker::PhatomData<T>),
+				C(std::marker::PhatomData<T>),
 				D(),
 				#[derive_where(default)]
 				E,
@@ -490,7 +490,7 @@ fn union_() -> Result<()> {
 		quote! {
 			#[derive_where(Clone, Copy)]
 			union Test<T> {
-				a: core::marker::PhantomData<T>,
+				a: std::marker::PhantomData<T>,
 				b: u8,
 			}
 		},

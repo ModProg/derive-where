@@ -8,7 +8,7 @@ fn bound() -> Result<()> {
 	test_derive(
 		quote! {
 			#[derive_where(Clone; T)]
-			struct Test<T, U>(T, core::marker::PhantomData<U>);
+			struct Test<T, U>(T, std::marker::PhantomData<U>);
 		},
 		quote! {
 			impl<T, U> ::core::clone::Clone for Test<T, U>
@@ -30,7 +30,7 @@ fn bound_multiple() -> Result<()> {
 	test_derive(
 		quote! {
 			#[derive_where(Clone; T, U)]
-			struct Test<T, U, V>((T, U), core::marker::PhantomData<V>);
+			struct Test<T, U, V>((T, U), std::marker::PhantomData<V>);
 		},
 		quote! {
 			impl<T, U, V> ::core::clone::Clone for Test<T, U, V>
@@ -76,12 +76,12 @@ fn where_() -> Result<()> {
 	test_derive(
 		quote! {
 			#[derive_where(Clone; T)]
-			struct Test<T, U>(T, core::marker::PhantomData<U>) where T: core::fmt::Debug;
+			struct Test<T, U>(T, std::marker::PhantomData<U>) where T: std::fmt::Debug;
 		},
 		quote! {
 			impl<T, U> ::core::clone::Clone for Test<T, U>
 			where
-				T: core::fmt::Debug,
+				T: std::fmt::Debug,
 				T: ::core::clone::Clone
 			{
 				#[inline]
@@ -99,12 +99,12 @@ fn where_() -> Result<()> {
 fn associated_type() -> Result<()> {
 	test_derive(
 		quote! {
-			#[derive_where(Clone; <T as core::ops::Deref>::Target)]
-			struct Test<T>(<T as core::ops::Deref>::Target);
+			#[derive_where(Clone; <T as std::ops::Deref>::Target)]
+			struct Test<T>(<T as std::ops::Deref>::Target);
 		},
 		quote! {
 			impl<T> ::core::clone::Clone for Test<T>
-			where <T as core::ops::Deref>::Target: ::core::clone::Clone
+			where <T as std::ops::Deref>::Target: ::core::clone::Clone
 			{
 				#[inline]
 				fn clone(&self) -> Self {
@@ -121,12 +121,12 @@ fn associated_type() -> Result<()> {
 fn associated_type_custom_bound() -> Result<()> {
 	test_derive(
 		quote! {
-			#[derive_where(Clone; <T as core::ops::Deref>::Target: Copy)]
-			struct Test<T>(<T as core::ops::Deref>::Target);
+			#[derive_where(Clone; <T as std::ops::Deref>::Target: Copy)]
+			struct Test<T>(<T as std::ops::Deref>::Target);
 		},
 		quote! {
 			impl<T> ::core::clone::Clone for Test<T>
-			where <T as core::ops::Deref>::Target: Copy
+			where <T as std::ops::Deref>::Target: Copy
 			{
 				#[inline]
 				fn clone(&self) -> Self {
@@ -144,7 +144,7 @@ fn check_trait_bounds() -> Result<()> {
 	test_derive(
 		quote! {
 			#[derive_where(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd; T)]
-			struct Test<T, U>(T, core::marker::PhatomData<U>);
+			struct Test<T, U>(T, std::marker::PhatomData<U>);
 		},
 		quote! {
 			impl<T, U> ::core::clone::Clone for Test<T, U>
@@ -260,7 +260,7 @@ fn check_multiple_trait_bounds() -> Result<()> {
 	test_derive(
 		quote! {
 			#[derive_where(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd; T, U)]
-			struct Test<T, U, V>(T, core::marker::PhatomData<(U, V)>);
+			struct Test<T, U, V>(T, std::marker::PhatomData<(U, V)>);
 		},
 		quote! {
 			impl<T, U, V> ::core::clone::Clone for Test<T, U, V>

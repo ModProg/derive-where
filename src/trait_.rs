@@ -26,13 +26,13 @@ pub enum Trait {
 	Clone,
 	/// [`Copy`].
 	Copy,
-	/// [`Debug`](core::fmt::Debug).
+	/// [`Debug`](std::fmt::Debug).
 	Debug,
 	/// [`Default`].
 	Default,
 	/// [`Eq`].
 	Eq,
-	/// [`Hash`](core::hash::Hash).
+	/// [`Hash`](std::hash::Hash).
 	Hash,
 	/// [`Ord`].
 	Ord,

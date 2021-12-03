@@ -1,6 +1,6 @@
 // #![allow(dead_code)]
 //
-// use core::marker::PhantomData;
+// use std::marker::PhantomData;
 //
 // use derive_where::derive_where;
 //

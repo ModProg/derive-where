@@ -1,7 +1,6 @@
 //! [`Attribute`] parsing for items.
 
-use core::ops::Deref;
-use std::borrow::Cow;
+use std::{borrow::Cow, ops::Deref};
 
 use proc_macro2::Span;
 use syn::{
@@ -277,13 +276,13 @@ pub enum DeriveTrait {
 	Clone,
 	/// [`Copy`].
 	Copy,
-	/// [`Debug`](core::fmt::Debug).
+	/// [`Debug`](std::fmt::Debug).
 	Debug,
 	/// [`Default`].
 	Default,
 	/// [`Eq`].
 	Eq,
-	/// [`Hash`](core::hash::Hash).
+	/// [`Hash`](std::hash::Hash).
 	Hash,
 	/// [`Ord`].
 	Ord,
