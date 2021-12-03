@@ -1,5 +1,6 @@
 #![allow(clippy::clone_on_copy)]
 
+#[macro_use]
 mod util;
 
 use std::{
