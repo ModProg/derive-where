@@ -7,3 +7,16 @@ error: traits other then `Clone` and `Copy` aren't supported by unions
 9  | |     b: PhantomData<T>,
 10 | | }
    | |_^
+
+error[E0277]: the trait bound `MissingCopy<T>: std::marker::Copy` is not satisfied
+  --> tests/ui/union.rs:12:10
+   |
+12 | #[derive(DeriveWhere)]
+   |          ^^^^^^^^^^^ the trait `std::marker::Copy` is not implemented for `MissingCopy<T>`
+   |
+note: required by a bound in `__AssertCopy`
+  --> tests/ui/union.rs:12:10
+   |
+12 | #[derive(DeriveWhere)]
+   |          ^^^^^^^^^^^ required by this bound in `__AssertCopy`
+   = note: this error originates in the derive macro `DeriveWhere` (in Nightly builds, run with -Z macro-backtrace for more info)

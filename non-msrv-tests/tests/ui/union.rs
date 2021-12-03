@@ -9,4 +9,11 @@ union UnsupportedTrait<T> {
 	b: PhantomData<T>,
 }
 
+#[derive(DeriveWhere)]
+#[derive_where(Clone)]
+union MissingCopy<T> {
+	a: u8,
+	b: PhantomData<T>,
+}
+
 fn main() {}

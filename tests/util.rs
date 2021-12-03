@@ -77,3 +77,25 @@ impl<T> PartialOrd for Wrapper<T> {
 		self.data.partial_cmp(&other.data)
 	}
 }
+
+pub struct AssertClone<T: Clone>(pub T);
+
+pub struct AssertCopy<T: Copy>(pub T);
+
+#[allow(dead_code)]
+pub struct AssertDebug<T: Debug>(pub T);
+
+#[allow(dead_code)]
+pub struct AssertEq<T: Eq>(pub T);
+
+#[allow(dead_code)]
+pub struct AssertHash<T: Hash>(pub T);
+
+#[allow(dead_code)]
+pub struct AssertOrd<T: Ord>(pub T);
+
+#[allow(dead_code)]
+pub struct AssertPartialEq<T: PartialEq>(pub T);
+
+#[allow(dead_code)]
+pub struct AssertPartialOrd<T: PartialOrd>(pub T);
