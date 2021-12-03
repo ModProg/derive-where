@@ -140,6 +140,9 @@ pub fn build_ord_signature(item: &Item, trait_: &DeriveTrait, body: &TokenStream
 				}
 			}
 		}
+		Item::Item(data) if data.is_empty(trait_) => {
+			quote! { #equal }
+		}
 		_ => {
 			quote! {
 				match (self, __other) {
