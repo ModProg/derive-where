@@ -1,5 +1,6 @@
 #![no_std]
 
+#[cfg(feature = "zeroize")]
 extern crate zeroize_ as zeroize;
 
 use core::marker::PhantomData;
