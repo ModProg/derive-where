@@ -1,9 +1,10 @@
 #![no_std]
 
+extern crate zeroize_ as zeroize;
+
 use core::marker::PhantomData;
 
-// TODO: ensure more things then just `Clone`.
-
 #[derive(derive_where::DeriveWhere)]
-#[derive_where(Clone)]
-pub struct Test<T>(PhantomData<T>);
+#[derive_where(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "zeroize", derive_where(Zeroize))]
+pub struct Test<T>(#[cfg_attr(feature = "zeroize", derive_where(skip(Zeroize)))] PhantomData<T>);
