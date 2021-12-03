@@ -11,3 +11,7 @@ zeroize = ["derive-where/zeroize"]
 
 [dependencies]
 derive-where = { path = ".." }
+
+[lib]
+doctest = false
+test = false

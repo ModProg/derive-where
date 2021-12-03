@@ -3,3 +3,57 @@ error: `Debug` doesn't support any options
   |
 2 | #[derive_where(Debug(option); T)]
   |                ^^^^^^^^^^^^^
+
+error: enums don't support `skip_inner`, use it on a variant instead
+ --> tests/ui/item_option.rs:7:16
+  |
+7 | #[derive_where(skip_inner)]
+  |                ^^^^^^^^^^
+
+error: duplicate `skip_inner` option
+  --> tests/ui/item_option.rs:15:16
+   |
+15 | #[derive_where(skip_inner)]
+   |                ^^^^^^^^^^
+
+error: empty attribute option found
+  --> tests/ui/item_option.rs:20:16
+   |
+20 | #[derive_where(skip_inner())]
+   |                ^^^^^^^^^^^^
+
+error: unexpected constraint on `skip` when unconstrained `skip` already used
+  --> tests/ui/item_option.rs:26:16
+   |
+26 | #[derive_where(skip_inner(Debug))]
+   |                ^^^^^^^^^^^^^^^^^
+
+error: no trait that can be skipped is being implemented
+  --> tests/ui/item_option.rs:31:16
+   |
+31 | #[derive_where(skip_inner)]
+   |                ^^^^^^^^^^
+
+error: unsupported `Clone` constraint on `skip`
+  --> tests/ui/item_option.rs:36:27
+   |
+36 | #[derive_where(skip_inner(Clone))]
+   |                           ^^^^^
+
+error: duplicate `Debug` constraint on `skip`
+  --> tests/ui/item_option.rs:41:34
+   |
+41 | #[derive_where(skip_inner(Debug, Debug))]
+   |                                  ^^^^^
+
+error: duplicate `Debug` constraint on `skip`
+  --> tests/ui/item_option.rs:47:27
+   |
+47 | #[derive_where(skip_inner(Debug))]
+   |                           ^^^^^
+
+error: trait to be skipped isn't being implemented
+  --> tests/ui/item_option.rs:52:27
+   |
+52 | #[derive_where(skip_inner(Debug))]
+   |                           ^^^^^

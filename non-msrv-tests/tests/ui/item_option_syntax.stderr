@@ -1,11 +1,47 @@
-error: unexpected option syntax
- --> tests/ui/item_option_syntax.rs:2:3
+error: no traits found to implement, use `#[derive_where(..)` to specify some
+ --> tests/ui/item_option_syntax.rs:2:1
   |
-2 | #[derive_where]
-  |   ^^^^^^^^^^^^
+2 | struct Test1<T>(T);
+  | ^^^^^^^^^^^^^^^^^^^
 
 error: unexpected option syntax
- --> tests/ui/item_option_syntax.rs:6:16
+ --> tests/ui/item_option_syntax.rs:5:3
   |
-6 | #[derive_where(Debug = "option"; T)]
-  |                ^^^^^^^^^^^^^^^^
+5 | #[derive_where]
+  |   ^^^^^^^^^^^^
+
+error: expected parentheses: #[derive_where(...)]
+  --> tests/ui/item_option_syntax.rs:10:16
+   |
+10 | #[derive_where = invalid]
+   |                ^
+
+error: unexpected option syntax
+  --> tests/ui/item_option_syntax.rs:14:3
+   |
+14 | #[derive_where = "invalid"]
+   |   ^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: empty `derive_where` found
+  --> tests/ui/item_option_syntax.rs:18:3
+   |
+18 | #[derive_where()]
+   |   ^^^^^^^^^^^^^^
+
+error: unexpected option syntax
+  --> tests/ui/item_option_syntax.rs:22:16
+   |
+22 | #[derive_where(Debug = "option"; T)]
+   |                ^^^^^^^^^^^^^^^^
+
+error: empty attribute option found
+  --> tests/ui/item_option_syntax.rs:26:16
+   |
+26 | #[derive_where(Debug(); T)]
+   |                ^^^^^^^
+
+error: unexpected token: `invalid`
+  --> tests/ui/item_option_syntax.rs:10:18
+   |
+10 | #[derive_where = invalid]
+   |                  ^^^^^^^
