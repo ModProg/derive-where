@@ -18,3 +18,24 @@ jobs:
       - name: rustfmt
         run:
           cargo fmt --check
+
+  taplo:
+    name: Taplo
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/.crates.toml
+            ~/.cargo/.crates2.json
+            ~/.cargo/bin/taplo
+          key: taplo
+      - name: Install Taplo
+        run: cargo install taplo-cli
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Taplo
+        run: taplo fmt --check
