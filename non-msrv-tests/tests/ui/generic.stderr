@@ -1,5 +1,0 @@
-error: expected type to bind to, expected one of: `for`, parentheses, `fn`, `unsafe`, `extern`, identifier, `::`, `<`, square brackets, `*`, `&`, `!`, `impl`, `_`, lifetime
- --> tests/ui/generic.rs:2:23
-  |
-2 | #[derive_where(Clone; where)]
-  |                       ^^^^^

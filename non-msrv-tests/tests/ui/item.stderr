@@ -1,0 +1,53 @@
+error: no traits found to implement, use `#[derive_where(..)` to specify some
+ --> tests/ui/item.rs:6:1
+  |
+6 | struct NoAttribute<T, U>(T, PhantomData<U>);
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: unexpected option syntax
+ --> tests/ui/item.rs:9:3
+  |
+9 | #[derive_where]
+  |   ^^^^^^^^^^^^
+
+error: empty `derive_where` found
+  --> tests/ui/item.rs:13:3
+   |
+13 | #[derive_where()]
+   |   ^^^^^^^^^^^^^^
+
+error: expected `,`
+  --> tests/ui/item.rs:17:24
+   |
+17 | #[derive_where(Clone; T;)]
+   |                        ^
+
+error: expected type to bind to, expected one of: `for`, parentheses, `fn`, `unsafe`, `extern`, identifier, `::`, `<`, square brackets, `*`, `&`, `!`, `impl`, `_`, lifetime
+  --> tests/ui/item.rs:21:25
+   |
+21 | #[derive_where(Clone; T,,)]
+   |                         ^
+
+error: expected type to bind to, expected one of: `for`, parentheses, `fn`, `unsafe`, `extern`, identifier, `::`, `<`, square brackets, `*`, `&`, `!`, `impl`, `_`, lifetime
+  --> tests/ui/item.rs:25:23
+   |
+25 | #[derive_where(Clone; where)]
+   |                       ^^^^^
+
+error: expected `;` or `,
+  --> tests/ui/item.rs:29:22
+   |
+29 | #[derive_where(Clone Debug; T)]
+   |                      ^^^^^
+
+error: expected `,`
+  --> tests/ui/item.rs:33:25
+   |
+33 | #[derive_where(Clone; T U)]
+   |                         ^
+
+error: unexpected option syntax
+  --> tests/ui/item.rs:37:16
+   |
+37 | #[derive_where("Clone")]
+   |                ^^^^^^^

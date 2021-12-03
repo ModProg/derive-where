@@ -1,8 +1,9 @@
 error: traits other then `Clone` and `Copy` aren't supported by unions
- --> tests/ui/union.rs:5:1
-  |
-5 | / #[derive_where(Debug)]
-6 | | union Test<T> {
-7 | |     field: PhantomData<T>,
-8 | | }
-  | |_^
+  --> tests/ui/union.rs:6:1
+   |
+6  | / #[derive_where(Debug)]
+7  | | union UnsupportedTrait<T> {
+8  | |     a: u8,
+9  | |     b: PhantomData<T>,
+10 | | }
+   | |_^

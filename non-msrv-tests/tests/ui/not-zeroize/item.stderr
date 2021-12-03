@@ -1,0 +1,35 @@
+error: unsupported trait, expected one of expected one of Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd
+ --> tests/ui/not-zeroize/item.rs:6:16
+  |
+6 | #[derive_where(skip_inner, Clone)]
+  |                ^^^^^^^^^^
+
+error: unsupported trait syntax, expected one of expected one of Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd
+  --> tests/ui/not-zeroize/item.rs:10:24
+   |
+10 | #[derive_where(Debug = invalid; T)]
+   |                        ^^^^^^^
+
+error: unsupported trait syntax, expected one of expected one of Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd
+  --> tests/ui/not-zeroize/item.rs:14:16
+   |
+14 | #[derive_where(,)]
+   |                ^
+
+error: unsupported trait syntax, expected one of expected one of Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd
+  --> tests/ui/not-zeroize/item.rs:18:16
+   |
+18 | #[derive_where(,Clone)]
+   |                ^
+
+error: unsupported trait syntax, expected one of expected one of Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd
+  --> tests/ui/not-zeroize/item.rs:22:22
+   |
+22 | #[derive_where(Clone,,)]
+   |                      ^
+
+error: unsupported trait, expected one of expected one of Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd
+  --> tests/ui/not-zeroize/item.rs:26:16
+   |
+26 | #[derive_where(T)]
+   |                ^

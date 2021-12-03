@@ -1,0 +1,65 @@
+error: `Zeroize` doesn't support this option
+ --> tests/ui/zeroize/zeroize.rs:8:24
+  |
+8 | #[derive_where(Zeroize(test); T)]
+  |                        ^^^^
+
+error: `Zeroize` doesn't support this option
+  --> tests/ui/zeroize/zeroize.rs:12:24
+   |
+12 | #[derive_where(Zeroize(test = "test"); T)]
+   |                        ^^^^
+
+error: unexpected option syntax
+  --> tests/ui/zeroize/zeroize.rs:16:24
+   |
+16 | #[derive_where(Zeroize("option"); T)]
+   |                        ^^^^^^^^
+
+error: unexpected option syntax
+  --> tests/ui/zeroize/zeroize.rs:20:24
+   |
+20 | #[derive_where(Zeroize(crate(zeroize_)); T)]
+   |                        ^^^^^^^^^^^^^^^
+
+error: expected path, expected identifier
+  --> tests/ui/zeroize/zeroize.rs:24:32
+   |
+24 | #[derive_where(Zeroize(crate = "struct Test"); T)]
+   |                                ^^^^^^^^^^^^^
+
+error: duplicate `drop` option
+  --> tests/ui/zeroize/zeroize.rs:28:30
+   |
+28 | #[derive_where(Zeroize(drop, drop); T)]
+   |                              ^^^^
+
+error: duplicate `crate` option
+  --> tests/ui/zeroize/zeroize.rs:32:44
+   |
+32 | #[derive_where(Zeroize(crate = "zeroize_", crate = "zeroize_"); T)]
+   |                                            ^^^^^^^^^^^^^^^^^^
+
+error: duplicate `drop` option
+  --> tests/ui/zeroize/zeroize.rs:36:30
+   |
+36 | #[derive_where(Zeroize(drop, drop, crate = "zeroize_"); T)]
+   |                              ^^^^
+
+error: duplicate `crate` option
+  --> tests/ui/zeroize/zeroize.rs:40:50
+   |
+40 | #[derive_where(Zeroize(drop, crate = "zeroize_", crate = "zeroize_"); T)]
+   |                                                  ^^^^^^^^^^^^^^^^^^
+
+error: duplicate `crate` option
+  --> tests/ui/zeroize/zeroize.rs:44:44
+   |
+44 | #[derive_where(Zeroize(crate = "zeroize_", crate = "zeroize_", drop); T)]
+   |                                            ^^^^^^^^^^^^^^^^^^
+
+error: duplicate `drop` option
+  --> tests/ui/zeroize/zeroize.rs:48:50
+   |
+48 | #[derive_where(Zeroize(crate = "zeroize_", drop, drop); T)]
+   |                                                  ^^^^
