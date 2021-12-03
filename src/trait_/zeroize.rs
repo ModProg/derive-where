@@ -95,16 +95,22 @@ impl TraitImpl for Zeroize {
 
 	fn build_signature(
 		&self,
-		_item: &Item,
-		_trait_: &DeriveTrait,
+		item: &Item,
+		trait_: &DeriveTrait,
 		body: &TokenStream,
 	) -> TokenStream {
-		quote! {
-			fn zeroize(&mut self) {
-				match self {
-					#body
+		match item {
+			Item::Item(data) if data.is_empty(trait_) => quote! {
+				fn zeroize(&mut self) { }
+			},
+
+			_ => quote! {
+				fn zeroize(&mut self) {
+					match self {
+						#body
+					}
 				}
-			}
+			},
 		}
 	}
 

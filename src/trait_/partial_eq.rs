@@ -54,6 +54,9 @@ impl TraitImpl for PartialEq {
 						}
 					}
 				}
+				Item::Item(data) if data.is_empty(trait_) => {
+					quote! { true }
+				}
 				_ => {
 					quote! {
 						match (self, __other) {
