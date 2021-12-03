@@ -1,5 +1,0 @@
-error: unexpected option syntax
- --> tests/ui/no_trait.rs:2:16
-  |
-2 | #[derive_where("Clone")]
-  |                ^^^^^^^

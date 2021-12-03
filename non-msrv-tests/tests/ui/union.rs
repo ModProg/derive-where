@@ -1,10 +1,12 @@
-#[allow(unused_imports)]
 use core::marker::PhantomData;
 
-#[derive(derive_where::DeriveWhere)]
+use derive_where::DeriveWhere;
+
+#[derive(DeriveWhere)]
 #[derive_where(Debug)]
-union Test<T> {
-	field: PhantomData<T>,
+union UnsupportedTrait<T> {
+	a: u8,
+	b: PhantomData<T>,
 }
 
 fn main() {}

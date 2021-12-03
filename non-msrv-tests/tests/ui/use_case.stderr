@@ -1,15 +1,15 @@
 error: derive-where doesn't support items without generics, `skip` attributes or `enum`s implementing `Default`, as this can already be handled by standard `#[derive(..)]`
- --> tests/ui/no_generics.rs:2:1
+ --> tests/ui/use_case.rs:4:1
   |
-2 | / #[derive_where(Clone)]
-3 | | struct Test1(u8);
-  | |_________________^
+4 | / #[derive_where(Clone)]
+5 | | struct StructNone(u8);
+  | |______________________^
 
 error: derive-where doesn't support items without generics, `skip` attributes or `enum`s implementing `Default`, as this can already be handled by standard `#[derive(..)]`
- --> tests/ui/no_generics.rs:6:1
-  |
-6 | / #[derive_where(Clone)]
-7 | | enum Test2 {
-8 | |     A(u8),
-9 | | }
-  | |_^
+  --> tests/ui/use_case.rs:8:1
+   |
+8  | / #[derive_where(Clone)]
+9  | | enum EnumNone {
+10 | |     A(u8),
+11 | | }
+   | |_^

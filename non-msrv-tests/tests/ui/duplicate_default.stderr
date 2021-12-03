@@ -1,5 +1,0 @@
-error: multiple `default` options in enum
- --> tests/ui/duplicate_default.rs:6:17
-  |
-6 |     #[derive_where(default)]
-  |                    ^^^^^^^

@@ -1,5 +1,0 @@
-error: unsupported trait, expected one of expected one of Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd, Zeroize
- --> tests/ui/zeroize/trait.rs:2:16
-  |
-2 | #[derive_where(T)]
-  |                ^
