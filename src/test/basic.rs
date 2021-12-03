@@ -197,8 +197,8 @@ fn tuple() -> Result<()> {
 fn enum_() -> Result<()> {
 	#[cfg(feature = "nightly")]
 	let discriminant = quote! {
-		let __self_disc = ::core::intrinsics::discriminant_value(&self);
-		let __other_disc = ::core::intrinsics::discriminant_value(&__other);
+		let __self_disc = ::core::intrinsics::discriminant_value(self);
+		let __other_disc = ::core::intrinsics::discriminant_value(__other);
 	};
 	#[cfg(not(feature = "nightly"))]
 	let discriminant = quote! {

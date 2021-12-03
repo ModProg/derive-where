@@ -114,8 +114,8 @@ fn enum_two_data() -> Result<()> {
 	let unreachable = quote! { ::core::unreachable!("comparing variants yielded unexpected results") };
 	#[cfg(feature = "nightly")]
 	let discriminant = quote! {
-		let __self_disc = ::core::intrinsics::discriminant_value(&self);
-		let __other_disc = ::core::intrinsics::discriminant_value(&__other);
+		let __self_disc = ::core::intrinsics::discriminant_value(self);
+		let __other_disc = ::core::intrinsics::discriminant_value(__other);
 	};
 	#[cfg(not(feature = "nightly"))]
 	let discriminant = quote! {
@@ -206,8 +206,8 @@ fn enum_two_data() -> Result<()> {
 fn enum_unit() -> Result<()> {
 	#[cfg(feature = "nightly")]
 	let discriminant = quote! {
-		let __self_disc = ::core::intrinsics::discriminant_value(&self);
-		let __other_disc = ::core::intrinsics::discriminant_value(&__other);
+		let __self_disc = ::core::intrinsics::discriminant_value(self);
+		let __other_disc = ::core::intrinsics::discriminant_value(__other);
 	};
 	#[cfg(not(feature = "nightly"))]
 	let discriminant = quote! {
@@ -291,8 +291,8 @@ fn enum_unit() -> Result<()> {
 fn enum_struct_unit() -> Result<()> {
 	#[cfg(feature = "nightly")]
 	let discriminant = quote! {
-		let __self_disc = ::core::intrinsics::discriminant_value(&self);
-		let __other_disc = ::core::intrinsics::discriminant_value(&__other);
+		let __self_disc = ::core::intrinsics::discriminant_value(self);
+		let __other_disc = ::core::intrinsics::discriminant_value(__other);
 	};
 	#[cfg(not(feature = "nightly"))]
 	let discriminant = quote! {
@@ -376,8 +376,8 @@ fn enum_struct_unit() -> Result<()> {
 fn enum_tuple_unit() -> Result<()> {
 	#[cfg(feature = "nightly")]
 	let discriminant = quote! {
-		let __self_disc = ::core::intrinsics::discriminant_value(&self);
-		let __other_disc = ::core::intrinsics::discriminant_value(&__other);
+		let __self_disc = ::core::intrinsics::discriminant_value(self);
+		let __other_disc = ::core::intrinsics::discriminant_value(__other);
 	};
 	#[cfg(not(feature = "nightly"))]
 	let discriminant = quote! {

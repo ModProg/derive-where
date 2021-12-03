@@ -43,8 +43,8 @@ pub fn build_ord_signature(item: &Item, trait_: &DeriveTrait, body: &TokenStream
 				// Nightly implementation.
 				#[cfg(feature = "nightly")]
 				quote! {
-					let __self_disc = ::core::intrinsics::discriminant_value(&self);
-					let __other_disc = ::core::intrinsics::discriminant_value(&__other);
+					let __self_disc = ::core::intrinsics::discriminant_value(self);
+					let __other_disc = ::core::intrinsics::discriminant_value(__other);
 
 					if __self_disc == __other_disc {
 						match (self, __other) {
