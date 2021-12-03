@@ -99,3 +99,14 @@ pub struct AssertPartialEq<T: PartialEq>(pub T);
 
 #[allow(dead_code)]
 pub struct AssertPartialOrd<T: PartialOrd>(pub T);
+
+// Copied from std. Changed `pat_param` to `pat` to support MSRV.
+#[allow(unused_macros)]
+macro_rules! matches {
+    ($expression:expr, $(|)? $( $pattern:pat )|+ $( if $guard: expr )? $(,)?) => {
+        match $expression {
+            $( $pattern )|+ $( if $guard )? => true,
+            _ => false
+        }
+    }
+}

@@ -14,16 +14,6 @@ use self::util::{
 	AssertPartialOrd, Wrapper,
 };
 
-// Copied from std.
-macro_rules! matches {
-    ($expression:expr, $(|)? $( $pattern:pat_param )|+ $( if $guard: expr )? $(,)?) => {
-        match $expression {
-            $( $pattern )|+ $( if $guard )? => true,
-            _ => false
-        }
-    }
-}
-
 #[test]
 fn single() {
 	#[derive(DeriveWhere)]
