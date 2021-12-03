@@ -18,8 +18,7 @@ mod test;
 mod trait_;
 mod util;
 
-use core::iter;
-use std::borrow::Cow;
+use std::{borrow::Cow, iter};
 
 use proc_macro2::TokenStream;
 use quote::quote;

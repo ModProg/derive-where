@@ -8,7 +8,7 @@ fn zeroize() -> Result<()> {
 	test_derive(
 		quote! {
 			#[derive_where(Zeroize)]
-			struct Test<T>(core::marker::PhantomData<T>);
+			struct Test<T>(std::marker::PhantomData<T>);
 		},
 		quote! {
 			impl<T> ::zeroize::Zeroize for Test<T>
@@ -30,7 +30,7 @@ fn zeroize_drop() -> Result<()> {
 	test_derive(
 		quote! {
 			#[derive_where(Zeroize(drop); T)]
-			struct Test<T, U>(T, core::marker::PhantomData<U>);
+			struct Test<T, U>(T, std::marker::PhantomData<U>);
 		},
 		quote! {
 			impl<T, U> ::zeroize::Zeroize for Test<T, U>

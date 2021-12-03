@@ -3,7 +3,7 @@
 
 #[test]
 fn discriminant() {
-	use core::intrinsics::discriminant_value;
+	use std::intrinsics::discriminant_value;
 
 	enum Test {
 		A,

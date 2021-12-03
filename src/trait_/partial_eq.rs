@@ -1,4 +1,4 @@
-//! [`PartialEq`](core::cmp::PartialEq) implementation.
+//! [`PartialEq`](std::cmp::PartialEq) implementation.
 
 use proc_macro2::TokenStream;
 use quote::quote;
@@ -6,7 +6,7 @@ use quote::quote;
 use crate::{Data, DeriveTrait, Item, SimpleType, TraitImpl};
 
 /// Dummy-struct implement [`Trait`](crate::Trait) for
-/// [`PartialEq`](core::cmp::PartialEq).
+/// [`PartialEq`](std::cmp::PartialEq).
 pub struct PartialEq;
 
 impl TraitImpl for PartialEq {

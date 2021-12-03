@@ -1,6 +1,6 @@
 extern crate zeroize_ as zeroize;
 
-use core::marker::PhantomData;
+use std::marker::PhantomData;
 
 use derive_where::DeriveWhere;
 

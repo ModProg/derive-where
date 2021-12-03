@@ -1,9 +1,9 @@
-//! [`Copy`](core::marker::Copy) implementation.
+//! [`Copy`](std::marker::Copy) implementation.
 
 use crate::{DeriveTrait, TraitImpl};
 
 /// Dummy-struct implement [`Trait`](crate::Trait) for
-/// [`Copy`](core::marker::Copy).
+/// [`Copy`](std::marker::Copy).
 pub struct Copy;
 
 impl TraitImpl for Copy {

@@ -97,7 +97,7 @@ pub fn build_ord_signature(item: &Item, trait_: &DeriveTrait, body: &TokenStream
 					for (index_other, variant_other) in variants.iter().enumerate() {
 						// Make sure we aren't comparing the same variant with itself.
 						if index != index_other {
-							use core::cmp::Ordering::*;
+							use std::cmp::Ordering::*;
 
 							let ordering = match index.cmp(&index_other) {
 								Less => &less,

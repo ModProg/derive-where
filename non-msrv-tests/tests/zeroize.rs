@@ -10,7 +10,7 @@ use self::util::Wrapper;
 fn test_zeroize() {
 	use derive_where::DeriveWhere;
 
-	//use core::ops::{Deref, DerefMut};
+	//use std::ops::{Deref, DerefMut};
 	use crate::zeroize::Zeroize;
 
 	#[derive(DeriveWhere)]

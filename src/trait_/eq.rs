@@ -1,8 +1,8 @@
-//! [`Eq`](core::cmp::Eq) implementation.
+//! [`Eq`](std::cmp::Eq) implementation.
 
 use crate::{DeriveTrait, TraitImpl};
 
-/// Dummy-struct implement [`Trait`](crate::Trait) for [`Eq`](core::cmp::Eq).
+/// Dummy-struct implement [`Trait`](crate::Trait) for [`Eq`](std::cmp::Eq).
 pub struct Eq;
 
 impl TraitImpl for Eq {

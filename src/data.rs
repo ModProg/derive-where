@@ -18,7 +18,7 @@ pub struct Data<'a> {
 	/// [`Skip`] attribute of this struct, union or variant.
 	pub skip_inner: Skip,
 	/// [`struct@Ident`] of this struct, union or variant, used for implementing
-	/// [`Debug`](core::fmt::Debug).
+	/// [`Debug`](std::fmt::Debug).
 	pub ident: &'a Ident,
 	/// [`Path`] of this struct, union or variant, used to construct new
 	/// instances of that item, for example when implementing [`Clone`].

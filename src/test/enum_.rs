@@ -75,7 +75,7 @@ fn enum_one_data() -> Result<()> {
 	test_derive(
 		quote! {
 			#[derive_where(PartialEq, PartialOrd)]
-			enum Test<T> { A(core::marker::PhantomData<T>) }
+			enum Test<T> { A(std::marker::PhantomData<T>) }
 		},
 		quote! {
 			impl<T> ::core::cmp::PartialEq for Test<T>
@@ -152,7 +152,7 @@ fn enum_two_data() -> Result<()> {
 	test_derive(
 		quote! {
 			#[derive_where(PartialEq, PartialOrd)]
-			enum Test<T> { A(core::marker::PhantomData<T>), B(core::marker::PhantomData<T>) }
+			enum Test<T> { A(std::marker::PhantomData<T>), B(std::marker::PhantomData<T>) }
 		},
 		quote! {
 			impl<T> ::core::cmp::PartialEq for Test<T>
@@ -244,7 +244,7 @@ fn enum_unit() -> Result<()> {
 	test_derive(
 		quote! {
 			#[derive_where(PartialEq, PartialOrd)]
-			enum Test<T> { A(core::marker::PhantomData<T>), B }
+			enum Test<T> { A(std::marker::PhantomData<T>), B }
 		},
 		quote! {
 			impl<T> ::core::cmp::PartialEq for Test<T>
@@ -329,7 +329,7 @@ fn enum_struct_unit() -> Result<()> {
 	test_derive(
 		quote! {
 			#[derive_where(PartialEq, PartialOrd)]
-			enum Test<T> { A(core::marker::PhantomData<T>), B { } }
+			enum Test<T> { A(std::marker::PhantomData<T>), B { } }
 		},
 		quote! {
 			impl<T> ::core::cmp::PartialEq for Test<T>
@@ -414,7 +414,7 @@ fn enum_tuple_unit() -> Result<()> {
 	test_derive(
 		quote! {
 			#[derive_where(PartialEq, PartialOrd)]
-			enum Test<T> { A(core::marker::PhantomData<T>), B() }
+			enum Test<T> { A(std::marker::PhantomData<T>), B() }
 		},
 		quote! {
 			impl<T> ::core::cmp::PartialEq for Test<T>
