@@ -42,11 +42,9 @@ impl TraitImpl for Debug {
 		let debug_name = data.ident.to_string();
 
 		match data.simple_type() {
-			SimpleType::Struct(fields) => {
-				let self_ident = fields.iter_self_ident(trait_);
-				let debug_fields = fields
-					.iter_field_ident(trait_)
-					.map(|field| field.to_string());
+			SimpleType::Struct(_) => {
+				let self_ident = data.iter_self_ident(trait_);
+				let debug_fields = data.iter_field_ident(trait_).map(|field| field.to_string());
 
 				quote! {
 					#self_pattern => {
@@ -56,8 +54,8 @@ impl TraitImpl for Debug {
 					}
 				}
 			}
-			SimpleType::Tuple(fields) => {
-				let self_ident = fields.iter_self_ident(trait_);
+			SimpleType::Tuple(_) => {
+				let self_ident = data.iter_self_ident(trait_);
 
 				quote! {
 					#self_pattern => {

@@ -30,7 +30,7 @@ impl Skip {
 	pub const SKIP_INNER: &'static str = "skip_inner";
 
 	/// Returns `true` if variant is [`Skip::None`].
-	fn is_none(&self) -> bool {
+	pub fn is_none(&self) -> bool {
 		// MSRV: `matches!` was added in 1.42.0.
 		#[allow(clippy::match_like_matches_macro)]
 		{

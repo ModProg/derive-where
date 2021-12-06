@@ -184,7 +184,10 @@ impl<'a> Input<'a> {
 				Item::Item(_) => false,
 			};
 			// Any field is skipped with a corresponding `Trait`.
-			found_use_case |= derive_where.traits.iter().any(|trait_| item.skip(trait_));
+			found_use_case |= derive_where
+				.traits
+				.iter()
+				.any(|trait_| item.any_skip_trait(trait_));
 			#[cfg(feature = "zeroize")]
 			{
 				// `Zeroize(crate = "..")` is used.

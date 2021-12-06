@@ -125,7 +125,7 @@ impl TraitImpl for Zeroize {
 
 					let body = data
 						.iter_fields(trait_)
-						.zip(fields.iter_self_ident(trait_))
+						.zip(data.iter_self_ident(trait_))
 						.map(|(field, self_ident)| {
 							if field.attr.zeroize_fqs.0 {
 								quote! { #trait_path::zeroize(#self_ident); }
