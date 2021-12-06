@@ -28,10 +28,10 @@ impl Item<'_> {
 	}
 
 	/// Returns `true` if any field is skipped with that [`Trait`].
-	pub fn skip(&self, trait_: &Trait) -> bool {
+	pub fn any_skip_trait(&self, trait_: &Trait) -> bool {
 		match self {
-			Item::Item(data) => data.skip(trait_),
-			Item::Enum { variants, .. } => variants.iter().any(|data| data.skip(trait_)),
+			Item::Item(data) => data.any_skip_trait(trait_),
+			Item::Enum { variants, .. } => variants.iter().any(|data| data.any_skip_trait(trait_)),
 		}
 	}
 

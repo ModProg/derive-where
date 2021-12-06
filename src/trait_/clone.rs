@@ -77,8 +77,8 @@ impl TraitImpl for Clone {
 			SimpleType::Struct(fields) => {
 				let self_pattern = &fields.self_pattern;
 				let item_path = &data.path;
-				let self_ident = fields.iter_self_ident(trait_);
-				let fields = fields.iter_field_ident(trait_);
+				let self_ident = data.iter_self_ident(trait_);
+				let fields = data.iter_field_ident(trait_);
 				let trait_path = trait_.path();
 
 				quote! {
@@ -88,7 +88,7 @@ impl TraitImpl for Clone {
 			SimpleType::Tuple(fields) => {
 				let self_pattern = &fields.self_pattern;
 				let item_path = &data.path;
-				let self_ident = fields.iter_self_ident(trait_);
+				let self_ident = data.iter_self_ident(trait_);
 				let trait_path = trait_.path();
 
 				quote! {

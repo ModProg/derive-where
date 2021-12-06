@@ -84,8 +84,8 @@ impl TraitImpl for PartialEq {
 					let self_pattern = &fields.self_pattern;
 					let other_pattern = &fields.other_pattern;
 					let trait_path = trait_.path();
-					let self_ident = fields.iter_self_ident(trait_);
-					let other_ident = fields.iter_other_ident(trait_);
+					let self_ident = data.iter_self_ident(trait_);
+					let other_ident = data.iter_other_ident(trait_);
 
 					quote! {
 						(#self_pattern, #other_pattern) =>

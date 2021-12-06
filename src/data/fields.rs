@@ -6,7 +6,7 @@ use syn::{
 	PatTupleStruct, Path, Result, Token,
 };
 
-use crate::{DeriveWhere, Field, Member, Skip, Trait};
+use crate::{DeriveWhere, Field, Skip, Trait};
 
 /// Struct, union, struct variant or tuple variant fields.
 #[cfg_attr(test, derive(Debug))]
@@ -146,33 +146,18 @@ impl<'a> Fields<'a> {
 		pattern
 	}
 
+	/// Returns `true` if any field is skipped.
+	pub fn any_skip(&self) -> bool {
+		self.fields.iter().any(|field| field.any_skip())
+	}
+
 	/// Returns `true` if any field is skipped with that [`Trait`].
-	pub fn skip(&self, trait_: &Trait) -> bool {
+	pub fn any_skip_trait(&self, trait_: &Trait) -> bool {
 		self.fields.iter().any(|field| field.skip(trait_))
 	}
 
-	/// Returns an [`Iterator`] over [`Field`]s.
-	pub fn iter_fields(
-		&'a self,
-		trait_: &'a Trait,
-	) -> impl 'a + Iterator<Item = &'a Field> + DoubleEndedIterator {
-		self.fields.iter().filter(move |field| !field.skip(trait_))
-	}
-
-	/// Returns an [`Iterator`] over [`Member`]s.
-	pub fn iter_field_ident(&'a self, trait_: &'a Trait) -> impl 'a + Iterator<Item = &'a Member> {
-		self.iter_fields(trait_).map(|field| &field.member)
-	}
-
-	/// Returns an [`Iterator`] over [`struct@Ident`]s used as temporary
-	/// variables for destructuring `self`.
-	pub fn iter_self_ident(&'a self, trait_: &'a Trait) -> impl 'a + Iterator<Item = &'a Ident> {
-		self.iter_fields(trait_).map(|field| &field.self_ident)
-	}
-
-	/// Returns an [`Iterator`] over [`struct@Ident`]s used as temporary
-	/// variables for destructuring `other`.
-	pub fn iter_other_ident(&'a self, trait_: &'a Trait) -> impl 'a + Iterator<Item = &'a Ident> {
-		self.iter_fields(trait_).map(|field| &field.other_ident)
+	/// Returns `true` if all fields are skipped with that [`Trait`].
+	pub fn skip(&self, trait_: &Trait) -> bool {
+		self.fields.iter().all(|field| field.skip(trait_))
 	}
 }

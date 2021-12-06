@@ -49,8 +49,8 @@ impl TraitImpl for Hash {
 		};
 
 		match data.simple_type() {
-			SimpleType::Struct(fields) | SimpleType::Tuple(fields) => {
-				let self_ident = fields.iter_self_ident(trait_);
+			SimpleType::Struct(_) | SimpleType::Tuple(_) => {
+				let self_ident = data.iter_self_ident(trait_);
 
 				quote! {
 					#self_pattern => {

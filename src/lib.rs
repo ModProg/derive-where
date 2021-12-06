@@ -28,7 +28,7 @@ use syn::{spanned::Spanned, DeriveInput, Generics, Result};
 use self::attr::ZeroizeFqs;
 use self::{
 	attr::{Default, DeriveTrait, DeriveWhere, FieldAttr, ItemAttr, Skip, VariantAttr},
-	data::{Data, DataType, Field, Member, SimpleType},
+	data::{Data, DataType, Field, SimpleType},
 	error::Error,
 	input::Input,
 	item::Item,

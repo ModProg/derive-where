@@ -253,15 +253,22 @@ impl<'a> Data<'a> {
 	pub fn any_skip(&self) -> bool {
 		self.skip_inner.any_skip()
 			|| match self.fields() {
-				Either::Left(fields) => {
-					fields.fields.iter().any(|field| field.attr.skip.any_skip())
-				}
+				Either::Left(fields) => fields.any_skip(),
 				Either::Right(_) => false,
 			}
 	}
 
-	/// Returns `true` if any field is skipped with that [`Trait`].
-	pub fn skip(&self, trait_: &Trait) -> bool {
+	/// Returns `true` if a field is skipped with that [`Trait`].
+	pub fn any_skip_trait(&self, trait_: &Trait) -> bool {
+		self.skip_inner.skip(trait_)
+			|| match self.fields() {
+				Either::Left(fields) => fields.any_skip_trait(trait_),
+				Either::Right(_) => false,
+			}
+	}
+
+	/// Returns `true` if all fields are skipped with that [`Trait`].
+	fn skip(&self, trait_: &Trait) -> bool {
 		self.skip_inner.skip(trait_)
 			|| match self.fields() {
 				Either::Left(fields) => fields.skip(trait_),
@@ -295,12 +302,20 @@ impl<'a> Data<'a> {
 		&'a self,
 		trait_: &'a Trait,
 	) -> impl 'a + Iterator<Item = &'a Field> + DoubleEndedIterator {
-		// Make both arms type compatible without a `Box`.
-		match self.fields() {
-			Either::Left(fields) => fields.fields.iter(),
-			Either::Right(_) => [].iter(),
+		if self.skip(trait_) {
+			[].iter()
+		} else {
+			match self.fields() {
+				Either::Left(fields) => fields.fields.iter(),
+				Either::Right(_) => [].iter(),
+			}
 		}
 		.filter(move |field| !field.skip(trait_))
+	}
+
+	/// Returns an [`Iterator`] over [`Member`]s.
+	pub fn iter_field_ident(&'a self, trait_: &'a Trait) -> impl 'a + Iterator<Item = &'a Member> {
+		self.iter_fields(trait_).map(|field| &field.member)
 	}
 
 	/// Returns an [`Iterator`] over [`struct@Ident`]s used as temporary
