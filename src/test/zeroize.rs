@@ -4,7 +4,7 @@ use syn::Result;
 use super::test_derive;
 
 #[test]
-fn zeroize() -> Result<()> {
+fn basic() -> Result<()> {
 	test_derive(
 		quote! {
 			#[derive_where(Zeroize)]
@@ -26,7 +26,7 @@ fn zeroize() -> Result<()> {
 }
 
 #[test]
-fn zeroize_drop() -> Result<()> {
+fn drop() -> Result<()> {
 	test_derive(
 		quote! {
 			#[derive_where(Zeroize(drop); T)]
@@ -58,7 +58,7 @@ fn zeroize_drop() -> Result<()> {
 }
 
 #[test]
-fn zeroize_crate() -> Result<()> {
+fn crate_() -> Result<()> {
 	test_derive(
 		quote! {
 			#[derive_where(Zeroize(crate = "zeroize_"); T)]
@@ -81,7 +81,7 @@ fn zeroize_crate() -> Result<()> {
 }
 
 #[test]
-fn zeroize_drop_crate() -> Result<()> {
+fn drop_crate() -> Result<()> {
 	test_derive(
 		quote! {
 			#[derive_where(Zeroize(drop, crate = "zeroize_"); T)]
@@ -112,7 +112,7 @@ fn zeroize_drop_crate() -> Result<()> {
 }
 
 #[test]
-fn zeroize_crate_drop() -> Result<()> {
+fn crate_drop() -> Result<()> {
 	test_derive(
 		quote! {
 			#[derive_where(Zeroize(crate = "zeroize_", drop); T)]
@@ -136,6 +136,28 @@ fn zeroize_crate_drop() -> Result<()> {
 			{
 				fn drop(&mut self) {
 					zeroize_::Zeroize::zeroize(self);
+				}
+			}
+		},
+	)
+}
+
+#[test]
+fn fqs() -> Result<()> {
+	test_derive(
+		quote! {
+			#[derive_where(Zeroize)]
+			struct Test<T>(#[derive_where(Zeroize(fqs))] std::marker::PhantomData<T>);
+		},
+		quote! {
+			impl<T> ::zeroize::Zeroize for Test<T>
+			{
+				fn zeroize(&mut self) {
+					match self {
+						Test(ref mut __0) => {
+							::zeroize::Zeroize::zeroize(__0);
+						}
+					}
 				}
 			}
 		},

@@ -2,6 +2,7 @@ use std::{
 	fmt,
 	fmt::{Debug, Formatter},
 	marker::PhantomData,
+	ptr,
 };
 
 pub struct Wrapper<T = ()> {
@@ -35,4 +36,18 @@ impl<T> zeroize_::Zeroize for Wrapper<T> {
 	fn zeroize(&mut self) {
 		self.data.zeroize();
 	}
+}
+
+pub fn test_drop<T>(value: T, fun: impl FnOnce(&T)) {
+	let mut test_holder = vec![value];
+	let ptr = &mut test_holder[0] as *mut T;
+
+	let test = unsafe {
+		test_holder.set_len(0);
+		ptr::drop_in_place(ptr);
+		&*ptr
+	};
+
+	assert_eq!(test_holder.capacity(), 1);
+	fun(test);
 }
