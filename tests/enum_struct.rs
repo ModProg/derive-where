@@ -3,10 +3,7 @@
 #[macro_use]
 mod util;
 
-use std::{
-	collections::hash_map::DefaultHasher,
-	hash::{Hash, Hasher},
-};
+use std::cmp::Ordering;
 
 use derive_where::DeriveWhere;
 
@@ -26,6 +23,8 @@ fn single() {
 
 	let test_1 = Test::A { a: 42.into() };
 	let test_2 = Test::A { a: 42.into() };
+	let test_le = Test::A { a: 41.into() };
+	let test_ge = Test::A { a: 43.into() };
 
 	let _ = AssertClone(test_1);
 	let _ = AssertCopy(test_1);
@@ -47,19 +46,19 @@ fn single() {
 	let test_default = Test::<i32>::default();
 	assert!(matches!(test_default, Test::A { a } if a == i32::default()));
 
-	let mut hasher = DefaultHasher::new();
-	test_1.hash(&mut hasher);
-	let hash_1 = hasher.finish();
-	let mut hasher = DefaultHasher::new();
-	test_2.hash(&mut hasher);
-	let hash_2 = hasher.finish();
-	assert_eq!(hash_1, hash_2);
+	util::hash_eq(test_1, test_2);
+	util::hash_ne(test_1, test_ge);
 
 	assert!(test_1 == test_2);
-	assert!(test_1 != Test::A { a: 43.into() });
+	assert!(test_1 != test_ge);
 
-	assert!(test_1 > Test::A { a: 41.into() });
-	assert!(test_1 < Test::A { a: 43.into() });
+	assert_eq!(test_1.cmp(&test_2), Ordering::Equal);
+	assert_eq!(test_1.cmp(&test_le), Ordering::Greater);
+	assert_eq!(test_1.cmp(&test_ge), Ordering::Less);
+
+	assert_eq!(test_1.partial_cmp(&test_2), Some(Ordering::Equal));
+	assert!(test_1 > test_le);
+	assert!(test_1 < test_ge);
 }
 
 #[test]
@@ -84,6 +83,36 @@ fn multiple() {
 		a: 42.into(),
 		b: 43.into(),
 		c: 44.into(),
+	};
+	let test_le_1 = Test::A {
+		a: 41.into(),
+		b: 43.into(),
+		c: 44.into(),
+	};
+	let test_le_2 = Test::A {
+		a: 42.into(),
+		b: 42.into(),
+		c: 44.into(),
+	};
+	let test_le_3 = Test::A {
+		a: 42.into(),
+		b: 43.into(),
+		c: 43.into(),
+	};
+	let test_ge_1 = Test::A {
+		a: 43.into(),
+		b: 43.into(),
+		c: 44.into(),
+	};
+	let test_ge_2 = Test::A {
+		a: 42.into(),
+		b: 44.into(),
+		c: 44.into(),
+	};
+	let test_ge_3 = Test::A {
+		a: 42.into(),
+		b: 44.into(),
+		c: 45.into(),
 	};
 
 	let _ = AssertClone(test_1);
@@ -112,39 +141,15 @@ fn multiple() {
 	assert!(matches!(test_default, Test::A { b, .. } if b == i32::default()));
 	assert!(matches!(test_default, Test::A { c, .. } if c == i32::default()));
 
-	let mut hasher = DefaultHasher::new();
-	test_1.hash(&mut hasher);
-	let hash_1 = hasher.finish();
-	let mut hasher = DefaultHasher::new();
-	test_2.hash(&mut hasher);
-	let hash_2 = hasher.finish();
-	assert_eq!(hash_1, hash_2);
+	util::hash_eq(test_1, test_2);
+	util::hash_ne(test_1, test_ge_1);
+	util::hash_ne(test_1, test_ge_2);
+	util::hash_ne(test_1, test_ge_3);
 
 	assert!(test_1 == test_2);
-	assert!(
-		test_1
-			!= Test::A {
-				a: 43.into(),
-				b: 43.into(),
-				c: 44.into(),
-			}
-	);
-	assert!(
-		test_1
-			!= Test::A {
-				a: 42.into(),
-				b: 44.into(),
-				c: 44.into(),
-			}
-	);
-	assert!(
-		test_1
-			!= Test::A {
-				a: 42.into(),
-				b: 43.into(),
-				c: 45.into(),
-			}
-	);
+	assert!(test_1 != test_ge_1);
+	assert!(test_1 != test_ge_2);
+	assert!(test_1 != test_ge_3);
 	assert!(
 		test_1
 			!= Test::A {
@@ -154,52 +159,19 @@ fn multiple() {
 			}
 	);
 
-	assert!(
-		test_1
-			> Test::A {
-				a: 41.into(),
-				b: 43.into(),
-				c: 44.into(),
-			}
-	);
-	assert!(
-		test_1
-			> Test::A {
-				a: 42.into(),
-				b: 42.into(),
-				c: 44.into(),
-			}
-	);
-	assert!(
-		test_1
-			> Test::A {
-				a: 42.into(),
-				b: 43.into(),
-				c: 43.into(),
-			}
-	);
-	assert!(
-		test_1
-			< Test::A {
-				a: 43.into(),
-				b: 43.into(),
-				c: 44.into(),
-			}
-	);
-	assert!(
-		test_1
-			< Test::A {
-				a: 42.into(),
-				b: 44.into(),
-				c: 44.into(),
-			}
-	);
-	assert!(
-		test_1
-			< Test::A {
-				a: 42.into(),
-				b: 43.into(),
-				c: 45.into(),
-			}
-	);
+	assert_eq!(test_1.cmp(&test_2), Ordering::Equal);
+	assert_eq!(test_1.cmp(&test_le_1), Ordering::Greater);
+	assert_eq!(test_1.cmp(&test_le_2), Ordering::Greater);
+	assert_eq!(test_1.cmp(&test_le_3), Ordering::Greater);
+	assert_eq!(test_1.cmp(&test_ge_1), Ordering::Less);
+	assert_eq!(test_1.cmp(&test_ge_2), Ordering::Less);
+	assert_eq!(test_1.cmp(&test_ge_3), Ordering::Less);
+
+	assert_eq!(test_1.partial_cmp(&test_2), Some(Ordering::Equal));
+	assert!(test_1 > test_le_1);
+	assert!(test_1 > test_le_2);
+	assert!(test_1 > test_le_3);
+	assert!(test_1 < test_ge_1);
+	assert!(test_1 < test_ge_2);
+	assert!(test_1 < test_ge_3);
 }
