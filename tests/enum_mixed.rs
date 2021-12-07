@@ -3,10 +3,7 @@
 #[macro_use]
 mod util;
 
-use std::{
-	collections::hash_map::DefaultHasher,
-	hash::{Hash, Hasher},
-};
+use std::cmp::Ordering;
 
 use derive_where::DeriveWhere;
 
@@ -30,9 +27,13 @@ fn all() {
 
 	let test_a_1 = Test::A { a: 42.into() };
 	let test_a_2 = Test::A { a: 42.into() };
+	let test_a_le = Test::A { a: 41.into() };
+	let test_a_ge = Test::A { a: 43.into() };
 
 	let test_b_1 = Test::B(42.into());
 	let test_b_2 = Test::B(42.into());
+	let test_b_le = Test::B(41.into());
+	let test_b_ge = Test::B(43.into());
 
 	let test_c_1 = Test::C;
 	let test_c_2 = Test::C;
@@ -72,40 +73,52 @@ fn all() {
 	let test_default = Test::<i32>::default();
 	assert!(matches!(test_default, Test::A { a } if a == i32::default()));
 
-	let hash = |test_1: Test<_>, test_2: Test<_>| {
-		let mut hasher = DefaultHasher::new();
-		test_1.hash(&mut hasher);
-		let hash_1 = hasher.finish();
-		let mut hasher = DefaultHasher::new();
-		test_2.hash(&mut hasher);
-		let hash_2 = hasher.finish();
-		assert_eq!(hash_1, hash_2);
-	};
-	hash(test_a_1, test_a_2);
-	hash(test_b_1, test_b_2);
-	hash(test_c_1, test_c_2);
+	util::hash_eq(test_a_1, test_a_2);
+	util::hash_eq(test_b_1, test_b_2);
+	util::hash_eq(test_c_1, test_c_2);
+	util::hash_ne(test_a_1, test_a_ge);
+	util::hash_ne(test_b_1, test_b_ge);
+	util::hash_ne(test_a_1, test_b_1);
+	util::hash_ne(test_a_1, test_c_1);
+	util::hash_ne(test_b_1, test_c_1);
 
 	assert!(test_a_1 == test_a_2);
-	assert!(test_a_1 != Test::A { a: 43.into() });
-	assert!(test_a_1 != Test::B(42.into()));
-	assert!(test_a_1 != Test::C);
+	assert!(test_a_1 != test_a_ge);
+	assert!(test_a_1 != test_b_1);
+	assert!(test_a_1 != test_c_1);
 	assert!(test_b_1 == test_b_2);
-	assert!(test_b_1 != Test::A { a: 42.into() });
-	assert!(test_b_1 != Test::B(43.into()));
-	assert!(test_b_1 != Test::C);
+	assert!(test_b_1 != test_a_1);
+	assert!(test_b_1 != test_b_ge);
+	assert!(test_b_1 != test_c_1);
 	assert!(test_c_1 == test_c_2);
-	assert!(test_c_1 != Test::A { a: 42.into() });
-	assert!(test_a_1 != Test::B(42.into()));
+	assert!(test_c_1 != test_a_1);
+	assert!(test_a_1 != test_b_1);
 
-	assert!(test_a_1 > Test::A { a: 41.into() });
-	assert!(test_a_1 < Test::A { a: 43.into() });
-	assert!(test_a_1 < Test::B(42.into()));
-	assert!(test_a_1 < Test::C);
-	assert!(test_b_1 > Test::B(41.into()));
-	assert!(test_b_1 < Test::B(43.into()));
-	assert!(test_b_1 > Test::A { a: 42.into() });
-	assert!(test_b_1 < Test::C);
-	assert!(test_c_1 == Test::C);
-	assert!(test_c_1 > Test::A { a: 42.into() });
-	assert!(test_c_1 > Test::B(42.into()));
+	assert_eq!(test_a_1.cmp(&test_a_2), Ordering::Equal);
+	assert_eq!(test_a_1.cmp(&test_a_le), Ordering::Greater);
+	assert_eq!(test_a_1.cmp(&test_a_ge), Ordering::Less);
+	assert_eq!(test_a_1.cmp(&test_b_1), Ordering::Less);
+	assert_eq!(test_a_1.cmp(&test_c_1), Ordering::Less);
+	assert_eq!(test_b_1.cmp(&test_b_2), Ordering::Equal);
+	assert_eq!(test_b_1.cmp(&test_b_le), Ordering::Greater);
+	assert_eq!(test_b_1.cmp(&test_b_ge), Ordering::Less);
+	assert_eq!(test_b_1.cmp(&test_a_1), Ordering::Greater);
+	assert_eq!(test_b_1.cmp(&test_c_1), Ordering::Less);
+	assert_eq!(test_c_1.cmp(&test_c_2), Ordering::Equal);
+	assert_eq!(test_c_1.cmp(&test_a_1), Ordering::Greater);
+	assert_eq!(test_c_1.cmp(&test_b_1), Ordering::Greater);
+
+	assert_eq!(test_a_1.partial_cmp(&test_a_2), Some(Ordering::Equal));
+	assert!(test_a_1 > test_a_le);
+	assert!(test_a_1 < test_a_ge);
+	assert!(test_a_1 < test_b_1);
+	assert!(test_a_1 < test_c_1);
+	assert_eq!(test_b_1.partial_cmp(&test_b_2), Some(Ordering::Equal));
+	assert!(test_b_1 > test_b_le);
+	assert!(test_b_1 < test_b_ge);
+	assert!(test_b_1 > test_a_1);
+	assert!(test_b_1 < test_c_1);
+	assert_eq!(test_c_1.partial_cmp(&test_c_2), Some(Ordering::Equal));
+	assert!(test_c_1 > test_a_1);
+	assert!(test_c_1 > test_b_1);
 }

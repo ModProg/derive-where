@@ -1,5 +1,6 @@
 use std::{
 	cmp::Ordering,
+	collections::hash_map::DefaultHasher,
 	fmt,
 	fmt::{Debug, Formatter},
 	hash::{Hash, Hasher},
@@ -109,4 +110,26 @@ macro_rules! matches {
             _ => false
         }
     }
+}
+
+#[allow(dead_code)]
+pub fn hash_eq<T: Hash>(test_1: T, test_2: T) {
+	let mut hasher = DefaultHasher::new();
+	test_1.hash(&mut hasher);
+	let hash_1 = hasher.finish();
+	let mut hasher = DefaultHasher::new();
+	test_2.hash(&mut hasher);
+	let hash_2 = hasher.finish();
+	assert_eq!(hash_1, hash_2);
+}
+
+#[allow(dead_code)]
+pub fn hash_ne<T: Hash>(test_1: T, test_2: T) {
+	let mut hasher = DefaultHasher::new();
+	test_1.hash(&mut hasher);
+	let hash_1 = hasher.finish();
+	let mut hasher = DefaultHasher::new();
+	test_2.hash(&mut hasher);
+	let hash_2 = hasher.finish();
+	assert_ne!(hash_1, hash_2);
 }
