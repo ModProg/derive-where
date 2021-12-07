@@ -18,7 +18,7 @@ jobs:
             ~/.cargo/bin/cargo-spellcheck
           key: cargo-spellcheck
       - name: Install cargo-spellcheck
-        run: cargo install cargo-spellcheck
+        run: cargo install cargo-spellcheck --locked
       - name: Checkout
         uses: actions/checkout@v2
       - name: Spellcheck
