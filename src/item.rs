@@ -71,4 +71,13 @@ impl Item<'_> {
 			}),
 		}
 	}
+
+	/// Returns `true` if all [`Fields`](crate::Fields) are empty for this
+	/// [`Trait`].
+	pub fn is_empty(&self, trait_: &Trait) -> bool {
+		match self {
+			Item::Enum { variants, .. } => variants.iter().all(|data| data.is_empty(trait_)),
+			Item::Item(data) => data.is_empty(trait_),
+		}
+	}
 }

@@ -17,17 +17,36 @@ pub fn build_ord_signature(item: &Item, trait_: &DeriveTrait, body: &TokenStream
 	}
 
 	match item {
-		// Only check for discriminators if there is more than one variant.
+		// If there is more than one variant, check for the discriminant.
 		Item::Enum { variants, .. } if variants.len() > 1 => {
-			// Return `Equal` in the rest pattern if there are any empty variants.
-			let rest = if variants.iter().any(|variant| variant.is_empty(trait_)) {
+			// If all variants are empty, return `Equal`.
+			let body = if item.is_empty(trait_) {
 				quote! { #equal }
-			} else {
+			}
+			// Compare variant data and return `Equal` in the rest pattern if there are any empty
+			// variants.
+			else if variants.iter().any(|variant| variant.is_empty(trait_)) {
+				quote! {
+					match (self, __other) {
+						#body
+						_ => #equal,
+					}
+				}
+			}
+			// Insert `unreachable!` in the rest pattern if no variants are empty.
+			else {
 				#[cfg(not(feature = "safe"))]
 				// This follows the standard implementation.
-				quote! { unsafe { ::core::hint::unreachable_unchecked() } }
+				let rest = quote! { unsafe { ::core::hint::unreachable_unchecked() } };
 				#[cfg(feature = "safe")]
-				quote! { ::core::unreachable!("comparing variants yielded unexpected results") }
+				let rest = quote! { ::core::unreachable!("comparing variants yielded unexpected results") };
+
+				quote! {
+					match (self, __other) {
+						#body
+						_ => #rest,
+					}
+				}
 			};
 
 			// Nightly or unsafe (default) implementation.
@@ -47,10 +66,7 @@ pub fn build_ord_signature(item: &Item, trait_: &DeriveTrait, body: &TokenStream
 					let __other_disc = ::core::intrinsics::discriminant_value(__other);
 
 					if __self_disc == __other_disc {
-						match (self, __other) {
-							#body
-							_ => #rest,
-						}
+						#body
 					} else {
 						#path::#method(&__self_disc, &__other_disc)
 					}
@@ -62,10 +78,7 @@ pub fn build_ord_signature(item: &Item, trait_: &DeriveTrait, body: &TokenStream
 					let __other_disc = ::core::mem::discriminant(__other);
 
 					if __self_disc == __other_disc {
-						match (self, __other) {
-							#body
-							_ => #rest,
-						}
+						#body
 					} else {
 						#path::#method(
 							&unsafe { ::core::mem::transmute::<_, isize>(__self_disc) },
@@ -128,10 +141,7 @@ pub fn build_ord_signature(item: &Item, trait_: &DeriveTrait, body: &TokenStream
 					let __other_disc = ::core::mem::discriminant(__other);
 
 					if __self_disc == __other_disc {
-						match (self, __other) {
-							#body
-							_ => #rest,
-						}
+						#body
 					} else {
 						match self {
 							#(#different)*
@@ -140,7 +150,9 @@ pub fn build_ord_signature(item: &Item, trait_: &DeriveTrait, body: &TokenStream
 				}
 			}
 		}
-		Item::Item(data) if data.is_empty(trait_) => {
+		// If there is only one variant and it's empty or if the struct is empty, simple
+		// return `Equal`.
+		item if item.is_empty(trait_) => {
 			quote! { #equal }
 		}
 		_ => {
