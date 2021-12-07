@@ -39,14 +39,14 @@ fn all() {
 	let test_c_2 = Test::C;
 
 	let assert = |test| {
-		let _ = AssertClone(test);
-		let _ = AssertCopy(test);
-		let _ = AssertDebug(test);
-		let _ = AssertEq(test);
-		let _ = AssertHash(test);
-		let _ = AssertOrd(test);
-		let _ = AssertPartialEq(test);
-		let _ = AssertPartialOrd(test);
+		let _ = AssertClone(&test);
+		let _ = AssertCopy(&test);
+		let _ = AssertDebug(&test);
+		let _ = AssertEq(&test);
+		let _ = AssertHash(&test);
+		let _ = AssertOrd(&test);
+		let _ = AssertPartialEq(&test);
+		let _ = AssertPartialOrd(&test);
 	};
 	assert(test_a_1);
 	assert(test_b_1);

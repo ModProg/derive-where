@@ -24,14 +24,14 @@ fn single() {
 	let test_le = Test { a: 41.into() };
 	let test_ge = Test { a: 43.into() };
 
-	let _ = AssertClone(test_1);
-	let _ = AssertCopy(test_1);
-	let _ = AssertDebug(test_1);
-	let _ = AssertEq(test_1);
-	let _ = AssertHash(test_1);
-	let _ = AssertOrd(test_1);
-	let _ = AssertPartialEq(test_1);
-	let _ = AssertPartialOrd(test_1);
+	let _ = AssertClone(&test_1);
+	let _ = AssertCopy(&test_1);
+	let _ = AssertDebug(&test_1);
+	let _ = AssertEq(&test_1);
+	let _ = AssertHash(&test_1);
+	let _ = AssertOrd(&test_1);
+	let _ = AssertPartialEq(&test_1);
+	let _ = AssertPartialOrd(&test_1);
 
 	let test_clone = test_1.clone();
 	assert_eq!(test_clone.a, 42);
@@ -110,14 +110,14 @@ fn multiple() {
 		c: 45.into(),
 	};
 
-	let _ = AssertClone(test_1);
-	let _ = AssertCopy(test_1);
-	let _ = AssertDebug(test_1);
-	let _ = AssertEq(test_1);
-	let _ = AssertHash(test_1);
-	let _ = AssertOrd(test_1);
-	let _ = AssertPartialEq(test_1);
-	let _ = AssertPartialOrd(test_1);
+	let _ = AssertClone(&test_1);
+	let _ = AssertCopy(&test_1);
+	let _ = AssertDebug(&test_1);
+	let _ = AssertEq(&test_1);
+	let _ = AssertHash(&test_1);
+	let _ = AssertOrd(&test_1);
+	let _ = AssertPartialEq(&test_1);
+	let _ = AssertPartialOrd(&test_1);
 
 	let test_clone = test_1.clone();
 	assert_eq!(test_clone.a, 42);

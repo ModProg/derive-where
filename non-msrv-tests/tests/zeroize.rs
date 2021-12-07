@@ -12,7 +12,7 @@ use std::{
 use derive_where::DeriveWhere;
 use zeroize::Zeroize;
 
-use self::util::Wrapper;
+use self::util::{AssertZeroize, Wrapper};
 
 #[test]
 fn basic() {
@@ -21,6 +21,9 @@ fn basic() {
 	struct Test<T>(Wrapper<T>);
 
 	let mut test = Test(42.into());
+
+	let _ = AssertZeroize(&test);
+
 	test.zeroize();
 
 	assert_eq!(test.0, 0);
@@ -35,6 +38,9 @@ fn crate_() {
 	struct Test<T>(Wrapper<T>);
 
 	let mut test = Test(42.into());
+
+	let _ = AssertZeroize(&test);
+
 	test.zeroize();
 
 	assert_eq!(test.0, 0);
@@ -49,6 +55,9 @@ fn drop() {
 	struct Test<T>(Wrapper<T>);
 
 	let mut test = Test(42.into());
+
+	let _ = AssertZeroize(&test);
+
 	test.zeroize();
 
 	assert_eq!(test.0, 0);
@@ -78,6 +87,9 @@ fn fqs() {
 	struct Test<T>(#[derive_where(Zeroize(fqs))] Fqs<T>);
 
 	let mut test = Test(Fqs(42.into()));
+
+	let _ = AssertZeroize(&test);
+
 	test.zeroize();
 
 	assert_eq!(test.0 .0, 0);
@@ -108,6 +120,9 @@ fn deref() {
 	struct Test<T>(ZeroizeDeref<T>);
 
 	let mut test = Test::<()>(ZeroizeDeref(42, PhantomData));
+
+	let _ = AssertZeroize(&test);
+
 	test.zeroize();
 
 	assert_eq!(test.0 .0, 0);
@@ -115,4 +130,40 @@ fn deref() {
 	util::test_drop(Test::<()>(ZeroizeDeref(42, PhantomData)), |test| {
 		assert_eq!(test.0 .0, 0)
 	})
+}
+
+mod hygiene {
+	use derive_where::DeriveWhere;
+
+	use crate::util::{AssertZeroize, Wrapper};
+
+	trait Zeroize {
+		fn zeroize(&mut self) {
+			unimplemented!()
+		}
+	}
+
+	impl<T: zeroize::Zeroize> Zeroize for T {}
+
+	#[test]
+	fn hygiene() {
+		#[derive(DeriveWhere)]
+		#[derive_where(Zeroize)]
+		struct Test<T>(#[derive_where(Zeroize(fqs))] Wrapper<T>);
+
+		impl<T> Test<T> {
+			#[allow(dead_code)]
+			fn zeroize(&mut self) {
+				unimplemented!()
+			}
+		}
+
+		let mut test = Test(42.into());
+
+		let _ = AssertZeroize(&test);
+
+		zeroize::Zeroize::zeroize(&mut test);
+
+		assert_eq!(test.0, 0);
+	}
 }
