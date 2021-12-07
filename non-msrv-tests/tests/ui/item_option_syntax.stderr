@@ -19,19 +19,19 @@ error: empty `derive_where` found
 error: unexpected option syntax
   --> tests/ui/item_option_syntax.rs:19:16
    |
-19 | #[derive_where(Debug = "option"; T)]
+19 | #[derive_where(Debug = "option")]
    |                ^^^^^^^^^^^^^^^^
 
 error: empty attribute option found
   --> tests/ui/item_option_syntax.rs:23:16
    |
-23 | #[derive_where(Debug(); T)]
+23 | #[derive_where(Debug())]
    |                ^^^^^^^
 
 error: `Debug` doesn't support any options
   --> tests/ui/item_option_syntax.rs:27:16
    |
-27 | #[derive_where(Debug(option); T)]
+27 | #[derive_where(Debug(option))]
    |                ^^^^^^^^^^^^^
 
 error: unexpected token: `invalid`

@@ -1,8 +1,8 @@
 error: no traits found to implement, use `#[derive_where(..)` to specify some
  --> tests/ui/item.rs:6:1
   |
-6 | struct NoAttribute<T, U>(T, PhantomData<U>);
-  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+6 | struct NoAttribute<T>(PhantomData<T>);
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: unexpected option syntax
  --> tests/ui/item.rs:9:3
@@ -37,7 +37,7 @@ error: expected type to bind to, expected one of: `for`, parentheses, `fn`, `uns
 error: expected `;` or `,
   --> tests/ui/item.rs:29:22
    |
-29 | #[derive_where(Clone Debug; T)]
+29 | #[derive_where(Clone Debug)]
    |                      ^^^^^
 
 error: expected `,`

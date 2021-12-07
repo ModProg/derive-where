@@ -1,14 +1,14 @@
 error: unexpected option syntax
- --> tests/ui/option.rs:7:31
+ --> tests/ui/option.rs:7:28
   |
-7 | struct StructNoOption<T, U>(#[derive_where] T, PhantomData<U>);
-  |                               ^^^^^^^^^^^^
+7 | struct StructNoOption<T>(#[derive_where] PhantomData<T>);
+  |                            ^^^^^^^^^^^^
 
 error: unexpected option syntax
-  --> tests/ui/option.rs:11:34
+  --> tests/ui/option.rs:11:31
    |
-11 | struct StructWrongSyntax<T, U>(#[derive_where = "default"] T, PhantomData<U>);
-   |                                  ^^^^^^^^^^^^^^^^^^^^^^^^
+11 | struct StructWrongSyntax<T>(#[derive_where = "default"] PhantomData<T>);
+   |                               ^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: unexpected option syntax
   --> tests/ui/option.rs:16:4
@@ -17,19 +17,19 @@ error: unexpected option syntax
    |       ^^^^^^^^^^^^
 
 error: unexpected option syntax
-  --> tests/ui/option.rs:24:4
+  --> tests/ui/option.rs:23:4
    |
-24 |     #[derive_where = "default"]
+23 |     #[derive_where = "default"]
    |       ^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: unknown option
-  --> tests/ui/option.rs:31:49
+  --> tests/ui/option.rs:29:46
    |
-31 | struct StructInvalidOption<T, U>(#[derive_where(option)] T, PhantomData<U>);
-   |                                                 ^^^^^^
+29 | struct StructInvalidOption<T>(#[derive_where(option)] PhantomData<T>);
+   |                                              ^^^^^^
 
 error: unknown option
-  --> tests/ui/option.rs:36:17
+  --> tests/ui/option.rs:34:17
    |
-36 |     #[derive_where(option)]
+34 |     #[derive_where(option)]
    |                    ^^^^^^

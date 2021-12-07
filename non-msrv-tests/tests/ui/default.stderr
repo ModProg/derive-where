@@ -1,8 +1,8 @@
 error: unknown option
- --> tests/ui/default.rs:7:45
+ --> tests/ui/default.rs:7:42
   |
-7 | struct DefaultOnStruct<T, U>(#[derive_where(default)] T, PhantomData<U>);
-  |                                             ^^^^^^^
+7 | struct DefaultOnStruct<T>(#[derive_where(default)] PhantomData<T>);
+  |                                          ^^^^^^^
 
 error: `default` is only supported if `Default` is being implemented
   --> tests/ui/default.rs:12:17
@@ -11,29 +11,28 @@ error: `default` is only supported if `Default` is being implemented
    |                    ^^^^^^^
 
 error: required `default` option on a variant if `Default` is being implemented
-  --> tests/ui/default.rs:18:1
+  --> tests/ui/default.rs:17:1
    |
-18 | / #[derive_where(Default; T)]
-19 | | enum MissingDefault<T, U> {
-20 | |     A(T),
-21 | |     B(PhantomData<U>),
-22 | | }
+17 | / #[derive_where(Default)]
+18 | | enum MissingDefault<T> {
+19 | |     A(PhantomData<T>),
+20 | | }
    | |_^
 
 error: multiple `default` options in enum
-  --> tests/ui/default.rs:29:17
+  --> tests/ui/default.rs:27:17
    |
-29 |     #[derive_where(default)]
+27 |     #[derive_where(default)]
    |                    ^^^^^^^
 
 error: duplicate `default` option
-  --> tests/ui/default.rs:36:26
+  --> tests/ui/default.rs:34:26
    |
-36 |     #[derive_where(default, default)]
+34 |     #[derive_where(default, default)]
    |                             ^^^^^^^
 
 error: duplicate `default` option
-  --> tests/ui/default.rs:45:17
+  --> tests/ui/default.rs:42:17
    |
-45 |     #[derive_where(default)]
+42 |     #[derive_where(default)]
    |                    ^^^^^^^

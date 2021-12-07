@@ -3,39 +3,36 @@ use std::marker::PhantomData;
 use derive_where::DeriveWhere;
 
 #[derive(DeriveWhere)]
-#[derive_where(Default; T)]
-struct StructNoOption<T, U>(#[derive_where] T, PhantomData<U>);
+#[derive_where(Default)]
+struct StructNoOption<T>(#[derive_where] PhantomData<T>);
 
 #[derive(derive_where::DeriveWhere)]
-#[derive_where(Default; T)]
-struct StructWrongSyntax<T, U>(#[derive_where = "default"] T, PhantomData<U>);
+#[derive_where(Default)]
+struct StructWrongSyntax<T>(#[derive_where = "default"] PhantomData<T>);
 
 #[derive(DeriveWhere)]
-#[derive_where(Default; T)]
-enum EnumNoOption<T, U> {
+#[derive_where(Default)]
+enum EnumNoOption<T> {
 	#[derive_where]
-	A(T),
-	B(PhantomData<U>),
+	A(PhantomData<T>),
 }
 
 #[derive(DeriveWhere)]
-#[derive_where(Default; T)]
-enum EnumWrongSyntax<T, U> {
+#[derive_where(Default)]
+enum EnumWrongSyntax<T> {
 	#[derive_where = "default"]
-	A(T),
-	B(PhantomData<U>),
+	A(PhantomData<T>),
 }
 
 #[derive(DeriveWhere)]
-#[derive_where(Clone; T)]
-struct StructInvalidOption<T, U>(#[derive_where(option)] T, PhantomData<U>);
+#[derive_where(Clone)]
+struct StructInvalidOption<T>(#[derive_where(option)] PhantomData<T>);
 
 #[derive(DeriveWhere)]
-#[derive_where(Clone; T)]
-enum EnumInvalidOption<T, U> {
+#[derive_where(Clone)]
+enum EnumInvalidOption<T> {
 	#[derive_where(option)]
-	A(T),
-	B(PhantomData<U>),
+	A(PhantomData<T>),
 }
 
 fn main() {}
