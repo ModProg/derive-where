@@ -72,7 +72,7 @@ impl Item<'_> {
 		}
 	}
 
-	/// Returns `true` if all [`Fields`](crate::Fields) are empty for this
+	/// Returns `true` if all [`Fields`](crate::data::Fields) are empty for this
 	/// [`Trait`].
 	pub fn is_empty(&self, trait_: &Trait) -> bool {
 		match self {
