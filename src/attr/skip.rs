@@ -167,12 +167,4 @@ impl Skip {
 			}
 		}
 	}
-
-	/// Returns `true` if any field is skipped.
-	pub fn any_skip(&self) -> bool {
-		match self {
-			Skip::None => false,
-			Skip::All | Skip::Traits(_) => true,
-		}
-	}
 }

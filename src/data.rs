@@ -261,15 +261,6 @@ impl<'a> Data<'a> {
 		self.iter_fields(trait_).count() == 0
 	}
 
-	/// Returns `true` if any field is skipped.
-	pub fn any_skip(&self) -> bool {
-		self.skip_inner.any_skip()
-			|| match self.fields() {
-				Either::Left(fields) => fields.any_skip(),
-				Either::Right(_) => false,
-			}
-	}
-
 	/// Returns `true` if a field is skipped with that [`Trait`].
 	pub fn any_skip_trait(&self, trait_: &Trait) -> bool {
 		self.skip_inner.skip(trait_)

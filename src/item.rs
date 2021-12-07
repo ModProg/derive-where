@@ -2,7 +2,7 @@
 
 use syn::Ident;
 
-use crate::{Data, DeriveWhere, Trait};
+use crate::{Data, Trait};
 
 /// Fields or variants of an item.
 #[allow(clippy::large_enum_variant)]
@@ -19,11 +19,19 @@ pub enum Item<'a> {
 }
 
 impl Item<'_> {
-	/// Return [`struct@Ident`] of this [`Item`].
+	/// Returns [`struct@Ident`] of this [`Item`].
 	pub fn ident(&self) -> &Ident {
 		match self {
 			Item::Item(data) => data.ident,
 			Item::Enum { ident, .. } => ident,
+		}
+	}
+
+	/// Returns `true` if this [`Item`] if an enum.
+	pub fn is_enum(&self) -> bool {
+		match self {
+			Item::Enum { .. } => true,
+			Item::Item(_) => false,
 		}
 	}
 
@@ -32,26 +40,6 @@ impl Item<'_> {
 		match self {
 			Item::Item(data) => data.any_skip_trait(trait_),
 			Item::Enum { variants, .. } => variants.iter().any(|data| data.any_skip_trait(trait_)),
-		}
-	}
-
-	/// Returns `true` if any field is skipped.
-	pub fn any_skip(&self) -> bool {
-		match self {
-			Item::Item(data) => data.any_skip(),
-			Item::Enum { variants, .. } => variants.iter().any(|data| data.any_skip()),
-		}
-	}
-
-	/// Returns `true` if any field uses `default`.
-	// MSRV: `matches!` was added in 1.42.0.
-	#[allow(clippy::match_like_matches_macro)]
-	pub fn any_default(&self, derive_wheres: &[DeriveWhere]) -> bool {
-		match self {
-			Item::Enum { .. } => derive_wheres
-				.iter()
-				.any(|derive_where| derive_where.trait_(&Trait::Default).is_some()),
-			_ => false,
 		}
 	}
 

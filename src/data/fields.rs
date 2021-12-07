@@ -146,11 +146,6 @@ impl<'a> Fields<'a> {
 		pattern
 	}
 
-	/// Returns `true` if any field is skipped.
-	pub fn any_skip(&self) -> bool {
-		self.fields.iter().any(|field| field.any_skip())
-	}
-
 	/// Returns `true` if any field is skipped with that [`Trait`].
 	pub fn any_skip_trait(&self, trait_: &Trait) -> bool {
 		self.fields.iter().any(|field| field.skip(trait_))

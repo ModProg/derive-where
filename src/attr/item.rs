@@ -104,7 +104,7 @@ pub struct DeriveWhere {
 	/// Save [`Span`] for error messages.
 	pub span: Span,
 	/// [traits](DeriveTrait) to implement.
-	pub traits: Vec<DeriveTrait>,
+	pub traits: Vec<DeriveTraitWrapper>,
 	/// [generics](Generic) for where clause.
 	pub generics: Vec<Generic>,
 }
@@ -125,7 +125,7 @@ impl DeriveWhere {
 				// Start with parsing a trait.
 				// Not checking for duplicates here, because these should produce a Rust error
 				// anyway.
-				traits.push(DeriveTrait::from_stream(span, data, input)?);
+				traits.push(DeriveTraitWrapper::from_stream(span, data, input)?);
 
 				if !input.is_empty() {
 					let mut fork = input.fork();
@@ -178,7 +178,8 @@ impl DeriveWhere {
 	pub fn trait_(&self, trait_: &Trait) -> Option<&DeriveTrait> {
 		self.traits
 			.iter()
-			.find(|derive_trait| &***derive_trait == trait_)
+			.map(|wrapper| &wrapper.trait_)
+			.find(|derive_trait| derive_trait == trait_)
 	}
 
 	/// Returns `true` if any [`CustomBound`](Generic::CustomBound) is present.
@@ -275,6 +276,14 @@ impl Parse for Generic {
 	}
 }
 
+/// Wrapper around [`DeriveTrait`] to add [`Span`].
+pub struct DeriveTraitWrapper {
+	/// [`Span`] for error messages.
+	pub span: Span,
+	/// Trait in this wrapper.
+	trait_: DeriveTrait,
+}
+
 /// Trait to implement.
 pub enum DeriveTrait {
 	/// [`Clone`].
@@ -305,6 +314,14 @@ pub enum DeriveTrait {
 	},
 }
 
+impl Deref for DeriveTraitWrapper {
+	type Target = DeriveTrait;
+
+	fn deref(&self) -> &Self::Target {
+		&self.trait_
+	}
+}
+
 impl Deref for DeriveTrait {
 	type Target = Trait;
 
@@ -327,7 +344,21 @@ impl Deref for DeriveTrait {
 	}
 }
 
-impl DeriveTrait {
+impl PartialEq<Trait> for &DeriveTraitWrapper {
+	fn eq(&self, other: &Trait) -> bool {
+		let trait_: &DeriveTrait = self;
+		trait_ == *other
+	}
+}
+
+impl PartialEq<Trait> for &DeriveTrait {
+	fn eq(&self, other: &Trait) -> bool {
+		let trait_: &Trait = self;
+		trait_ == other
+	}
+}
+
+impl DeriveTraitWrapper {
 	/// Create [`DeriveTrait`] from [`ParseStream`].
 	fn from_stream(span: Span, data: &Data, input: ParseStream) -> Result<Self> {
 		match Meta::parse(input) {
@@ -342,14 +373,20 @@ impl DeriveTrait {
 				}
 
 				match meta {
-					Meta::Path(_) => Ok(trait_.default_derive_trait()),
+					Meta::Path(path) => Ok(Self {
+						span: path.span(),
+						trait_: trait_.default_derive_trait(),
+					}),
 					Meta::List(list) => {
 						if list.nested.is_empty() {
 							return Err(Error::option_empty(list.span()));
 						}
 
-						// This will return an error if no options are supported.
-						trait_.parse_derive_trait(list)
+						Ok(Self {
+							span: list.span(),
+							// This will return an error if no options are supported.
+							trait_: trait_.parse_derive_trait(list)?,
+						})
 					}
 					Meta::NameValue(name_value) => Err(Error::option_syntax(name_value.span())),
 				}
@@ -357,8 +394,10 @@ impl DeriveTrait {
 			Err(error) => Err(Error::trait_syntax(error.span())),
 		}
 	}
+}
 
-	/// Returns fully qualified path for this trait.
+impl DeriveTrait {
+	/// Returns fully qualified [`Path`] for this trait.
 	pub fn path(&self) -> Path {
 		use DeriveTrait::*;
 

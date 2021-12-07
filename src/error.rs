@@ -20,21 +20,11 @@ impl Error {
 	}
 
 	/// Item has no use-case because it's covered by standard `#[derive(..)]`.
-	pub fn item(span: Span) -> syn::Error {
+	pub fn use_case(span: Span) -> syn::Error {
 		syn::Error::new(
 			span,
-			"derive-where doesn't support items without generics, `skip` attributes or `enum`s \
-			 implementing `Default`, as this can already be handled by standard `#[derive(..)]`",
-		)
-	}
-
-	/// Using the same generic type parameters as the item is unsupported,
-	/// because it's covered by standard `#[derive(..)]`.
-	pub fn generics(span: Span) -> syn::Error {
-		syn::Error::new(
-			span,
-			"derive-where doesn't support items with the same generic type parameters as the \
-			 item, as this can already be handled by standard `#[derive(..)]`",
+			"this can be handled by standard `#[derive(..)]`, use a `skip` attribute, implement \
+			 `Default` on an enum, of different generic type parameters",
 		)
 	}
 
