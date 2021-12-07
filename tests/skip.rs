@@ -14,4 +14,5 @@ mod variant;
 mod variant_trait;
 // Necessary for rustfmt.
 #[path = "util.rs"]
+#[macro_use]
 mod util;
