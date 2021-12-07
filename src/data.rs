@@ -4,13 +4,13 @@ mod field;
 mod fields;
 
 use proc_macro2::Span;
-use syn::{FieldsNamed, Ident, Pat, PatPath, Path, Result};
+use syn::{FieldsNamed, Ident, Pat, PatPath, Path, Result, Variant};
 
 pub use self::{
 	field::{Field, Member},
 	fields::Fields,
 };
-use crate::{util, Default, DeriveWhere, Either, Error, Skip, Trait};
+use crate::{util, Default, DeriveWhere, Either, Error, Skip, Trait, VariantAttr};
 
 /// Holds all relevant data of a struct, union or variant.
 #[cfg_attr(test, derive(Debug))]
@@ -141,20 +141,23 @@ impl<'a> Data<'a> {
 	pub fn from_variant(
 		item_ident: &'a Ident,
 		derive_wheres: &[DeriveWhere],
-		skip_inner: Skip,
-		default: Default,
-		variant_ident: &'a Ident,
-		fields: &'a syn::Fields,
+		variant: &'a Variant,
 	) -> Result<Self> {
-		let path = util::path_from_idents(&[item_ident, variant_ident]);
+		// Parse `Attribute`s on variant.
+		let VariantAttr {
+			default,
+			skip_inner,
+		} = VariantAttr::from_attrs(&variant.attrs, derive_wheres, variant)?;
 
-		match fields {
+		let path = util::path_from_idents(&[item_ident, &variant.ident]);
+
+		match &variant.fields {
 			syn::Fields::Named(fields) => {
 				let fields = Fields::from_named(derive_wheres, &skip_inner, path.clone(), fields)?;
 
 				Ok(Self {
 					skip_inner,
-					ident: variant_ident,
+					ident: &variant.ident,
 					path,
 					type_: DataType::Variant {
 						default,
@@ -168,7 +171,7 @@ impl<'a> Data<'a> {
 
 				Ok(Self {
 					skip_inner,
-					ident: variant_ident,
+					ident: &variant.ident,
 					path,
 					type_: DataType::Variant {
 						default,
@@ -185,7 +188,7 @@ impl<'a> Data<'a> {
 
 				Ok(Self {
 					skip_inner,
-					ident: variant_ident,
+					ident: &variant.ident,
 					path,
 					type_: DataType::Variant {
 						default,
@@ -239,8 +242,17 @@ impl<'a> Data<'a> {
 	/// not a variant, always returns `true`.
 	pub fn is_default(&self) -> bool {
 		match self.type_ {
-			DataType::Variant { default, .. } => default.0,
+			DataType::Variant { default, .. } => default.0.is_some(),
 			_ => true,
+		}
+	}
+
+	/// Returns [`Some`] if this variant has a [`struct@Default`]. If
+	/// not a variant, always returns [`None`].
+	pub fn default_span(&self) -> Option<Span> {
+		match &self.type_ {
+			DataType::Variant { default, .. } => default.0,
+			_ => None,
 		}
 	}
 

@@ -1,5 +1,6 @@
 //! Attribute parsing for the `default` option.
 
+use proc_macro2::Span;
 use syn::{spanned::Spanned, Meta, Result};
 
 use crate::{DeriveWhere, Error, Trait};
@@ -8,23 +9,18 @@ use crate::{DeriveWhere, Error, Trait};
 /// [`Default`](std::default::Default).
 #[derive(Clone, Copy, Default)]
 #[cfg_attr(test, derive(Debug))]
-pub struct Default(pub bool);
+pub struct Default(pub Option<Span>);
 
 impl Default {
 	/// Token used for the `default` option.
 	pub const DEFAULT: &'static str = "default";
 
 	/// Adds a [`Meta`] to this [`Default`](self).
-	pub fn add_attribute(
-		&mut self,
-		meta: &Meta,
-		derive_wheres: &[DeriveWhere],
-		accumulated_defaults: &mut Default,
-	) -> Result<()> {
+	pub fn add_attribute(&mut self, meta: &Meta, derive_wheres: &[DeriveWhere]) -> Result<()> {
 		debug_assert!(meta.path().is_ident(Self::DEFAULT));
 
 		if let Meta::Path(path) = meta {
-			if self.0 {
+			if self.0.is_some() {
 				Err(Error::option_duplicate(path.span(), Self::DEFAULT))
 			} else {
 				let mut impl_default = false;
@@ -37,13 +33,8 @@ impl Default {
 				}
 
 				if impl_default {
-					if accumulated_defaults.0 {
-						Err(Error::default_duplicate(path.span()))
-					} else {
-						accumulated_defaults.0 = true;
-						self.0 = true;
-						Ok(())
-					}
+					self.0 = Some(path.span());
+					Ok(())
 				} else {
 					Err(Error::default(path.span()))
 				}
