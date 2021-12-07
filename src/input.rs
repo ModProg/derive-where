@@ -89,43 +89,6 @@ impl<'a> Input<'a> {
 			}
 		};
 
-		// Don't allow no use-case compared to std `derive`.
-		let mut found_use_case = false;
-		// Any generics used.
-		found_use_case |= generics.params.iter().any(|generic_param|
-				// MSRV: `matches!` was added in 1.42.0.
-				match generic_param {
-				GenericParam::Type(_) => true,
-				GenericParam::Lifetime(_) | GenericParam::Const(_) => false,
-			});
-		// Any field is skipped.
-		found_use_case |= item.any_skip();
-		// `Default` is used on an enum.
-		found_use_case |= item.any_default(&derive_wheres);
-		#[cfg(feature = "zeroize")]
-		{
-			// `Zeroize(crate = "..")` is used.
-			found_use_case |= derive_wheres.iter().any(|derive_where| {
-				#[allow(clippy::match_like_matches_macro)]
-				{
-					if let Some(DeriveTrait::Zeroize {
-						crate_: Some(_), ..
-					}) = derive_where.trait_(&Trait::Zeroize)
-					{
-						true
-					} else {
-						false
-					}
-				}
-			});
-			// `Zeroize(fqs)` is used on any field.
-			found_use_case |= item.any_fqs();
-		}
-
-		if !found_use_case {
-			return Err(Error::item(span));
-		}
-
 		// Don't allow generic constraints be the same as generics on item unless there
 		// is a use-case for it.
 		// Count number of generic type parameters.
@@ -168,40 +131,32 @@ impl<'a> Input<'a> {
 			// The `for` loop should short-circuit to the `'outer` loop if not all generic
 			// type parameters were found.
 
-			// Make sure we aren't using any other features.
-			let mut found_use_case = false;
-			// `Default` is used on an enum.
-			found_use_case |= match item {
-				Item::Enum { .. } => derive_where.trait_(&Trait::Default).is_some(),
-				Item::Item(_) => false,
-			};
-			// Any field is skipped with a corresponding `Trait`.
-			found_use_case |= derive_where
-				.traits
-				.iter()
-				.any(|trait_| item.any_skip_trait(trait_));
-			#[cfg(feature = "zeroize")]
-			{
-				// `Zeroize(crate = "..")` is used.
-				found_use_case |= {
-					#[allow(clippy::match_like_matches_macro)]
+			// Don't allow no use-case compared to std `derive`.
+			for trait_ in &derive_where.traits {
+				// `Default` is used on an enum.
+				if trait_ == Trait::Default && item.is_enum() {
+					continue;
+				}
+				// Any field is skipped with a corresponding `Trait`.
+				if item.any_skip_trait(trait_) {
+					continue;
+				}
+				#[cfg(feature = "zeroize")]
+				{
+					// `Zeroize(crate = "..")` is used.
+					if let DeriveTrait::Zeroize {
+						crate_: Some(_), ..
+					} = **trait_
 					{
-						if let Some(DeriveTrait::Zeroize {
-							crate_: Some(_), ..
-						}) = derive_where.trait_(&Trait::Zeroize)
-						{
-							true
-						} else {
-							false
-						}
+						continue;
 					}
-				};
-				// `Zeroize(fqs)` is used on any field.
-				found_use_case |= derive_where.trait_(&Trait::Zeroize).is_some() && item.any_fqs();
-			}
+					// `Zeroize(fqs)` is used on any field.
+					if trait_ == Trait::Zeroize && item.any_fqs() {
+						continue;
+					}
+				}
 
-			if !found_use_case {
-				return Err(Error::generics(derive_where.span));
+				return Err(Error::use_case(trait_.span));
 			}
 		}
 
