@@ -12,7 +12,7 @@ use crate::{TraitImpl, ZeroizeFqs};
 pub struct FieldAttr {
 	/// [`Trait`]s to skip this field for.
 	pub skip: Skip,
-	/// Use fully-qualified-syntax for the [`Zeroize`](https://docs.rs/zeroize/1.4.3/zeroize/trait.Zeroize.html) implementation on this field.
+	/// Use fully-qualified-syntax for the [`Zeroize`](https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html) implementation on this field.
 	#[cfg(feature = "zeroize")]
 	pub zeroize_fqs: ZeroizeFqs,
 }

@@ -4,7 +4,7 @@ use syn::{spanned::Spanned, Meta, NestedMeta, Result};
 
 use crate::{DeriveWhere, Error, Trait, TraitImpl};
 
-/// Stores if this field should use FQS to call [`Zeroize::zeroize`](https://docs.rs/zeroize/1.4.3/zeroize/trait.Zeroize.html#tymethod.zeroize).
+/// Stores if this field should use FQS to call [`Zeroize::zeroize`](https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html#tymethod.zeroize).
 #[derive(Default)]
 #[cfg_attr(test, derive(Debug))]
 pub struct ZeroizeFqs(pub bool);
