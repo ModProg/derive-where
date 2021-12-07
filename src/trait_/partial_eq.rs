@@ -30,8 +30,9 @@ impl TraitImpl for PartialEq {
 	) -> TokenStream {
 		let body = {
 			match item {
-				// Only check for discriminators if there is more than one variant.
-				Item::Enum { variants, .. } if variants.len() > 1 => {
+				// If there is more than one variant and not all variants are empty, check for
+				// discriminant and match on variant data.
+				Item::Enum { variants, .. } if variants.len() > 1 && !item.is_empty(trait_) => {
 					// Return `true` in the rest pattern if there are any empty variants.
 					let rest = if variants.iter().any(|variant| variant.is_empty(trait_)) {
 						quote! { true }
@@ -54,7 +55,20 @@ impl TraitImpl for PartialEq {
 						}
 					}
 				}
-				Item::Item(data) if data.is_empty(trait_) => {
+				// If there is more than one variant and all are empty, check for discriminant and
+				// simply return `true`.
+				Item::Enum { variants, .. } if variants.len() > 1 && item.is_empty(trait_) => {
+					quote! {
+						if ::core::mem::discriminant(self) == ::core::mem::discriminant(__other) {
+							true
+						} else {
+							false
+						}
+					}
+				}
+				// If there is only one variant and it's empty or if the struct is empty, simple
+				// return `true`.
+				item if item.is_empty(trait_) => {
 					quote! { true }
 				}
 				_ => {
