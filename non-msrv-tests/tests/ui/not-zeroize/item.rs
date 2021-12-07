@@ -12,15 +12,15 @@ struct WrongOptionSyntax<T, U>(T, PhantomData<U>);
 
 #[derive(DeriveWhere)]
 #[derive_where(,)]
-struct OnlyComma<T, U>(T, PhantomData<U>);
+struct OnlyComma<T>(PhantomData<T>);
 
 #[derive(DeriveWhere)]
 #[derive_where(,Clone)]
-struct StartWithComma<T, U>(T, PhantomData<U>);
+struct StartWithComma<T>(PhantomData<T>);
 
 #[derive(DeriveWhere)]
 #[derive_where(Clone,,)]
-struct DuplicateCommaAtEnd<T, U>(T, PhantomData<U>);
+struct DuplicateCommaAtEnd<T>(PhantomData<T>);
 
 #[derive(DeriveWhere)]
 #[derive_where(T)]

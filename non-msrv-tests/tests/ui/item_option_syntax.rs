@@ -5,26 +5,26 @@ use derive_where::DeriveWhere;
 #[derive(DeriveWhere)]
 // Rust itself already fails to parse this and will provide a separate error message.
 #[derive_where = invalid]
-struct InvalidAttribute<T, U>(T, PhantomData<U>);
+struct InvalidAttribute<T>(PhantomData<T>);
 
 #[derive(DeriveWhere)]
 #[derive_where = "invalid"]
-struct WrongAttributeSyntax<T, U>(T, PhantomData<U>);
+struct WrongAttributeSyntax<T>(PhantomData<T>);
 
 #[derive(DeriveWhere)]
 #[derive_where()]
-struct EmptyAttribute<T, U>(T, PhantomData<U>);
+struct EmptyAttribute<T>(PhantomData<T>);
 
 #[derive(DeriveWhere)]
-#[derive_where(Debug = "option"; T)]
-struct WrongOptionSyntax<T, U>(T, PhantomData<U>);
+#[derive_where(Debug = "option")]
+struct WrongOptionSyntax<T>(PhantomData<T>);
 
 #[derive(DeriveWhere)]
-#[derive_where(Debug(); T)]
-struct EmptyOption<T, U>(T, PhantomData<U>);
+#[derive_where(Debug())]
+struct EmptyOption<T>(PhantomData<T>);
 
 #[derive(derive_where::DeriveWhere)]
-#[derive_where(Debug(option); T)]
-struct UnsupportedOption<T, U>(T, PhantomData<U>);
+#[derive_where(Debug(option))]
+struct UnsupportedOption<T>(PhantomData<T>);
 
 fn main() {}

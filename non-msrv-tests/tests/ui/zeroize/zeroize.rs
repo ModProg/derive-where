@@ -5,47 +5,47 @@ use std::marker::PhantomData;
 use derive_where::DeriveWhere;
 
 #[derive(DeriveWhere)]
-#[derive_where(Zeroize(test); T)]
-struct InvalidOption<T, U>(T, PhantomData<U>);
+#[derive_where(Zeroize(test))]
+struct InvalidOption<T>(PhantomData<T>);
 
 #[derive(DeriveWhere)]
-#[derive_where(Zeroize(test = "test"); T)]
-struct WrongOptionSyntax1<T, U>(T, PhantomData<U>);
+#[derive_where(Zeroize(test = "test"))]
+struct WrongOptionSyntax1<T>(PhantomData<T>);
 
 #[derive(DeriveWhere)]
-#[derive_where(Zeroize("option"); T)]
-struct WrongOptionSyntax2<T, U>(T, PhantomData<U>);
+#[derive_where(Zeroize("option"))]
+struct WrongOptionSyntax2<T>(PhantomData<T>);
 
 #[derive(DeriveWhere)]
-#[derive_where(Zeroize(crate(zeroize_)); T)]
-struct WrongCrateSyntax<T, U>(T, PhantomData<U>);
+#[derive_where(Zeroize(crate(zeroize_)))]
+struct WrongCrateSyntax<T>(PhantomData<T>);
 
 #[derive(DeriveWhere)]
-#[derive_where(Zeroize(crate = "struct Test"); T)]
-struct InvalidCrate<T, U>(T, PhantomData<U>);
+#[derive_where(Zeroize(crate = "struct Test"))]
+struct InvalidCrate<T>(PhantomData<T>);
 
 #[derive(DeriveWhere)]
-#[derive_where(Zeroize(drop, drop); T)]
-struct DuplicateDrop<T, U>(T, PhantomData<U>);
+#[derive_where(Zeroize(drop, drop))]
+struct DuplicateDrop<T>(PhantomData<T>);
 
 #[derive(DeriveWhere)]
-#[derive_where(Zeroize(crate = "zeroize_", crate = "zeroize_"); T)]
-struct DuplicateCrate<T, U>(T, PhantomData<U>);
+#[derive_where(Zeroize(crate = "zeroize_", crate = "zeroize_"))]
+struct DuplicateCrate<T>(PhantomData<T>);
 
 #[derive(DeriveWhere)]
-#[derive_where(Zeroize(drop, drop, crate = "zeroize_"); T)]
-struct DuplicateDropWithCrate<T, U>(T, PhantomData<U>);
+#[derive_where(Zeroize(drop, drop, crate = "zeroize_"))]
+struct DuplicateDropWithCrate<T>(PhantomData<T>);
 
 #[derive(DeriveWhere)]
-#[derive_where(Zeroize(drop, crate = "zeroize_", crate = "zeroize_"); T)]
-struct DropWithDuplicateCrate<T, U>(T, PhantomData<U>);
+#[derive_where(Zeroize(drop, crate = "zeroize_", crate = "zeroize_"))]
+struct DropWithDuplicateCrate<T>(PhantomData<T>);
 
 #[derive(DeriveWhere)]
-#[derive_where(Zeroize(crate = "zeroize_", crate = "zeroize_", drop); T)]
-struct DuplicateCrateWithDrop<T, U>(T, PhantomData<U>);
+#[derive_where(Zeroize(crate = "zeroize_", crate = "zeroize_", drop))]
+struct DuplicateCrateWithDrop<T>(PhantomData<T>);
 
 #[derive(DeriveWhere)]
-#[derive_where(Zeroize(crate = "zeroize_", drop, drop); T)]
-struct CrateWithDuplicateDrop<T, U>(T, PhantomData<U>);
+#[derive_where(Zeroize(crate = "zeroize_", drop, drop))]
+struct CrateWithDuplicateDrop<T>(PhantomData<T>);
 
 fn main() {}
