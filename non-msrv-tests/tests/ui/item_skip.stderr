@@ -22,32 +22,38 @@ error: unexpected constraint on `skip` when unconstrained `skip` already used
 26 | #[derive_where(skip_inner(Debug))]
    |                ^^^^^^^^^^^^^^^^^
 
-error: no trait that can be skipped is being implemented
-  --> tests/ui/item_skip.rs:31:16
+error: duplicate `skip_inner` option
+  --> tests/ui/item_skip.rs:32:16
    |
-31 | #[derive_where(skip_inner)]
+32 | #[derive_where(skip_inner)]
+   |                ^^^^^^^^^^
+
+error: no trait that can be skipped is being implemented
+  --> tests/ui/item_skip.rs:37:16
+   |
+37 | #[derive_where(skip_inner)]
    |                ^^^^^^^^^^
 
 error: unsupported `Clone` constraint on `skip`
-  --> tests/ui/item_skip.rs:36:27
+  --> tests/ui/item_skip.rs:42:27
    |
-36 | #[derive_where(skip_inner(Clone))]
+42 | #[derive_where(skip_inner(Clone))]
    |                           ^^^^^
 
 error: duplicate `Debug` constraint on `skip`
-  --> tests/ui/item_skip.rs:41:34
+  --> tests/ui/item_skip.rs:47:34
    |
-41 | #[derive_where(skip_inner(Debug, Debug))]
+47 | #[derive_where(skip_inner(Debug, Debug))]
    |                                  ^^^^^
 
 error: duplicate `Debug` constraint on `skip`
-  --> tests/ui/item_skip.rs:47:27
+  --> tests/ui/item_skip.rs:53:27
    |
-47 | #[derive_where(skip_inner(Debug))]
+53 | #[derive_where(skip_inner(Debug))]
    |                           ^^^^^
 
 error: trait to be skipped isn't being implemented
-  --> tests/ui/item_skip.rs:52:27
+  --> tests/ui/item_skip.rs:58:27
    |
-52 | #[derive_where(skip_inner(Debug))]
+58 | #[derive_where(skip_inner(Debug))]
    |                           ^^^^^

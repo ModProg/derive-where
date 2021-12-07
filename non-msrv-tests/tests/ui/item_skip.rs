@@ -27,6 +27,12 @@ struct EmptySkipInner<T>(PhantomData<T>);
 struct OverridingSkipInner<T>(PhantomData<T>);
 
 #[derive(DeriveWhere)]
+#[derive_where(Debug)]
+#[derive_where(skip_inner(Debug))]
+#[derive_where(skip_inner)]
+struct UnderridingSkipInner<T>(PhantomData<T>);
+
+#[derive(DeriveWhere)]
 #[derive_where(Clone; T)]
 #[derive_where(skip_inner)]
 struct NoSupportedTrait<T>(PhantomData<T>);
