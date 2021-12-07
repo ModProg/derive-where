@@ -14,6 +14,8 @@ fn basic() -> Result<()> {
 			impl<T> ::zeroize::Zeroize for Test<T>
 			{
 				fn zeroize(&mut self) {
+					use ::zeroize::Zeroize;
+
 					match self {
 						Test(ref mut __0) => {
 							__0.zeroize();
@@ -37,6 +39,8 @@ fn drop() -> Result<()> {
 			where T: ::zeroize::Zeroize
 			{
 				fn zeroize(&mut self) {
+					use ::zeroize::Zeroize;
+
 					match self {
 						Test(ref mut __0, ref mut __1) => {
 							__0.zeroize();
@@ -69,6 +73,8 @@ fn crate_() -> Result<()> {
 			where T: zeroize_::Zeroize
 			{
 				fn zeroize(&mut self) {
+					use zeroize_::Zeroize;
+
 					match self {
 						Test(ref mut __0) => {
 							__0.zeroize();
@@ -92,6 +98,8 @@ fn drop_crate() -> Result<()> {
 			where T: zeroize_::Zeroize
 			{
 				fn zeroize(&mut self) {
+					use zeroize_::Zeroize;
+
 					match self {
 						Test(ref mut __0) => {
 							__0.zeroize();
@@ -123,6 +131,8 @@ fn crate_drop() -> Result<()> {
 			where T: zeroize_::Zeroize
 			{
 				fn zeroize(&mut self) {
+					use zeroize_::Zeroize;
+
 					match self {
 						Test(ref mut __0) => {
 							__0.zeroize();
@@ -153,6 +163,8 @@ fn fqs() -> Result<()> {
 			impl<T> ::zeroize::Zeroize for Test<T>
 			{
 				fn zeroize(&mut self) {
+					use ::zeroize::Zeroize;
+
 					match self {
 						Test(ref mut __0) => {
 							::zeroize::Zeroize::zeroize(__0);
