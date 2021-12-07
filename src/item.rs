@@ -50,7 +50,7 @@ impl Item<'_> {
 		match self {
 			Item::Enum { .. } => derive_wheres
 				.iter()
-				.any(|derive_where| derive_where.trait_(Trait::Default).is_some()),
+				.any(|derive_where| derive_where.trait_(&Trait::Default).is_some()),
 			_ => false,
 		}
 	}

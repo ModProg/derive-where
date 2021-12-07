@@ -19,7 +19,7 @@ impl ZeroizeFqs {
 
 		if !derive_wheres
 			.iter()
-			.any(|derive_where| derive_where.trait_(Trait::Zeroize).is_some())
+			.any(|derive_where| derive_where.trait_(&Trait::Zeroize).is_some())
 		{
 			return Err(Error::zeroize(meta.span()));
 		}

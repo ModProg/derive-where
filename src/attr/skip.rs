@@ -61,12 +61,10 @@ impl Skip {
 						Some(Skip::None) | Some(Skip::Traits(..)) | None => {
 							// Don't allow to skip all traits if no trait to be implemented supports
 							// skipping.
-							if derive_wheres.iter().any(|derive_where| {
-								derive_where
-									.traits
-									.iter()
-									.any(|trait_| trait_.supports_skip())
-							}) {
+							if derive_wheres
+								.iter()
+								.any(|derive_where| derive_where.any_skip())
+							{
 								*self = Skip::All;
 								Ok(())
 							} else {
@@ -133,10 +131,7 @@ impl Skip {
 									_ => {
 										// Don't allow to skip trait that isn't being implemented.
 										if derive_wheres.iter().any(|derive_where| {
-											derive_where
-												.traits
-												.iter()
-												.any(|derive_trait| **derive_trait == trait_)
+											derive_where.trait_(&trait_).is_some()
 										}) {
 											traits.push(trait_)
 										} else {
