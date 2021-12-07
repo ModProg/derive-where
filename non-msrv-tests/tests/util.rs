@@ -5,6 +5,9 @@ use std::{
 	ptr,
 };
 
+#[cfg(feature = "zeroize")]
+use zeroize_::Zeroize;
+
 pub struct Wrapper<T = ()> {
 	data: i32,
 	hack: PhantomData<T>,
@@ -32,11 +35,14 @@ impl<T> PartialEq<i32> for Wrapper<T> {
 }
 
 #[cfg(feature = "zeroize")]
-impl<T> zeroize_::Zeroize for Wrapper<T> {
+impl<T> Zeroize for Wrapper<T> {
 	fn zeroize(&mut self) {
 		self.data.zeroize();
 	}
 }
+
+#[cfg(feature = "zeroize")]
+pub struct AssertZeroize<'a, T: Zeroize>(pub &'a T);
 
 pub fn test_drop<T>(value: T, fun: impl FnOnce(&T)) {
 	let mut test_holder = vec![value];

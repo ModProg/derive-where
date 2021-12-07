@@ -79,28 +79,28 @@ impl<T> PartialOrd for Wrapper<T> {
 	}
 }
 
-pub struct AssertClone<T: Clone>(pub T);
+pub struct AssertClone<'a, T: Clone>(pub &'a T);
 
 #[allow(dead_code)]
-pub struct AssertCopy<T: Copy>(pub T);
+pub struct AssertCopy<'a, T: Copy>(pub &'a T);
 
 #[allow(dead_code)]
-pub struct AssertDebug<T: Debug>(pub T);
+pub struct AssertDebug<'a, T: Debug>(pub &'a T);
 
 #[allow(dead_code)]
-pub struct AssertEq<T: Eq>(pub T);
+pub struct AssertEq<'a, T: Eq>(pub &'a T);
 
 #[allow(dead_code)]
-pub struct AssertHash<T: Hash>(pub T);
+pub struct AssertHash<'a, T: Hash>(pub &'a T);
 
 #[allow(dead_code)]
-pub struct AssertOrd<T: Ord>(pub T);
+pub struct AssertOrd<'a, T: Ord>(pub &'a T);
 
 #[allow(dead_code)]
-pub struct AssertPartialEq<T: PartialEq>(pub T);
+pub struct AssertPartialEq<'a, T: PartialEq>(pub &'a T);
 
 #[allow(dead_code)]
-pub struct AssertPartialOrd<T: PartialOrd>(pub T);
+pub struct AssertPartialOrd<'a, T: PartialOrd>(pub &'a T);
 
 // Copied from std. Changed `pat_param` to `pat` to support MSRV.
 #[allow(unused_macros)]

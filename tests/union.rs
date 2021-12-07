@@ -16,8 +16,8 @@ fn single() {
 
 	let test_1 = Test { a: 42.into() };
 
-	let _ = AssertClone(test_1);
-	let _ = AssertCopy(test_1);
+	let _ = AssertClone(&test_1);
+	let _ = AssertCopy(&test_1);
 
 	let test_clone = test_1.clone();
 	assert_eq!(unsafe { test_clone.a }, 42);
@@ -40,8 +40,8 @@ fn multiple() {
 	let test_2 = Test { b: 43.into() };
 	let test_3 = Test { c: 44.into() };
 
-	let _ = AssertClone(test_1);
-	let _ = AssertCopy(test_1);
+	let _ = AssertClone(&test_1);
+	let _ = AssertCopy(&test_1);
 
 	let test_clone = test_1.clone();
 	assert_eq!(unsafe { test_clone.a }, 42);
