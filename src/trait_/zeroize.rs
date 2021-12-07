@@ -104,13 +104,18 @@ impl TraitImpl for Zeroize {
 				fn zeroize(&mut self) { }
 			},
 
-			_ => quote! {
-				fn zeroize(&mut self) {
-					match self {
-						#body
+			_ => {
+				let trait_path = trait_.path();
+				quote! {
+					fn zeroize(&mut self) {
+						use #trait_path;
+
+						match self {
+							#body
+						}
 					}
 				}
-			},
+			}
 		}
 	}
 
