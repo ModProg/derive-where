@@ -126,11 +126,11 @@ impl<'a> Field<'a> {
 
 	/// Returns `true` if this field is skipped with any [`Trait`].
 	pub fn any_skip(&self) -> bool {
-		!self.attr.skip.is_none()
+		self.attr.skip.any_skip()
 	}
 
 	/// Returns `true` if this field is skipped with the given [`Trait`].
 	pub fn skip(&self, trait_: &Trait) -> bool {
-		self.attr.skip(trait_)
+		self.attr.skip.skip(trait_)
 	}
 }

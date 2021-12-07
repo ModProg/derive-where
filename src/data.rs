@@ -16,7 +16,7 @@ use crate::{util, Default, DeriveWhere, Either, Error, Skip, Trait};
 #[cfg_attr(test, derive(Debug))]
 pub struct Data<'a> {
 	/// [`Skip`] attribute of this struct, union or variant.
-	pub skip_inner: Skip,
+	skip_inner: Skip,
 	/// [`struct@Ident`] of this struct, union or variant, used for implementing
 	/// [`Debug`](std::fmt::Debug).
 	pub ident: &'a Ident,
