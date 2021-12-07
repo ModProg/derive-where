@@ -48,14 +48,6 @@ impl<'a> Input<'a> {
 					.map(|variant| Data::from_variant(ident, &derive_wheres, variant))
 					.collect::<Result<Vec<Data>>>()?;
 
-				// Empty enums aren't allowed.
-				if variants.iter().all(|variant| match variant.fields() {
-					Either::Left(fields) => fields.fields.is_empty(),
-					Either::Right(_) => true,
-				}) {
-					return Err(Error::item_empty(span));
-				}
-
 				// Find if a default option is specified on a variant.
 				let mut found_default = false;
 
@@ -78,6 +70,15 @@ impl<'a> Input<'a> {
 						.any(|derive_where| derive_where.trait_(&Trait::Default).is_some())
 				{
 					return Err(Error::default_missing(span));
+				}
+
+				// Empty enums aren't allowed unless they implement `Default`.
+				if !found_default
+					&& variants.iter().all(|variant| match variant.fields() {
+						Either::Left(fields) => fields.fields.is_empty(),
+						Either::Right(_) => true,
+					}) {
+					return Err(Error::item_empty(span));
 				}
 
 				Item::Enum { ident, variants }
