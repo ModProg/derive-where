@@ -7,8 +7,8 @@ use syn::{
 	parse::{discouraged::Speculative, Parse, ParseStream},
 	punctuated::Punctuated,
 	spanned::Spanned,
-	Attribute, Data, Ident, Meta, NestedMeta, Path, PredicateType, Result, Token, TraitBound, Type,
-	TypeParamBound, TypePath, WhereClause, WherePredicate,
+	Attribute, Data, Ident, Meta, NestedMeta, Path, PredicateType, Result, Token, TraitBound,
+	TraitBoundModifier, Type, TypeParamBound, TypePath, WhereClause, WherePredicate,
 };
 
 use crate::{util, Error, Item, Skip, Trait, TraitImpl, DERIVE_WHERE};
@@ -175,10 +175,10 @@ impl DeriveWhere {
 	}
 
 	/// Returns selected [`DeriveTrait`] if present.
-	pub fn trait_(&self, trait_: Trait) -> Option<&DeriveTrait> {
+	pub fn trait_(&self, trait_: &Trait) -> Option<&DeriveTrait> {
 		self.traits
 			.iter()
-			.find(|derive_trait| ***derive_trait == trait_)
+			.find(|derive_trait| &***derive_trait == trait_)
 	}
 
 	/// Returns `true` if any [`CustomBound`](Generic::CustomBound) is present.
@@ -201,6 +201,11 @@ impl DeriveWhere {
 			}
 			_ => false,
 		})
+	}
+
+	/// Returns `true` if any [`Trait`] supports skipping.
+	pub fn any_skip(&self) -> bool {
+		self.traits.iter().any(|trait_| trait_.supports_skip())
 	}
 
 	/// Create [`WhereClause`] for the given parameters.
@@ -386,11 +391,12 @@ impl DeriveTrait {
 
 		list.push(TypeParamBound::Trait(TraitBound {
 			paren_token: None,
-			modifier: syn::TraitBoundModifier::None,
+			modifier: TraitBoundModifier::None,
 			lifetimes: None,
 			path: self.path(),
 		}));
 
+		// Add bounds specific to the trait.
 		if let Some(bound) = self.additional_where_bounds(data) {
 			list.push(bound)
 		}

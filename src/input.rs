@@ -83,7 +83,7 @@ impl<'a> Input<'a> {
 				if !accumulated_defaults.0
 					&& derive_wheres
 						.iter()
-						.any(|derive_where| derive_where.trait_(Trait::Default).is_some())
+						.any(|derive_where| derive_where.trait_(&Trait::Default).is_some())
 				{
 					return Err(Error::default_missing(span));
 				}
@@ -118,7 +118,7 @@ impl<'a> Input<'a> {
 				{
 					if let Some(DeriveTrait::Zeroize {
 						crate_: Some(_), ..
-					}) = derive_where.trait_(Trait::Zeroize)
+					}) = derive_where.trait_(&Trait::Zeroize)
 					{
 						true
 					} else {
@@ -180,7 +180,7 @@ impl<'a> Input<'a> {
 			let mut found_use_case = false;
 			// `Default` is used on an enum.
 			found_use_case |= match item {
-				Item::Enum { .. } => derive_where.trait_(Trait::Default).is_some(),
+				Item::Enum { .. } => derive_where.trait_(&Trait::Default).is_some(),
 				Item::Item(_) => false,
 			};
 			// Any field is skipped with a corresponding `Trait`.
@@ -196,7 +196,7 @@ impl<'a> Input<'a> {
 					{
 						if let Some(DeriveTrait::Zeroize {
 							crate_: Some(_), ..
-						}) = derive_where.trait_(Trait::Zeroize)
+						}) = derive_where.trait_(&Trait::Zeroize)
 						{
 							true
 						} else {
@@ -205,7 +205,7 @@ impl<'a> Input<'a> {
 					}
 				};
 				// `Zeroize(fqs)` is used on any field.
-				found_use_case |= derive_where.trait_(Trait::Zeroize).is_some() && item.any_fqs();
+				found_use_case |= derive_where.trait_(&Trait::Zeroize).is_some() && item.any_fqs();
 			}
 
 			if !found_use_case {
