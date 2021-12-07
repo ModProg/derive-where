@@ -22,4 +22,4 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Spellcheck
-        run: cargo spellcheck
+        run: cargo spellcheck check -m 1 2>/dev/null
