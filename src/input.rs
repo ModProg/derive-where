@@ -5,7 +5,7 @@ use syn::{DeriveInput, GenericParam, Generics, Result};
 
 #[cfg(feature = "zeroize")]
 use crate::DeriveTrait;
-use crate::{Data, Default, DeriveWhere, Either, Error, Item, ItemAttr, Trait, VariantAttr};
+use crate::{Data, DeriveWhere, Either, Error, Item, ItemAttr, Trait};
 
 /// Parsed input.
 pub struct Input<'a> {
@@ -42,32 +42,10 @@ impl<'a> Input<'a> {
 					.map(Item::Item)?
 			}
 			syn::Data::Enum(data) => {
-				let mut accumulated_defaults = Default::default();
-
 				let variants = data
 					.variants
 					.iter()
-					.map(|variant| {
-						// Parse `Attribute`s on variant.
-						let VariantAttr {
-							default,
-							skip_inner,
-						} = VariantAttr::from_attrs(
-							&variant.attrs,
-							&derive_wheres,
-							&mut accumulated_defaults,
-							variant,
-						)?;
-
-						Data::from_variant(
-							ident,
-							&derive_wheres,
-							skip_inner,
-							default,
-							&variant.ident,
-							&variant.fields,
-						)
-					})
+					.map(|variant| Data::from_variant(ident, &derive_wheres, variant))
 					.collect::<Result<Vec<Data>>>()?;
 
 				// Empty enums aren't allowed.
@@ -78,9 +56,23 @@ impl<'a> Input<'a> {
 					return Err(Error::item_empty(span));
 				}
 
+				// Find if a default option is specified on a variant.
+				let mut found_default = false;
+
+				// While searching for a default option, check for duplicates.
+				for variant in &variants {
+					if let Some(span) = variant.default_span() {
+						if found_default {
+							return Err(Error::default_duplicate(span));
+						} else {
+							found_default = true;
+						}
+					}
+				}
+
 				// Make sure a variant has the `option` attribute if `Default` is being
 				// implemented.
-				if !accumulated_defaults.0
+				if !found_default
 					&& derive_wheres
 						.iter()
 						.any(|derive_where| derive_where.trait_(&Trait::Default).is_some())
@@ -99,10 +91,9 @@ impl<'a> Input<'a> {
 		// Don't allow no use-case compared to std `derive`.
 		let mut found_use_case = false;
 		// Any generics used.
-		found_use_case |= generics
-			.params
-			.iter()
-			.any(|generic_param| match generic_param {
+		found_use_case |= generics.params.iter().any(|generic_param|
+				// MSRV: `matches!` was added in 1.42.0.
+				match generic_param {
 				GenericParam::Type(_) => true,
 				GenericParam::Lifetime(_) | GenericParam::Const(_) => false,
 			});

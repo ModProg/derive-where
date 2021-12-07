@@ -18,7 +18,6 @@ impl VariantAttr {
 	pub fn from_attrs(
 		attrs: &[Attribute],
 		derive_wheres: &[DeriveWhere],
-		accumulated_defaults: &mut Default,
 		variant: &Variant,
 	) -> Result<Self> {
 		let mut self_ = VariantAttr::default();
@@ -26,9 +25,7 @@ impl VariantAttr {
 		for attr in attrs {
 			if attr.path.is_ident(DERIVE_WHERE) {
 				match attr.parse_meta() {
-					Ok(meta) => {
-						self_.add_meta(&meta, derive_wheres, accumulated_defaults, variant)?
-					}
+					Ok(meta) => self_.add_meta(&meta, derive_wheres, variant)?,
 					Err(error) => return Err(Error::attribute_syntax(attr.span(), error)),
 				}
 			}
@@ -42,7 +39,6 @@ impl VariantAttr {
 		&mut self,
 		meta: &Meta,
 		derive_wheres: &[DeriveWhere],
-		accumulated_defaults: &mut Default,
 		variant: &Variant,
 	) -> Result<()> {
 		debug_assert!(meta.path().is_ident(DERIVE_WHERE));
@@ -70,11 +66,7 @@ impl VariantAttr {
 								_ => self.skip_inner.add_attribute(derive_wheres, None, meta)?,
 							}
 						} else if meta.path().is_ident(Default::DEFAULT) {
-							self.default.add_attribute(
-								meta,
-								derive_wheres,
-								accumulated_defaults,
-							)?;
+							self.default.add_attribute(meta, derive_wheres)?;
 						} else {
 							return Err(Error::option(meta.path().span()));
 						}
