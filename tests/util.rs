@@ -81,6 +81,7 @@ impl<T> PartialOrd for Wrapper<T> {
 
 pub struct AssertClone<T: Clone>(pub T);
 
+#[allow(dead_code)]
 pub struct AssertCopy<T: Copy>(pub T);
 
 #[allow(dead_code)]
