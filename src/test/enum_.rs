@@ -4,7 +4,7 @@ use syn::Result;
 use super::test_derive;
 
 #[test]
-fn enum_default_struct() -> Result<()> {
+fn default_struct() -> Result<()> {
 	test_derive(
 		quote! {
 			#[derive_where(Default; T)]
@@ -26,7 +26,7 @@ fn enum_default_struct() -> Result<()> {
 }
 
 #[test]
-fn enum_default_tuple() -> Result<()> {
+fn default_tuple() -> Result<()> {
 	test_derive(
 		quote! {
 			#[derive_where(Default; T)]
@@ -48,7 +48,7 @@ fn enum_default_tuple() -> Result<()> {
 }
 
 #[test]
-fn enum_default_unit() -> Result<()> {
+fn default_unit() -> Result<()> {
 	test_derive(
 		quote! {
 			#[derive_where(Default; T)]
@@ -71,7 +71,7 @@ fn enum_default_unit() -> Result<()> {
 }
 
 #[test]
-fn enum_one_data() -> Result<()> {
+fn one_data() -> Result<()> {
 	test_derive(
 		quote! {
 			#[derive_where(PartialEq, PartialOrd)]
@@ -107,7 +107,7 @@ fn enum_one_data() -> Result<()> {
 }
 
 #[test]
-fn enum_two_data() -> Result<()> {
+fn two_data() -> Result<()> {
 	#[cfg(not(feature = "safe"))]
 	let unreachable = quote! { unsafe { ::core::hint::unreachable_unchecked() } };
 	#[cfg(feature = "safe")]
@@ -203,7 +203,7 @@ fn enum_two_data() -> Result<()> {
 }
 
 #[test]
-fn enum_unit() -> Result<()> {
+fn unit() -> Result<()> {
 	#[cfg(feature = "nightly")]
 	let discriminant = quote! {
 		let __self_disc = ::core::intrinsics::discriminant_value(self);
@@ -288,7 +288,7 @@ fn enum_unit() -> Result<()> {
 }
 
 #[test]
-fn enum_struct_unit() -> Result<()> {
+fn struct_unit() -> Result<()> {
 	#[cfg(feature = "nightly")]
 	let discriminant = quote! {
 		let __self_disc = ::core::intrinsics::discriminant_value(self);
@@ -373,7 +373,7 @@ fn enum_struct_unit() -> Result<()> {
 }
 
 #[test]
-fn enum_tuple_unit() -> Result<()> {
+fn tuple_unit() -> Result<()> {
 	#[cfg(feature = "nightly")]
 	let discriminant = quote! {
 		let __self_disc = ::core::intrinsics::discriminant_value(self);
