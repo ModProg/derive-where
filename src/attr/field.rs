@@ -2,9 +2,9 @@
 
 use syn::{spanned::Spanned, Attribute, Meta, NestedMeta, Result};
 
-use crate::{DeriveWhere, Error, Skip, Trait, DERIVE_WHERE};
+use crate::{DeriveWhere, Error, Skip, DERIVE_WHERE};
 #[cfg(feature = "zeroize")]
-use crate::{TraitImpl, ZeroizeFqs};
+use crate::{Trait, TraitImpl, ZeroizeFqs};
 
 /// Attributes on field.
 #[derive(Default)]
