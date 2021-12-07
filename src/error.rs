@@ -229,7 +229,7 @@ impl Error {
 		.join(", ")
 	}
 
-	/// Unsupported `Zeroize` option if [`Zeroize`](https://docs.rs/zeroize/1.4.3/zeroize/trait.Zeroize.html) isn't implemented.
+	/// Unsupported `Zeroize` option if [`Zeroize`](https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html) isn't implemented.
 	#[cfg(feature = "zeroize")]
 	pub fn zeroize(span: Span) -> syn::Error {
 		syn::Error::new(

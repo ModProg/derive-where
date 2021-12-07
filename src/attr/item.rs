@@ -304,12 +304,12 @@ pub enum DeriveTrait {
 	PartialEq,
 	/// [`PartialOrd`].
 	PartialOrd,
-	/// [`Zeroize`](https://docs.rs/zeroize/1.4.3/zeroize/trait.Zeroize.html).
+	/// [`Zeroize`](https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html).
 	#[cfg(feature = "zeroize")]
 	Zeroize {
-		/// [`Zeroize`](https://docs.rs/zeroize/1.4.3/zeroize/trait.Zeroize.html) path.
+		/// [`Zeroize`](https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html) path.
 		crate_: Option<Path>,
-		/// [`Zeroize`](https://docs.rs/zeroize/1.4.3/zeroize/trait.Zeroize.html) [`Drop`] implementation.
+		/// [`Zeroize`](https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html) [`Drop`] implementation.
 		drop: bool,
 	},
 }

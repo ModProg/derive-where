@@ -40,7 +40,7 @@ pub enum Trait {
 	PartialEq,
 	/// [`PartialOrd`].
 	PartialOrd,
-	/// [`Zeroize`](https://docs.rs/zeroize/1.4.3/zeroize/trait.Zeroize.html).
+	/// [`Zeroize`](https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html).
 	#[cfg(feature = "zeroize")]
 	Zeroize,
 }

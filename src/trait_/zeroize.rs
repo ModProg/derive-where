@@ -1,4 +1,4 @@
-//! [`Zeroize`](https://docs.rs/zeroize/1.4.3/zeroize/trait.Zeroize.html) implementation.
+//! [`Zeroize`](https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html) implementation.
 
 use proc_macro2::TokenStream;
 use quote::quote;
@@ -6,7 +6,7 @@ use syn::{spanned::Spanned, Lit, Meta, MetaList, NestedMeta, Path, Result};
 
 use crate::{util, Data, DeriveTrait, Error, Item, SimpleType, TraitImpl};
 
-/// Dummy-struct implement [`Trait`](crate::Trait) for [`Zeroize`](https://docs.rs/zeroize/1.4.3/zeroize/trait.Zeroize.html) .
+/// Dummy-struct implement [`Trait`](crate::Trait) for [`Zeroize`](https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html) .
 pub struct Zeroize;
 
 impl TraitImpl for Zeroize {
