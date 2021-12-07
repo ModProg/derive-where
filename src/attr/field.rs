@@ -10,7 +10,7 @@ use crate::{Trait, TraitImpl, ZeroizeFqs};
 #[derive(Default)]
 #[cfg_attr(test, derive(Debug))]
 pub struct FieldAttr {
-	/// [`Trait`]s to skip this field for.
+	/// [`Trait`](crate::Trait)s to skip this field for.
 	pub skip: Skip,
 	/// Use fully-qualified-syntax for the [`Zeroize`](https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html) implementation on this field.
 	#[cfg(feature = "zeroize")]
