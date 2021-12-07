@@ -3,6 +3,7 @@ mod bound;
 mod enum_;
 mod misc;
 mod skip;
+mod use_case;
 #[cfg(feature = "zeroize")]
 mod zeroize;
 
@@ -16,4 +17,8 @@ fn test_derive(input: TokenStream, expected: TokenStream) -> Result<()> {
 
 	assert_eq!(left, right);
 	Ok(())
+}
+
+fn compiles(input: TokenStream) -> Result<()> {
+	crate::derive_where_internal(input).map(|_| ())
 }

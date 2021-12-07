@@ -1,0 +1,11 @@
+error: this can be handled by standard `#[derive(..)]`, use a `skip` attribute, implement `Default` on an enum, of different generic type parameters
+ --> tests/ui/zeroize/use_case.rs:6:16
+  |
+6 | #[derive_where(Clone, Zeroize(crate = "zeroize_"); T)]
+  |                ^^^^^
+
+error: this can be handled by standard `#[derive(..)]`, use a `skip` attribute, implement `Default` on an enum, of different generic type parameters
+  --> tests/ui/zeroize/use_case.rs:10:16
+   |
+10 | #[derive_where(Clone, Zeroize; T)]
+   |                ^^^^^
