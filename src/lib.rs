@@ -170,6 +170,8 @@
 //!   ambiguity between another method also called `zeroize`.
 //!
 //! ```
+//! # #[cfg(feature = "zeroize")]
+//! # {
 //! # use std::marker::PhantomData;
 //! # use derive_where::DeriveWhere;
 //! # use zeroize_::Zeroize;
@@ -206,6 +208,7 @@
 //! // WIll call the `Zeroize::zeroize` method.
 //! Zeroize::zeroize(&mut test);
 //! assert_eq!(test.0, 0);
+//! # }
 //! ```
 //!
 //! ## Supported traits
