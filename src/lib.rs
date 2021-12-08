@@ -11,6 +11,10 @@
 //!
 //! # Usage
 //!
+//! The `derive_where` macro can be used just like std's `#[derive(...)]`
+//! statements, with the only caveat that it requires to derive `DeriveWhere`
+//! ([#27]):
+//!
 //! ```
 //! # use std::marker::PhantomData;
 //! # use derive_where::DeriveWhere;
@@ -19,13 +23,17 @@
 //! struct Example<T>(PhantomData<T>);
 //! ```
 //!
-//! This will generate trait implementations for `Example` with any `T`,
-//! compared with std's derives, which would only implement these traits with
+//! This will generate trait implementations for `Example` for any `T`,
+//! as opposed to std's derives, which would only implement these traits with
 //! `T: Trait` bound to the corresponding trait.
 //!
 //! In addition, the following convenience options are available:
 //!
 //! ## Generic type bounds
+//!
+//! Separated from the list of traits with a semi-colon, types to bind to can be
+//! specified. This example will restrict the implementation for `Example` to
+//! `T: Clone`:
 //!
 //! ```
 //! # use std::marker::PhantomData;
@@ -35,8 +43,8 @@
 //! struct Example<T, U>(T, PhantomData<U>);
 //! ```
 //!
-//! Separating the list of trait with a semi-colon, types to bind to can be
-//! specified. This will bind implementation for `Example` to `T: Trait`.
+//! It is also possible to specify the bounds to be applied. This will
+//! bind implementation for `Example` to `T: Super`:
 //!
 //! ```
 //! # use std::marker::PhantomData;
@@ -48,8 +56,9 @@
 //! struct Example<T>(PhantomData<T>);
 //! ```
 //!
-//! This will bind implementation for `Example` to `T: Super`. But more complex
-//! trait bounds are possible:
+//! But more complex trait bounds are possible as well.
+//! The example below will restrict the implementation for `Example` to
+//! `T::Type: Clone`:
 //!
 //! ```
 //! # use std::marker::PhantomData;
@@ -69,12 +78,9 @@
 //! struct Example<T: Trait>(T::Type);
 //! ```
 //!
-//! This will bind implementation for `Example` to `T::Type: Super`. Any
-//! combination of options listed here can be used to satisfy a specific
-//! constrain.
-//!
-//! It is also possible to use two separate constrain specification when
-//! required:
+//! Any combination of options listed here can be used to satisfy a
+//! specific constrain. It is also possible to use multiple separate
+//! constrain specifications when required:
 //!
 //! ```
 //! # use std::marker::PhantomData;
@@ -293,6 +299,7 @@
 //! [`Hash`]: core::hash::Hash
 //! [`Zeroize`]: https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html
 //! [`zeroize`]: https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html#tymethod.zeroize
+//! [#27]: https://github.com/ModProg/derive-where/issues/27
 
 // MSRV: needed to support a lower MSRV.
 extern crate proc_macro;
