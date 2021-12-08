@@ -255,7 +255,7 @@ submitted for inclusion in the work by you, as defined in the Apache-2.0
 license, shall be dual licensed as above, without any additional terms or
 conditions.
 
-[CHANGELOG]: https://github.com/ModProg/derive-where/blob/main/CHANGELOG
+[CHANGELOG]: https://github.com/ModProg/derive-where/blob/main/CHANGELOG.md
 [LICENSE-MIT]: https://github.com/ModProg/derive-where/blob/main/LICENSE-MIT
 [LICENSE-APACHE]: https://github.com/ModProg/derive-where/blob/main/LICENSE-APACHE
 [`Debug`]: https://doc.rust-lang.org/core/fmt/trait.Debug.html
