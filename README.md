@@ -154,8 +154,8 @@ assert_ne!(
 - `drop`: an item-level option which implements [`Drop`](https://doc.rust-lang.org/core/ops/trait.Drop.html) and uses
   [`Zeroize`] to erase all data from memory.
 - `fqs`: a field -level option which will use fully-qualified-syntax instead
-  of calling the [`zeroize`] method on `self` directly. This is to avoid
-  ambiguity between another method also called `zeroize`.
+  of calling the [`zeroize`][`method@zeroize`] method on `self` directly.
+  This is to avoid ambiguity between another method also called `zeroize`.
 
 ```rust
 #[derive(DeriveWhere)]
@@ -262,5 +262,5 @@ conditions.
 [`Default`]: https://doc.rust-lang.org/core/default/trait.Default.html
 [`Hash`]: https://doc.rust-lang.org/core/hash/trait.Hash.html
 [`Zeroize`]: https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html
-[`zeroize`]: https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html#tymethod.zeroize
+[`method@zeroize`]: https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html#tymethod.zeroize
 [#27]: https://github.com/ModProg/derive-where/issues/27

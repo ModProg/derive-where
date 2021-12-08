@@ -172,8 +172,8 @@
 //! - `drop`: an item-level option which implements [`Drop`] and uses
 //!   [`Zeroize`] to erase all data from memory.
 //! - `fqs`: a field -level option which will use fully-qualified-syntax instead
-//!   of calling the [`zeroize`] method on `self` directly. This is to avoid
-//!   ambiguity between another method also called `zeroize`.
+//!   of calling the [`zeroize`][`method@zeroize`] method on `self` directly.
+//!   This is to avoid ambiguity between another method also called `zeroize`.
 //!
 //! ```
 //! # #[cfg(feature = "zeroize")]
@@ -291,14 +291,14 @@
 //! license, shall be dual licensed as above, without any additional terms or
 //! conditions.
 //!
-//! [CHANGELOG]: https://github.com/ModProg/derive-where/blob/main/CHANGELOG
+//! [CHANGELOG]: https://github.com/ModProg/derive-where/blob/main/CHANGELOG.md
 //! [LICENSE-MIT]: https://github.com/ModProg/derive-where/blob/main/LICENSE-MIT
 //! [LICENSE-APACHE]: https://github.com/ModProg/derive-where/blob/main/LICENSE-APACHE
 //! [`Debug`]: core::fmt::Debug
 //! [`Default`]: core::default::Default
 //! [`Hash`]: core::hash::Hash
 //! [`Zeroize`]: https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html
-//! [`zeroize`]: https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html#tymethod.zeroize
+//! [`method@zeroize`]: https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html#tymethod.zeroize
 //! [#27]: https://github.com/ModProg/derive-where/issues/27
 
 // MSRV: needed to support a lower MSRV.
