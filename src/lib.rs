@@ -291,9 +291,9 @@
 //! license, shall be dual licensed as above, without any additional terms or
 //! conditions.
 //!
-//! [CHANGELOG]: https://github.com/getsentry/sentry-native/blob/main/CHANGELOG
-//! [LICENSE-MIT]: https://github.com/getsentry/sentry-native/blob/main/LICENSE-MIT
-//! [LICENSE-APACHE]: https://github.com/getsentry/sentry-native/blob/main/LICENSE-APACHE
+//! [CHANGELOG]: https://github.com/ModProg/derive-where/blob/main/CHANGELOG
+//! [LICENSE-MIT]: https://github.com/ModProg/derive-where/blob/main/LICENSE-MIT
+//! [LICENSE-APACHE]: https://github.com/ModProg/derive-where/blob/main/LICENSE-APACHE
 //! [`Debug`]: core::fmt::Debug
 //! [`Default`]: core::default::Default
 //! [`Hash`]: core::hash::Hash

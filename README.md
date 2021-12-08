@@ -255,9 +255,9 @@ submitted for inclusion in the work by you, as defined in the Apache-2.0
 license, shall be dual licensed as above, without any additional terms or
 conditions.
 
-[CHANGELOG]: https://github.com/getsentry/sentry-native/blob/main/CHANGELOG
-[LICENSE-MIT]: https://github.com/getsentry/sentry-native/blob/main/LICENSE-MIT
-[LICENSE-APACHE]: https://github.com/getsentry/sentry-native/blob/main/LICENSE-APACHE
+[CHANGELOG]: https://github.com/ModProg/derive-where/blob/main/CHANGELOG
+[LICENSE-MIT]: https://github.com/ModProg/derive-where/blob/main/LICENSE-MIT
+[LICENSE-APACHE]: https://github.com/ModProg/derive-where/blob/main/LICENSE-APACHE
 [`Debug`]: https://doc.rust-lang.org/core/fmt/trait.Debug.html
 [`Default`]: https://doc.rust-lang.org/core/default/trait.Default.html
 [`Hash`]: https://doc.rust-lang.org/core/hash/trait.Hash.html
