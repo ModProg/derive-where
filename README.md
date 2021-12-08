@@ -6,11 +6,14 @@
 
 ## Description
 
+Derive macro to simplify deriving standard and other traits with custom
+generic type bounds.
+
+## Usage
+
 The `derive_where` macro can be used just like std's `#[derive(...)]`
 statements, with the only caveat that it requires to derive `DeriveWhere`
 ([#27]):
-
-## Usage
 
 ```rust
 #[derive(DeriveWhere)]
