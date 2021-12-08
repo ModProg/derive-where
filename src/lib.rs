@@ -4,14 +4,14 @@
 #![warn(clippy::cargo, clippy::missing_docs_in_private_items)]
 #![cfg_attr(doc, warn(rustdoc::all), allow(rustdoc::missing_doc_code_examples))]
 
-//! ## Description
+//! # Description
 //!
 //! Derive macro to simplify deriving standard and other traits with custom
 //! generic type bounds.
 //!
-//! ## Usage
+//! # Usage
 //!
-//! ```rust
+//! ```
 //! # use std::marker::PhantomData;
 //! # use derive_where::DeriveWhere;
 //! #[derive(DeriveWhere)]
@@ -25,7 +25,7 @@
 //!
 //! In addition, the following convenience options are available:
 //!
-//! ### Generic type bounds
+//! ## Generic type bounds
 //!
 //! ```
 //! # use std::marker::PhantomData;
@@ -85,7 +85,7 @@
 //! struct Example<T, U>(PhantomData<T>, PhantomData<U>);
 //! ```
 //!
-//! ### Enum default
+//! ## Enum default
 //!
 //! Deriving [`Default`] on an enum is not possible in Rust at the moment.
 //! Derive-where allows this with a `default` attribute:
@@ -101,13 +101,13 @@
 //! }
 //! ```
 //!
-//! ### Skipping fields
+//! ## Skipping fields
 //!
 //! With a `skip` or `skip_inner` attribute fields can be skipped for traits
 //! that allow it, which are: [`Debug`], [`Hash`], [`Ord`], [`PartialOrd`],
 //! [`PartialEq`] and [`Zeroize`].
 //!
-//! ```rust
+//! ```
 //! # use std::marker::PhantomData;
 //! # use derive_where::DeriveWhere;
 //! #[derive(DeriveWhere)]
@@ -120,7 +120,7 @@
 //!
 //! It is also possible to skip all fields in an item or variant if desired:
 //!
-//! ```rust
+//! ```
 //! # use std::marker::PhantomData;
 //! # use derive_where::DeriveWhere;
 //! #[derive(DeriveWhere)]
@@ -143,7 +143,7 @@
 //! Selective skipping of fields for certain traits is also an option, both in
 //! `skip` and `skip_inner`:
 //!
-//! ```rust
+//! ```
 //! # use std::marker::PhantomData;
 //! # use derive_where::DeriveWhere;
 //! #[derive(DeriveWhere)]
@@ -158,7 +158,7 @@
 //! );
 //! ```
 //!
-//! ### `Zeroize` options
+//! ## `Zeroize` options
 //!
 //! [`Zeroize`] has three options:
 //! - `crate`: an item-level option which specifies a path to the `zeroize`
@@ -208,7 +208,7 @@
 //! assert_eq!(test.0, 0);
 //! ```
 //!
-//! ### Supported traits
+//! ## Supported traits
 //!
 //! The following traits can be derived with derive-where:
 //! - [`Clone`]
@@ -222,20 +222,20 @@
 //! - [`PartialOrd`]
 //! - [`Zeroize`]: Only available with the `zeroize` crate feature.
 //!
-//! ### Supported items
+//! ## Supported items
 //!
 //! Structs, tuple structs, unions and enums are supported. Derive-where tries
 //! it's best to discourage usage that could be covered by std's `derive`. For
 //! example unit structs and enums only containing unit variants aren't
 //! supported.
 //!
-//! Unions can only implement [`Clone`] and [`Copy`].
+//! Unions only support [`Clone`] and [`Copy`].
 //!
-//! ### `no_std` support
+//! ## `no_std` support
 //!
 //! `no_std` support is provided by default.
 //!
-//! ## Crate features
+//! # Crate features
 //!
 //! - `nightly`: Implements [`Ord`] and [`PartialOrd`] with the help of
 //!   [`core::intrinsics::discriminant_value`], which is what Rust does by
@@ -249,24 +249,24 @@
 //!   [`unreachable`].
 //! - `zeroize`: Allows deriving [`Zeroize`].
 //!
-//! ## MSRV
+//! # MSRV
 //!
 //! The current MSRV is 1.34 and is being checked by the CI. A change will be
 //! accompanied by a minor version bump. If MSRV is important to you, use
 //! `derive-where = "~1.x"` to pin a specific minor version to your crate.
 //!
-//! ## Alternatives
+//! # Alternatives
 //!
 //! [derivative](https://crates.io/crates/derivative)
 //! ([![Crates.io](https://img.shields.io/crates/v/derivative.svg)](https://crates.io/crates/derivative))
 //! is a great alternative with many options. Notably it has no `no_std`
 //! support.
 //!
-//! ## Changelog
+//! # Changelog
 //!
 //! See the [CHANGELOG] file for details.
 //!
-//! ## License
+//! # License
 //!
 //! Licensed under either of
 //!
@@ -275,7 +275,7 @@
 //!
 //! at your option.
 //!
-//! ### Contribution
+//! ## Contribution
 //!
 //! Unless you explicitly state otherwise, any contribution intentionally
 //! submitted for inclusion in the work by you, as defined in the Apache-2.0
