@@ -1,8 +1,12 @@
-7
+11
+Changelog
+CHANGELOG
 destructure/G
 enum/S
 FQS
+io
 MSRV
+std's
 struct/S
 TODO
 tuple
