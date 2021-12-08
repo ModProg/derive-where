@@ -1,0 +1,16 @@
+name: Publish
+
+on: [push, pull_request]
+
+jobs:
+  publish:
+    name: Publish
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Publish
+        run:
+          cargo publish --dry-run
