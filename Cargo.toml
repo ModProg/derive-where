@@ -41,4 +41,5 @@ syn = { version = "1", default-features = false, features = ["extra-traits"] }
 
 [[test]]
 name = "util"
+path = "tests/util.rs"
 test = false
