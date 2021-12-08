@@ -162,7 +162,7 @@ impl Skip {
 			Skip::All => trait_.supports_skip(),
 			Skip::Traits(traits) => {
 				let skip = traits.contains(trait_);
-				debug_assert!(!skip || (skip && trait_.supports_skip()));
+				debug_assert!(!skip || trait_.supports_skip());
 				skip
 			}
 		}
