@@ -28,10 +28,10 @@ jobs:
           rustup default ${{ matrix.matrix.channel }}
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Clippy
+      - name: Run Clippy
         run:
           cargo clippy --all-targets --workspace ${{ matrix.matrix.features }} -- -D warnings
-      - name: Rustdoc
+      - name: Run Rustdoc
         env:
           RUSTDOCFLAGS: -D warnings
         run:

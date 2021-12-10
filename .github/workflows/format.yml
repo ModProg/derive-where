@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 jobs:
   rustfmt:
-    name: rustfmt
+    name: Rustfmt
 
     runs-on: ubuntu-latest
 
@@ -15,7 +15,7 @@ jobs:
           rustup default nightly
       - name: Checkout
         uses: actions/checkout@v2
-      - name: rustfmt
+      - name: Run Rustfmt
         run:
           cargo fmt --check
 
@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Cache
+      - name: Cache Taplo
         uses: actions/cache@v2
         with:
           path: |
@@ -37,5 +37,5 @@ jobs:
         run: cargo install taplo-cli
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Taplo
+      - name: Run Taplo
         run: taplo fmt --check
