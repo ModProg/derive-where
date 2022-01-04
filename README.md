@@ -98,8 +98,8 @@ enum Example<T> {
 ### Skipping fields
 
 With a `skip` or `skip_inner` attribute fields can be skipped for traits
-that allow it, which are: [`Debug`], [`Hash`], [`Ord`](https://doc.rust-lang.org/core/cmp/trait.Ord.html), [`PartialOrd`](https://doc.rust-lang.org/core/cmp/trait.PartialOrd.html),
-[`PartialEq`](https://doc.rust-lang.org/core/cmp/trait.PartialEq.html) and [`Zeroize`].
+that allow it, which are: [`Debug`], [`Hash`], [`Ord`], [`PartialOrd`],
+[`PartialEq`] and [`Zeroize`].
 
 ```rust
 #[derive(DeriveWhere)]
@@ -151,7 +151,7 @@ assert_ne!(
 [`Zeroize`] has three options:
 - `crate`: an item-level option which specifies a path to the `zeroize`
   crate in case of a re-export or rename.
-- `drop`: an item-level option which implements [`Drop`](https://doc.rust-lang.org/core/ops/trait.Drop.html) and uses
+- `drop`: an item-level option which implements [`Drop`] and uses
   [`Zeroize`] to erase all data from memory.
 - `fqs`: a field -level option which will use fully-qualified-syntax instead
   of calling the [`zeroize`][`method@zeroize`] method on `self` directly.
@@ -184,15 +184,15 @@ assert_eq!(test.0, 0);
 ### Supported traits
 
 The following traits can be derived with derive-where:
-- [`Clone`](https://doc.rust-lang.org/core/clone/trait.Clone.html)
-- [`Copy`](https://doc.rust-lang.org/core/marker/trait.Copy.html)
+- [`Clone`]
+- [`Copy`]
 - [`Debug`]
 - [`Default`]
-- [`Eq`](https://doc.rust-lang.org/core/cmp/trait.Eq.html)
+- [`Eq`]
 - [`Hash`]
-- [`Ord`](https://doc.rust-lang.org/core/cmp/trait.Ord.html)
-- [`PartialEq`](https://doc.rust-lang.org/core/cmp/trait.PartialEq.html)
-- [`PartialOrd`](https://doc.rust-lang.org/core/cmp/trait.PartialOrd.html)
+- [`Ord`]
+- [`PartialEq`]
+- [`PartialOrd`]
 - [`Zeroize`]: Only available with the `zeroize` crate feature.
 
 ### Supported items
@@ -202,7 +202,7 @@ it's best to discourage usage that could be covered by std's `derive`. For
 example unit structs and enums only containing unit variants aren't
 supported.
 
-Unions only support [`Clone`](https://doc.rust-lang.org/core/clone/trait.Clone.html) and [`Copy`](https://doc.rust-lang.org/core/marker/trait.Copy.html).
+Unions only support [`Clone`] and [`Copy`].
 
 ### `no_std` support
 
@@ -210,16 +210,15 @@ Unions only support [`Clone`](https://doc.rust-lang.org/core/clone/trait.Clone.h
 
 ## Crate features
 
-- `nightly`: Implements [`Ord`](https://doc.rust-lang.org/core/cmp/trait.Ord.html) and [`PartialOrd`](https://doc.rust-lang.org/core/cmp/trait.PartialOrd.html) with the help of
-  [`core::intrinsics::discriminant_value`](https://doc.rust-lang.org/core/intrinsics/fn.discriminant_value.html), which is what Rust does by
-  default too. Without this feature [`transmute`](https://doc.rust-lang.org/core/mem/fn.transmute.html) is
-  used to convert [`Discriminant`](https://doc.rust-lang.org/core/mem/struct.Discriminant.html) to a [`i32`](https://doc.rust-lang.org/core/primitive.i32.html),
-  which is the underlying type.
-- `safe`: Implements [`Ord`](https://doc.rust-lang.org/core/cmp/trait.Ord.html) and [`PartialOrd`](https://doc.rust-lang.org/core/cmp/trait.PartialOrd.html) manually. This is much
+- `nightly`: Implements [`Ord`] and [`PartialOrd`] with the help of
+  [`core::intrinsics::discriminant_value`], which is what Rust does by
+  default too. Without this feature [`transmute`] is used to convert
+  [`Discriminant`] to a [`i32`], which is the underlying type.
+- `safe`: Implements [`Ord`] and [`PartialOrd`] manually. This is much
   slower, but might be preferred if you don't trust derive-where. It also
-  replaces all cases of [`core::hint::unreachable_unchecked`](https://doc.rust-lang.org/core/hint/fn.unreachable_unchecked.html) in [`Ord`](https://doc.rust-lang.org/core/hint/fn.unreachable_unchecked.html),
-  [`PartialEq`](https://doc.rust-lang.org/core/cmp/trait.PartialEq.html) and [`PartialOrd`](https://doc.rust-lang.org/core/cmp/trait.PartialOrd.html), which is what std uses, with
-  [`unreachable`](https://doc.rust-lang.org/core/macro.unreachable.html).
+  replaces all cases of [`core::hint::unreachable_unchecked`] in [`Ord`],
+  [`PartialEq`] and [`PartialOrd`], which is what std uses, with
+  [`unreachable`].
 - `zeroize`: Allows deriving [`Zeroize`].
 
 ## MSRV
@@ -258,9 +257,22 @@ conditions.
 [CHANGELOG]: https://github.com/ModProg/derive-where/blob/main/CHANGELOG.md
 [LICENSE-MIT]: https://github.com/ModProg/derive-where/blob/main/LICENSE-MIT
 [LICENSE-APACHE]: https://github.com/ModProg/derive-where/blob/main/LICENSE-APACHE
+[`Clone`]: https://doc.rust-lang.org/core/clone/trait.Clone.html
+[`Copy`]: https://doc.rust-lang.org/core/marker/trait.Copy.html
 [`Debug`]: https://doc.rust-lang.org/core/fmt/trait.Debug.html
 [`Default`]: https://doc.rust-lang.org/core/default/trait.Default.html
+[`Drop`]: https://doc.rust-lang.org/core/ops/trait.Drop.html
+[`Eq`]: https://doc.rust-lang.org/core/cmp/trait.Eq.html
 [`Hash`]: https://doc.rust-lang.org/core/hash/trait.Hash.html
+[`Ord`]: https://doc.rust-lang.org/core/cmp/trait.Ord.html
+[`PartialOrd`]: https://doc.rust-lang.org/core/cmp/trait.PartialOrd.html
+[`PartialEq`]: https://doc.rust-lang.org/core/cmp/trait.PartialEq.html
 [`Zeroize`]: https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html
 [`method@zeroize`]: https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html#tymethod.zeroize
+[`core::hint::unreachable_unchecked`]: https://doc.rust-lang.org/core/hint/fn.unreachable_unchecked.html
+[`core::intrinsics::discriminant_value`]: https://doc.rust-lang.org/core/intrinsics/fn.discriminant_value.html
+[`Discriminant`]: https://doc.rust-lang.org/core/mem/struct.Discriminant.html
+[`i32`]: https://doc.rust-lang.org/core/primitive.i32.html
+[`transmute`]: https://doc.rust-lang.org/core/mem/fn.transmute.html
+[`unreachable`]: https://doc.rust-lang.org/core/macro.unreachable.html
 [#27]: https://github.com/ModProg/derive-where/issues/27
