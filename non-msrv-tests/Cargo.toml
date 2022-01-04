@@ -13,6 +13,8 @@ zeroize = ["derive-where/zeroize"]
 derive-where = { path = ".." }
 
 [dev-dependencies]
+pulldown-cmark-to-cmark = "7"
+readme-sync = "0.2"
 trybuild = { version = "1", default-features = false }
 zeroize_ = { version = "1", package = "zeroize", default-features = false }
 

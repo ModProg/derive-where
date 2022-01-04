@@ -248,9 +248,8 @@
 //!
 //! - `nightly`: Implements [`Ord`] and [`PartialOrd`] with the help of
 //!   [`core::intrinsics::discriminant_value`], which is what Rust does by
-//!   default too. Without this feature [`transmute`](core::mem::transmute) is
-//!   used to convert [`Discriminant`](core::mem::Discriminant) to a [`i32`],
-//!   which is the underlying type.
+//!   default too. Without this feature [`transmute`] is used to convert
+//!   [`Discriminant`] to a [`i32`], which is the underlying type.
 //! - `safe`: Implements [`Ord`] and [`PartialOrd`] manually. This is much
 //!   slower, but might be preferred if you don't trust derive-where. It also
 //!   replaces all cases of [`core::hint::unreachable_unchecked`] in [`Ord`],
@@ -294,11 +293,24 @@
 //! [CHANGELOG]: https://github.com/ModProg/derive-where/blob/main/CHANGELOG.md
 //! [LICENSE-MIT]: https://github.com/ModProg/derive-where/blob/main/LICENSE-MIT
 //! [LICENSE-APACHE]: https://github.com/ModProg/derive-where/blob/main/LICENSE-APACHE
-//! [`Debug`]: core::fmt::Debug
-//! [`Default`]: core::default::Default
-//! [`Hash`]: core::hash::Hash
+//! [`Clone`]: https://doc.rust-lang.org/core/clone/trait.Clone.html
+//! [`Copy`]: https://doc.rust-lang.org/core/marker/trait.Copy.html
+//! [`Debug`]: https://doc.rust-lang.org/core/fmt/trait.Debug.html
+//! [`Default`]: https://doc.rust-lang.org/core/default/trait.Default.html
+//! [`Drop`]: https://doc.rust-lang.org/core/ops/trait.Drop.html
+//! [`Eq`]: https://doc.rust-lang.org/core/cmp/trait.Eq.html
+//! [`Hash`]: https://doc.rust-lang.org/core/hash/trait.Hash.html
+//! [`Ord`]: https://doc.rust-lang.org/core/cmp/trait.Ord.html
+//! [`PartialOrd`]: https://doc.rust-lang.org/core/cmp/trait.PartialOrd.html
+//! [`PartialEq`]: https://doc.rust-lang.org/core/cmp/trait.PartialEq.html
 //! [`Zeroize`]: https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html
 //! [`method@zeroize`]: https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html#tymethod.zeroize
+//! [`core::hint::unreachable_unchecked`]: https://doc.rust-lang.org/core/hint/fn.unreachable_unchecked.html
+//! [`core::intrinsics::discriminant_value`]: https://doc.rust-lang.org/core/intrinsics/fn.discriminant_value.html
+//! [`Discriminant`]: https://doc.rust-lang.org/core/mem/struct.Discriminant.html
+//! [`i32`]: https://doc.rust-lang.org/core/primitive.i32.html
+//! [`transmute`]: https://doc.rust-lang.org/core/mem/fn.transmute.html
+//! [`unreachable`]: https://doc.rust-lang.org/core/macro.unreachable.html
 //! [#27]: https://github.com/ModProg/derive-where/issues/27
 
 // MSRV: needed to support a lower MSRV.
