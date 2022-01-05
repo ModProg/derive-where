@@ -1,21 +1,21 @@
-//! [`Zeroize`](https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html) implementation.
+//! [`ZeroizeOnDrop`](https://docs.rs/zeroize/latest/zeroize/trait.ZeroizeOnDrop.html) implementation.
 
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::{spanned::Spanned, Lit, Meta, MetaList, NestedMeta, Result};
+use syn::{spanned::Spanned, Lit, Meta, MetaList, NestedMeta, Path, Result};
 
-use crate::{Data, DeriveTrait, Error, Item, SimpleType, TraitImpl};
+use crate::{util, Data, DeriveTrait, Error, Item, SimpleType, TraitImpl};
 
-/// Dummy-struct implement [`Trait`](crate::Trait) for [`Zeroize`](https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html) .
-pub struct Zeroize;
+/// Dummy-struct implement [`Trait`](crate::Trait) for [`ZeroizeOnDrop`](https://docs.rs/zeroize/latest/zeroize/trait.ZeroizeOnDrop.html) .
+pub struct ZeroizeOnDrop;
 
-impl TraitImpl for Zeroize {
+impl TraitImpl for ZeroizeOnDrop {
 	fn as_str(&self) -> &'static str {
-		"Zeroize"
+		"ZeroizeOnDrop"
 	}
 
 	fn default_derive_trait(&self) -> DeriveTrait {
-		DeriveTrait::Zeroize { crate_: None }
+		DeriveTrait::ZeroizeOnDrop { crate_: None }
 	}
 
 	fn parse_derive_trait(&self, list: MetaList) -> Result<DeriveTrait> {
@@ -56,11 +56,19 @@ impl TraitImpl for Zeroize {
 			}
 		}
 
-		Ok(DeriveTrait::Zeroize { crate_ })
+		Ok(DeriveTrait::ZeroizeOnDrop { crate_ })
 	}
 
 	fn supports_skip(&self) -> bool {
 		true
+	}
+
+	fn additional_impl(&self, trait_: &DeriveTrait) -> Option<(Path, TokenStream)> {
+		Some((trait_.path(), quote! {}))
+	}
+
+	fn impl_path(&self, _trait_: &DeriveTrait) -> Path {
+		util::path_from_strs(&["core", "ops", "Drop"])
 	}
 
 	fn build_signature(
@@ -71,13 +79,34 @@ impl TraitImpl for Zeroize {
 	) -> TokenStream {
 		match item {
 			Item::Item(data) if data.is_empty(trait_) => quote! {
-				fn zeroize(&mut self) { }
+				fn drop(&mut self) { }
 			},
 			_ => {
-				let trait_path = trait_.path();
+				let crate_ = if let DeriveTrait::ZeroizeOnDrop {
+					crate_: Some(path), ..
+				} = trait_
+				{
+					path.clone()
+				} else {
+					util::path_from_strs(&["zeroize"])
+				};
+
+				let internal = util::path_segment("__internal");
+
+				let mut assert_zeroize = crate_.clone();
+				assert_zeroize
+					.segments
+					.extend([internal.clone(), util::path_segment("AssertZeroize")]);
+
+				let mut assert_zeroize_on_drop = crate_;
+				assert_zeroize_on_drop
+					.segments
+					.extend([internal, util::path_segment("AssertZeroizeOnDrop")]);
+
 				quote! {
-					fn zeroize(&mut self) {
-						use #trait_path;
+					fn drop(&mut self) {
+						use #assert_zeroize;
+						use #assert_zeroize_on_drop;
 
 						match self {
 							#body
@@ -94,23 +123,12 @@ impl TraitImpl for Zeroize {
 		} else {
 			match data.simple_type() {
 				SimpleType::Struct(fields) | SimpleType::Tuple(fields) => {
-					let trait_path = trait_.path();
 					let self_pattern = fields.self_pattern_mut();
-
-					let body = data
-						.iter_fields(trait_)
-						.zip(data.iter_self_ident(trait_))
-						.map(|(field, self_ident)| {
-							if field.attr.zeroize_fqs.0 {
-								quote! { #trait_path::zeroize(#self_ident); }
-							} else {
-								quote! { #self_ident.zeroize(); }
-							}
-						});
+					let self_ident = data.iter_self_ident(trait_);
 
 					quote! {
 						#self_pattern => {
-							#(#body)*
+							#(#self_ident.zeroize_or_on_drop();)*
 						}
 					}
 				}

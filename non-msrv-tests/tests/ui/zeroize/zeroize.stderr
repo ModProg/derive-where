@@ -28,38 +28,8 @@ error: expected path, expected identifier
 24 | #[derive_where(Zeroize(crate = "struct Test"))]
    |                                ^^^^^^^^^^^^^
 
-error: duplicate `drop` option
-  --> tests/ui/zeroize/zeroize.rs:28:30
-   |
-28 | #[derive_where(Zeroize(drop, drop))]
-   |                              ^^^^
-
 error: duplicate `crate` option
-  --> tests/ui/zeroize/zeroize.rs:32:44
+  --> tests/ui/zeroize/zeroize.rs:28:44
    |
-32 | #[derive_where(Zeroize(crate = "zeroize_", crate = "zeroize_"))]
+28 | #[derive_where(Zeroize(crate = "zeroize_", crate = "zeroize_"))]
    |                                            ^^^^^^^^^^^^^^^^^^
-
-error: duplicate `drop` option
-  --> tests/ui/zeroize/zeroize.rs:36:30
-   |
-36 | #[derive_where(Zeroize(drop, drop, crate = "zeroize_"))]
-   |                              ^^^^
-
-error: duplicate `crate` option
-  --> tests/ui/zeroize/zeroize.rs:40:50
-   |
-40 | #[derive_where(Zeroize(drop, crate = "zeroize_", crate = "zeroize_"))]
-   |                                                  ^^^^^^^^^^^^^^^^^^
-
-error: duplicate `crate` option
-  --> tests/ui/zeroize/zeroize.rs:44:44
-   |
-44 | #[derive_where(Zeroize(crate = "zeroize_", crate = "zeroize_", drop))]
-   |                                            ^^^^^^^^^^^^^^^^^^
-
-error: duplicate `drop` option
-  --> tests/ui/zeroize/zeroize.rs:48:50
-   |
-48 | #[derive_where(Zeroize(crate = "zeroize_", drop, drop))]
-   |                                                  ^^^^

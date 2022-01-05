@@ -225,6 +225,8 @@ impl Error {
 			"PartialOrd",
 			#[cfg(feature = "zeroize")]
 			"Zeroize",
+			#[cfg(feature = "zeroize")]
+			"ZeroizeOnDrop",
 		]
 		.join(", ")
 	}

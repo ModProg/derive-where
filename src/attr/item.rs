@@ -309,8 +309,12 @@ pub enum DeriveTrait {
 	Zeroize {
 		/// [`Zeroize`](https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html) path.
 		crate_: Option<Path>,
-		/// [`Zeroize`](https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html) [`Drop`] implementation.
-		drop: bool,
+	},
+	/// [`ZeroizeOnDrop`](https://docs.rs/zeroize/latest/zeroize/trait.ZeroizeOnDrop.html).
+	#[cfg(feature = "zeroize")]
+	ZeroizeOnDrop {
+		/// [`ZeroizeOnDrop`](https://docs.rs/zeroize/latest/zeroize/trait.ZeroizeOnDrop.html) path.
+		crate_: Option<Path>,
 	},
 }
 
@@ -340,6 +344,8 @@ impl Deref for DeriveTrait {
 			PartialOrd => &Trait::PartialOrd,
 			#[cfg(feature = "zeroize")]
 			Zeroize { .. } => &Trait::Zeroize,
+			#[cfg(feature = "zeroize")]
+			ZeroizeOnDrop { .. } => &Trait::ZeroizeOnDrop,
 		}
 	}
 }
@@ -419,6 +425,16 @@ impl DeriveTrait {
 					crate_
 				} else {
 					util::path_from_strs(&["zeroize", "Zeroize"])
+				}
+			}
+			#[cfg(feature = "zeroize")]
+			ZeroizeOnDrop { crate_, .. } => {
+				if let Some(crate_) = crate_ {
+					let mut crate_ = crate_.clone();
+					crate_.segments.push(util::path_segment("ZeroizeOnDrop"));
+					crate_
+				} else {
+					util::path_from_strs(&["zeroize", "ZeroizeOnDrop"])
 				}
 			}
 		}

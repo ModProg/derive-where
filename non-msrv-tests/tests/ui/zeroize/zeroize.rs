@@ -25,27 +25,7 @@ struct WrongCrateSyntax<T>(PhantomData<T>);
 struct InvalidCrate<T>(PhantomData<T>);
 
 #[derive(DeriveWhere)]
-#[derive_where(Zeroize(drop, drop))]
-struct DuplicateDrop<T>(PhantomData<T>);
-
-#[derive(DeriveWhere)]
 #[derive_where(Zeroize(crate = "zeroize_", crate = "zeroize_"))]
 struct DuplicateCrate<T>(PhantomData<T>);
-
-#[derive(DeriveWhere)]
-#[derive_where(Zeroize(drop, drop, crate = "zeroize_"))]
-struct DuplicateDropWithCrate<T>(PhantomData<T>);
-
-#[derive(DeriveWhere)]
-#[derive_where(Zeroize(drop, crate = "zeroize_", crate = "zeroize_"))]
-struct DropWithDuplicateCrate<T>(PhantomData<T>);
-
-#[derive(DeriveWhere)]
-#[derive_where(Zeroize(crate = "zeroize_", crate = "zeroize_", drop))]
-struct DuplicateCrateWithDrop<T>(PhantomData<T>);
-
-#[derive(DeriveWhere)]
-#[derive_where(Zeroize(crate = "zeroize_", drop, drop))]
-struct CrateWithDuplicateDrop<T>(PhantomData<T>);
 
 fn main() {}
