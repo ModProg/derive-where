@@ -239,4 +239,13 @@ impl Error {
 			"`Zeroize` option is only supported if `Zeroize` is being implemented",
 		)
 	}
+
+	/// Deprecated use of `Zeroize(drop)`.
+	#[cfg(feature = "zeroize")]
+	pub fn deprecated_zeroize_drop(span: Span) -> syn::Error {
+		syn::Error::new(
+			span,
+			"`Zeroize(drop)` is deprecated, use `ZeroizeOnDrop` instead",
+		)
+	}
 }

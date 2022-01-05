@@ -1,0 +1,5 @@
+error: `Zeroize(drop)` is deprecated, use `ZeroizeOnDrop` instead
+ --> tests/ui/zeroize/deprecated_drop.rs:8:24
+  |
+8 | #[derive_where(Zeroize(drop))]
+  |                        ^^^^
