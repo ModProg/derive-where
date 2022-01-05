@@ -99,7 +99,7 @@ enum Example<T> {
 
 With a `skip` or `skip_inner` attribute fields can be skipped for traits
 that allow it, which are: [`Debug`], [`Hash`], [`Ord`](https://doc.rust-lang.org/core/cmp/trait.Ord.html), [`PartialOrd`](https://doc.rust-lang.org/core/cmp/trait.PartialOrd.html),
-[`PartialEq`](https://doc.rust-lang.org/core/cmp/trait.PartialEq.html) and [`Zeroize`].
+[`PartialEq`](https://doc.rust-lang.org/core/cmp/trait.PartialEq.html), [`Zeroize`] and [`ZeroizeOnDrop`].
 
 ```rust
 #[derive(DeriveWhere)]
@@ -148,18 +148,16 @@ assert_ne!(
 
 ### `Zeroize` options
 
-[`Zeroize`] has three options:
+[`Zeroize`] has two options:
 - `crate`: an item-level option which specifies a path to the `zeroize`
   crate in case of a re-export or rename.
-- `drop`: an item-level option which implements [`Drop`](https://doc.rust-lang.org/core/ops/trait.Drop.html) and uses
-  [`Zeroize`] to erase all data from memory.
 - `fqs`: a field -level option which will use fully-qualified-syntax instead
   of calling the [`zeroize`][`method@zeroize`] method on `self` directly.
   This is to avoid ambiguity between another method also called `zeroize`.
 
 ```rust
 #[derive(DeriveWhere)]
-#[derive_where(Zeroize(crate = "zeroize_", drop))]
+#[derive_where(Zeroize(crate = "zeroize_"))]
 struct Example(#[derive_where(Zeroize(fqs))] i32);
 
 impl Example {
@@ -181,6 +179,20 @@ Zeroize::zeroize(&mut test);
 assert_eq!(test.0, 0);
 ```
 
+### `ZeroizeOnDrop` options
+
+[`ZeroizeOnDrop`] has one option:
+- `crate`: an item-level option which specifies a path to the `zeroize`
+  crate in case of a re-export or rename.
+
+```
+#[derive(DeriveWhere)]
+#[derive_where(ZeroizeOnDrop(crate = "zeroize_"))]
+struct Example(i32);
+
+assert!(core::mem::needs_drop::<Example>());
+```
+
 ### Supported traits
 
 The following traits can be derived with derive-where:
@@ -194,6 +206,7 @@ The following traits can be derived with derive-where:
 - [`PartialEq`](https://doc.rust-lang.org/core/cmp/trait.PartialEq.html)
 - [`PartialOrd`](https://doc.rust-lang.org/core/cmp/trait.PartialOrd.html)
 - [`Zeroize`]: Only available with the `zeroize` crate feature.
+- [`ZeroizeOnDrop`]: Only available with the `zeroize` crate feature.
 
 ### Supported items
 
@@ -220,7 +233,7 @@ Unions only support [`Clone`](https://doc.rust-lang.org/core/clone/trait.Clone.h
   replaces all cases of [`core::hint::unreachable_unchecked`](https://doc.rust-lang.org/core/hint/fn.unreachable_unchecked.html) in [`Ord`](https://doc.rust-lang.org/core/hint/fn.unreachable_unchecked.html),
   [`PartialEq`](https://doc.rust-lang.org/core/cmp/trait.PartialEq.html) and [`PartialOrd`](https://doc.rust-lang.org/core/cmp/trait.PartialOrd.html), which is what std uses, with
   [`unreachable`](https://doc.rust-lang.org/core/macro.unreachable.html).
-- `zeroize`: Allows deriving [`Zeroize`].
+- `zeroize`: Allows deriving [`Zeroize`] and [`ZeroizeOnDrop`].
 
 ## MSRV
 
@@ -262,5 +275,6 @@ conditions.
 [`Default`]: https://doc.rust-lang.org/core/default/trait.Default.html
 [`Hash`]: https://doc.rust-lang.org/core/hash/trait.Hash.html
 [`Zeroize`]: https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html
+[`ZeroizeOnDrop`]: https://docs.rs/zeroize/latest/zeroize/trait.ZeroizeOnDrop.html
 [`method@zeroize`]: https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html#tymethod.zeroize
 [#27]: https://github.com/ModProg/derive-where/issues/27

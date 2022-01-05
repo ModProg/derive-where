@@ -144,10 +144,11 @@ impl<'a> Input<'a> {
 				#[cfg(feature = "zeroize")]
 				{
 					// `Zeroize(crate = "..")` is used.
-					if let DeriveTrait::Zeroize {
-						crate_: Some(_), ..
-					} = **trait_
-					{
+					if let DeriveTrait::Zeroize { crate_: Some(_) } = **trait_ {
+						continue;
+					}
+					// `ZeroizeOnDrop(crate = "..")` is used.
+					if let DeriveTrait::ZeroizeOnDrop { crate_: Some(_) } = **trait_ {
 						continue;
 					}
 					// `Zeroize(fqs)` is used on any field.

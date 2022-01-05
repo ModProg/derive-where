@@ -39,6 +39,9 @@ syn = { version = "1", default-features = false, features = [
 [dev-dependencies]
 syn = { version = "1", default-features = false, features = ["extra-traits"] }
 
+[patch.crates-io]
+zeroize = { git = "https://github.com/khonsulabs/utils", branch = "zeroize-on-drop-auto-deref" }
+
 [[test]]
 name = "util"
 path = "tests/util.rs"

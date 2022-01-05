@@ -12,6 +12,8 @@ mod partial_eq;
 mod partial_ord;
 #[cfg(feature = "zeroize")]
 mod zeroize;
+#[cfg(feature = "zeroize")]
+mod zeroize_on_drop;
 
 use proc_macro2::TokenStream;
 use syn::{spanned::Spanned, MetaList, Path, Result, TypeParamBound};
@@ -43,6 +45,9 @@ pub enum Trait {
 	/// [`Zeroize`](https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html).
 	#[cfg(feature = "zeroize")]
 	Zeroize,
+	/// [`ZeroizeOnDrop`](https://docs.rs/zeroize/latest/zeroize/trait.ZeroizeOnDrop.html).
+	#[cfg(feature = "zeroize")]
+	ZeroizeOnDrop,
 }
 
 impl Trait {
@@ -60,6 +65,8 @@ impl Trait {
 			Trait::PartialOrd => &partial_ord::PartialOrd,
 			#[cfg(feature = "zeroize")]
 			Trait::Zeroize => &zeroize::Zeroize,
+			#[cfg(feature = "zeroize")]
+			Trait::ZeroizeOnDrop => &zeroize_on_drop::ZeroizeOnDrop,
 		}
 	}
 
@@ -80,6 +87,8 @@ impl Trait {
 				"PartialOrd" => Ok(PartialOrd),
 				#[cfg(feature = "zeroize")]
 				"Zeroize" => Ok(Zeroize),
+				#[cfg(feature = "zeroize")]
+				"ZeroizeOnDrop" => Ok(ZeroizeOnDrop),
 				_ => Err(Error::trait_(path.span())),
 			}
 		} else {
@@ -115,6 +124,10 @@ impl TraitImpl for Trait {
 
 	fn additional_impl(&self, trait_: &DeriveTrait) -> Option<(Path, TokenStream)> {
 		self.implementation().additional_impl(trait_)
+	}
+
+	fn impl_path(&self, trait_: &DeriveTrait) -> Path {
+		self.implementation().impl_path(trait_)
 	}
 
 	fn build_signature(
@@ -164,6 +177,12 @@ pub trait TraitImpl {
 	/// Additional implementation to add for this [`Trait`].
 	fn additional_impl(&self, _trait_: &DeriveTrait) -> Option<(Path, TokenStream)> {
 		None
+	}
+
+	/// Trait to implement. Only used for [`ZeroizeOnDrop`](https://docs.rs/zeroize/latest/zeroize/trait.ZeroizeOnDrop.html)
+	/// because it implements [`Drop`] and not itself.
+	fn impl_path(&self, trait_: &DeriveTrait) -> Path {
+		trait_.path()
 	}
 
 	/// Build method signature for this [`Trait`].

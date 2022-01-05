@@ -12,7 +12,7 @@ use std::{
 use derive_where::DeriveWhere;
 use zeroize::Zeroize;
 
-use self::util::{AssertZeroize, Wrapper};
+use self::util::{AssertZeroize, AssertZeroizeOnDrop, Wrapper};
 
 #[test]
 fn basic() {
@@ -51,12 +51,13 @@ fn crate_() {
 #[test]
 fn drop() {
 	#[derive(DeriveWhere)]
-	#[derive_where(Zeroize(drop))]
+	#[derive_where(Zeroize, ZeroizeOnDrop)]
 	struct Test<T>(Wrapper<T>);
 
 	let mut test = Test(42.into());
 
 	let _ = AssertZeroize(&test);
+	let _ = AssertZeroizeOnDrop(&test);
 
 	test.zeroize();
 
@@ -83,12 +84,13 @@ fn fqs() {
 	}
 
 	#[derive(DeriveWhere)]
-	#[derive_where(Zeroize(drop))]
+	#[derive_where(Zeroize, ZeroizeOnDrop)]
 	struct Test<T>(#[derive_where(Zeroize(fqs))] Fqs<T>);
 
 	let mut test = Test(Fqs(42.into()));
 
 	let _ = AssertZeroize(&test);
+	let _ = AssertZeroizeOnDrop(&test);
 
 	test.zeroize();
 
@@ -116,12 +118,13 @@ fn deref() {
 	}
 
 	#[derive(DeriveWhere)]
-	#[derive_where(Zeroize(drop))]
+	#[derive_where(Zeroize, ZeroizeOnDrop)]
 	struct Test<T>(ZeroizeDeref<T>);
 
 	let mut test = Test::<()>(ZeroizeDeref(42, PhantomData));
 
 	let _ = AssertZeroize(&test);
+	let _ = AssertZeroizeOnDrop(&test);
 
 	test.zeroize();
 

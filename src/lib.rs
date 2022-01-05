@@ -111,7 +111,7 @@
 //!
 //! With a `skip` or `skip_inner` attribute fields can be skipped for traits
 //! that allow it, which are: [`Debug`], [`Hash`], [`Ord`], [`PartialOrd`],
-//! [`PartialEq`] and [`Zeroize`].
+//! [`PartialEq`], [`Zeroize`] and [`ZeroizeOnDrop`].
 //!
 //! ```
 //! # use std::marker::PhantomData;
@@ -166,11 +166,9 @@
 //!
 //! ## `Zeroize` options
 //!
-//! [`Zeroize`] has three options:
+//! [`Zeroize`] has two options:
 //! - `crate`: an item-level option which specifies a path to the `zeroize`
 //!   crate in case of a re-export or rename.
-//! - `drop`: an item-level option which implements [`Drop`] and uses
-//!   [`Zeroize`] to erase all data from memory.
 //! - `fqs`: a field -level option which will use fully-qualified-syntax instead
 //!   of calling the [`zeroize`][`method@zeroize`] method on `self` directly.
 //!   This is to avoid ambiguity between another method also called `zeroize`.
@@ -194,7 +192,7 @@
 //! # 	}
 //! # }
 //! #[derive(DeriveWhere)]
-//! #[derive_where(Zeroize(crate = "zeroize_", drop))]
+//! #[derive_where(Zeroize(crate = "zeroize_"))]
 //! struct Example(#[derive_where(Zeroize(fqs))] i32);
 //!
 //! impl Example {
@@ -217,6 +215,44 @@
 //! # }
 //! ```
 //!
+//! ## `ZeroizeOnDrop` options
+//!
+//! [`ZeroizeOnDrop`] has one option:
+//! - `crate`: an item-level option which specifies a path to the `zeroize`
+//!   crate in case of a re-export or rename.
+//!
+//! ```
+//! # #[cfg(feature = "zeroize")]
+//! # {
+//! # use std::marker::PhantomData;
+//! # use derive_where::DeriveWhere;
+//! # // Fake `ZeroizeOnDrop` implementation because this crate doesn't have access to
+//! # // the zeroize crate because of MSRV.
+//! # mod zeroize_ {
+//! # 	pub trait ZeroizeOnDrop: Drop {}
+//! #
+//! # 	pub mod __internal {
+//! # 		pub trait AssertZeroizeOnDrop {
+//! # 			fn zeroize_or_on_drop(&mut self);
+//! # 		}
+//! #
+//! # 		pub trait AssertZeroize {
+//! # 			fn zeroize_or_on_drop(&mut self);
+//! # 		}
+//! #
+//! # 		impl AssertZeroize for i32 {
+//! # 			fn zeroize_or_on_drop(&mut self) {}
+//! # 		}
+//! # 	}
+//! # }
+//! #[derive(DeriveWhere)]
+//! #[derive_where(ZeroizeOnDrop(crate = "zeroize_"))]
+//! struct Example(i32);
+//!
+//! assert!(core::mem::needs_drop::<Example>());
+//! # }
+//! ```
+//!
 //! ## Supported traits
 //!
 //! The following traits can be derived with derive-where:
@@ -230,6 +266,7 @@
 //! - [`PartialEq`]
 //! - [`PartialOrd`]
 //! - [`Zeroize`]: Only available with the `zeroize` crate feature.
+//! - [`ZeroizeOnDrop`]: Only available with the `zeroize` crate feature.
 //!
 //! ## Supported items
 //!
@@ -256,7 +293,7 @@
 //!   replaces all cases of [`core::hint::unreachable_unchecked`] in [`Ord`],
 //!   [`PartialEq`] and [`PartialOrd`], which is what std uses, with
 //!   [`unreachable`].
-//! - `zeroize`: Allows deriving [`Zeroize`].
+//! - `zeroize`: Allows deriving [`Zeroize`] and [`ZeroizeOnDrop`].
 //!
 //! # MSRV
 //!
@@ -298,6 +335,7 @@
 //! [`Default`]: core::default::Default
 //! [`Hash`]: core::hash::Hash
 //! [`Zeroize`]: https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html
+//! [`ZeroizeOnDrop`]: https://docs.rs/zeroize/latest/zeroize/trait.ZeroizeOnDrop.html
 //! [`method@zeroize`]: https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html#tymethod.zeroize
 //! [#27]: https://github.com/ModProg/derive-where/issues/27
 
@@ -340,7 +378,8 @@ const DERIVE_WHERE: &str = "derive_where";
 ///   optionally bounds.
 ///   - `#[derive_where(Zeroize(crate = "path"))]`: Specify path to [`Zeroize`]
 ///     trait.
-///   - `#[derive_where(Zeroize(drop))]`: Implement [`Drop`] with [`Zeroize`].
+///   - `#[derive_where(ZeroizeOnDrop(crate = "path"))]`: Specify path to
+///     [`ZeroizeOnDrop`] trait.
 /// - `#[derive_where(skip_inner(Clone, ..))]`: Skip all fields in the item.
 ///   Optionally specify traits to constrain skipping fields. Only works for
 ///   structs, for enums use this on the variant-level.
@@ -360,6 +399,7 @@ const DERIVE_WHERE: &str = "derive_where";
 /// See the [crate](crate) level description for more details.
 ///
 /// [`Zeroize`]: https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html
+/// [`ZeroizeOnDrop`]: https://docs.rs/zeroize/latest/zeroize/trait.ZeroizeOnDrop.html
 #[proc_macro_derive(DeriveWhere, attributes(derive_where))]
 #[cfg_attr(feature = "nightly", allow_internal_unstable(core_intrinsics))]
 pub fn derive_where(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
@@ -402,7 +442,7 @@ fn generate_impl(
 	let body = generate_body(trait_, item);
 
 	let ident = item.ident();
-	let path = trait_.path();
+	let path = trait_.impl_path(trait_);
 	let mut output = quote! {
 		impl #impl_generics #path for #ident #type_generics
 		#where_clause
