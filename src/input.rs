@@ -137,20 +137,21 @@ impl<'a> Input<'a> {
 				if trait_ == Trait::Default && item.is_enum() {
 					continue;
 				}
+
 				// Any field is skipped with a corresponding `Trait`.
 				if item.any_skip_trait(trait_) {
 					continue;
 				}
+
 				#[cfg(feature = "zeroize")]
 				{
-					// `Zeroize(crate = "..")` is used.
-					if let DeriveTrait::Zeroize { crate_: Some(_) } = **trait_ {
+					// `Zeroize(crate = "..")` or `ZeroizeOnDrop(crate = "..")` is used.
+					if let DeriveTrait::Zeroize { crate_: Some(_) }
+					| DeriveTrait::ZeroizeOnDrop { crate_: Some(_) } = **trait_
+					{
 						continue;
 					}
-					// `ZeroizeOnDrop(crate = "..")` is used.
-					if let DeriveTrait::ZeroizeOnDrop { crate_: Some(_) } = **trait_ {
-						continue;
-					}
+
 					// `Zeroize(fqs)` is used on any field.
 					if trait_ == Trait::Zeroize && item.any_fqs() {
 						continue;

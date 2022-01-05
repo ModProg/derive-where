@@ -27,7 +27,11 @@ impl TraitImpl for Zeroize {
 		for nested_meta in list.nested {
 			match &nested_meta {
 				NestedMeta::Meta(Meta::Path(path)) => {
-					return Err(Error::option_trait(path.span(), self.as_str()))
+					if path.is_ident("drop") {
+						return Err(Error::deprecated_zeroize_drop(path.span()));
+					} else {
+						return Err(Error::option_trait(path.span(), self.as_str()));
+					}
 				}
 				NestedMeta::Meta(Meta::NameValue(name_value)) => {
 					if name_value.path.is_ident("crate") {
