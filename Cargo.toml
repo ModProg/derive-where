@@ -15,7 +15,7 @@ name = "derive-where"
 readme = "README.md"
 repository = "https://github.com/ModProg/derive-where"
 rust-version = "1.34.2"
-version = "1.0.0-rc.1"
+version = "1.0.0-rc.2"
 
 [lib]
 proc-macro = true
@@ -24,6 +24,7 @@ proc-macro = true
 nightly = []
 safe = []
 zeroize = []
+zeroize-on-drop = ["zeroize"]
 
 [dependencies]
 proc-macro2 = { version = "1", default-features = false, features = ["proc-macro"] }
@@ -38,9 +39,6 @@ syn = { version = "1", default-features = false, features = [
 
 [dev-dependencies]
 syn = { version = "1", default-features = false, features = ["extra-traits"] }
-
-[patch.crates-io]
-zeroize = { git = "https://github.com/khonsulabs/utils", branch = "zeroize-on-drop-auto-deref" }
 
 [[test]]
 name = "util"

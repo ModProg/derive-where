@@ -21,7 +21,7 @@ pub fn path_segment(ident: &str) -> PathSegment {
 	}
 }
 
-/// Create [`Path`] from `[&str]`.
+/// Create [`Path`] from `[&str]`s.
 pub fn path_from_strs(segments: &[&str]) -> Path {
 	Path {
 		leading_colon: Some(<Token![::]>::default()),
@@ -37,5 +37,17 @@ pub fn path_from_idents(segments: &[&Ident]) -> Path {
 			ident: (*ident).clone(),
 			arguments: PathArguments::None,
 		})),
+	}
+}
+
+/// Create [`Path`] from a root [`Path`] and `[&str]`s.
+pub fn path_from_root_and_strs(root: Path, segments: &[&str]) -> Path {
+	Path {
+		leading_colon: root.leading_colon,
+		segments: root
+			.segments
+			.into_iter()
+			.chain(segments.iter().map(|segment| path_segment(segment)))
+			.collect(),
 	}
 }

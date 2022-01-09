@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- Support `ZeroizeOnDrop`.
+- Support [`ZeroizeOnDrop`](https://docs.rs/zeroize/1.5.0-pre/zeroize/trait.ZeroizeOnDrop.html).
 
 ### Removed
 - **Breaking Change**: Remove support for `Zeroize(drop)`.

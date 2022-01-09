@@ -34,6 +34,17 @@ fn drop() -> Result<()> {
 			#[derive_where(ZeroizeOnDrop; T)]
 			struct Test<T, U>(T, std::marker::PhantomData<U>);
 		},
+		#[cfg(not(feature = "zeroize-on-drop"))]
+		quote! {
+			impl<T, U> ::core::ops::Drop for Test<T, U>
+			where T: ::zeroize::ZeroizeOnDrop
+			{
+				fn drop(&mut self) {
+					::zeroize::Zeroize::zeroize(self);
+				}
+			}
+		},
+		#[cfg(feature = "zeroize-on-drop")]
 		quote! {
 			impl<T, U> ::core::ops::Drop for Test<T, U>
 			where T: ::zeroize::ZeroizeOnDrop
@@ -60,6 +71,39 @@ fn drop() -> Result<()> {
 
 #[test]
 fn both() -> Result<()> {
+	#[cfg(not(feature = "zeroize-on-drop"))]
+	let drop = quote! {
+		impl<T, U> ::core::ops::Drop for Test<T, U>
+		where T: ::zeroize::ZeroizeOnDrop
+		{
+			fn drop(&mut self) {
+				::zeroize::Zeroize::zeroize(self);
+			}
+		}
+	};
+	#[cfg(feature = "zeroize-on-drop")]
+	let drop = quote! {
+		impl<T, U> ::core::ops::Drop for Test<T, U>
+		where T: ::zeroize::ZeroizeOnDrop
+		{
+			fn drop(&mut self) {
+				use ::zeroize::__internal::AssertZeroize;
+				use ::zeroize::__internal::AssertZeroizeOnDrop;
+
+				match self {
+					Test(ref mut __0, ref mut __1) => {
+						__0.zeroize_or_on_drop();
+						__1.zeroize_or_on_drop();
+					}
+				}
+			}
+		}
+
+		impl<T, U> ::zeroize::ZeroizeOnDrop for Test<T, U>
+		where T: ::zeroize::ZeroizeOnDrop
+		{ }
+	};
+
 	test_derive(
 		quote! {
 			#[derive_where(Zeroize, ZeroizeOnDrop; T)]
@@ -81,25 +125,7 @@ fn both() -> Result<()> {
 				}
 			}
 
-			impl<T, U> ::core::ops::Drop for Test<T, U>
-			where T: ::zeroize::ZeroizeOnDrop
-			{
-				fn drop(&mut self) {
-					use ::zeroize::__internal::AssertZeroize;
-					use ::zeroize::__internal::AssertZeroizeOnDrop;
-
-					match self {
-						Test(ref mut __0, ref mut __1) => {
-							__0.zeroize_or_on_drop();
-							__1.zeroize_or_on_drop();
-						}
-					}
-				}
-			}
-
-			impl<T, U> ::zeroize::ZeroizeOnDrop for Test<T, U>
-			where T: ::zeroize::ZeroizeOnDrop
-			{ }
+			#drop
 		},
 	)
 }
@@ -130,42 +156,23 @@ fn crate_() -> Result<()> {
 }
 
 #[test]
-fn drop_crate() -> Result<()> {
-	test_derive(
-		quote! {
-			#[derive_where(ZeroizeOnDrop(crate = "zeroize_"); T)]
-			struct Test<T>(T);
-		},
-		quote! {
-			impl<T> ::core::ops::Drop for Test<T>
-			where T: zeroize_::ZeroizeOnDrop
-			{
-				fn drop(&mut self) {
-					use zeroize_::__internal::AssertZeroize;
-					use zeroize_::__internal::AssertZeroizeOnDrop;
-
-					match self {
-						Test(ref mut __0) => {
-							__0.zeroize_or_on_drop();
-						}
-					}
-				}
-			}
-
-			impl<T> zeroize_::ZeroizeOnDrop for Test<T>
-			where T: zeroize_::ZeroizeOnDrop
-			{ }
-		},
-	)
-}
-
-#[test]
 fn crate_drop() -> Result<()> {
 	test_derive(
 		quote! {
 			#[derive_where(ZeroizeOnDrop(crate = "zeroize_"); T)]
 			struct Test<T>(T);
 		},
+		#[cfg(not(feature = "zeroize-on-drop"))]
+		quote! {
+			impl<T> ::core::ops::Drop for Test<T>
+			where T: zeroize_::ZeroizeOnDrop
+			{
+				fn drop(&mut self) {
+					zeroize_::Zeroize::zeroize(self);
+				}
+			}
+		},
+		#[cfg(feature = "zeroize-on-drop")]
 		quote! {
 			impl<T> ::core::ops::Drop for Test<T>
 			where T: zeroize_::ZeroizeOnDrop

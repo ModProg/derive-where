@@ -6,13 +6,16 @@ mod util;
 
 use std::{
 	marker::PhantomData,
+	mem,
 	ops::{Deref, DerefMut},
 };
 
 use derive_where::DeriveWhere;
 use zeroize::Zeroize;
 
-use self::util::{AssertZeroize, AssertZeroizeOnDrop, Wrapper};
+#[cfg(feature = "zeroize-on-drop")]
+use self::util::AssertZeroizeOnDrop;
+use self::util::{AssertZeroize, Wrapper};
 
 #[test]
 fn basic() {
@@ -57,7 +60,9 @@ fn drop() {
 	let mut test = Test(42.into());
 
 	let _ = AssertZeroize(&test);
+	#[cfg(feature = "zeroize-on-drop")]
 	let _ = AssertZeroizeOnDrop(&test);
+	assert!(mem::needs_drop::<Test<()>>());
 
 	test.zeroize();
 
@@ -90,7 +95,9 @@ fn fqs() {
 	let mut test = Test(Fqs(42.into()));
 
 	let _ = AssertZeroize(&test);
+	#[cfg(feature = "zeroize-on-drop")]
 	let _ = AssertZeroizeOnDrop(&test);
+	assert!(mem::needs_drop::<Test<()>>());
 
 	test.zeroize();
 
@@ -124,7 +131,9 @@ fn deref() {
 	let mut test = Test::<()>(ZeroizeDeref(42, PhantomData));
 
 	let _ = AssertZeroize(&test);
+	#[cfg(feature = "zeroize-on-drop")]
 	let _ = AssertZeroizeOnDrop(&test);
+	assert!(mem::needs_drop::<Test<()>>());
 
 	test.zeroize();
 

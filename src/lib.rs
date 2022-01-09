@@ -217,12 +217,16 @@
 //!
 //! ## `ZeroizeOnDrop` options
 //!
+//! If the `zeroize-on-drop` feature is enabled, it implements [`ZeroizeOnDrop`]
+//! and can be implemented without [`Zeroize`], otherwise it only implements
+//! [`Drop`] and requires [`Zeroize`] to be implemented.
+//!
 //! [`ZeroizeOnDrop`] has one option:
 //! - `crate`: an item-level option which specifies a path to the `zeroize`
 //!   crate in case of a re-export or rename.
 //!
 //! ```
-//! # #[cfg(feature = "zeroize")]
+//! # #[cfg(feature = "zeroize-on-drop")]
 //! # {
 //! # use std::marker::PhantomData;
 //! # use derive_where::DeriveWhere;
@@ -266,7 +270,9 @@
 //! - [`PartialEq`]
 //! - [`PartialOrd`]
 //! - [`Zeroize`]: Only available with the `zeroize` crate feature.
-//! - [`ZeroizeOnDrop`]: Only available with the `zeroize` crate feature.
+//! - [`ZeroizeOnDrop`]: Only available with the `zeroize` crate feature. If the
+//!   `zeroize-on-drop` feature is enabled, it implements [`ZeroizeOnDrop`],
+//!   otherwise it only implements [`Drop`].
 //!
 //! ## Supported items
 //!
@@ -293,7 +299,9 @@
 //!   replaces all cases of [`core::hint::unreachable_unchecked`] in [`Ord`],
 //!   [`PartialEq`] and [`PartialOrd`], which is what std uses, with
 //!   [`unreachable`].
-//! - `zeroize`: Allows deriving [`Zeroize`] and [`ZeroizeOnDrop`].
+//! - `zeroize`: Allows deriving [`Zeroize`] and [`method@zeroize`] on [`Drop`].
+//! - `zeroize-on-drop`: Allows deriving [`Zeroize`] and [`ZeroizeOnDrop`] and
+//!   requires [zeroize] v1.5.0-pre.
 //!
 //! # MSRV
 //!
@@ -331,11 +339,12 @@
 //! [CHANGELOG]: https://github.com/ModProg/derive-where/blob/main/CHANGELOG.md
 //! [LICENSE-MIT]: https://github.com/ModProg/derive-where/blob/main/LICENSE-MIT
 //! [LICENSE-APACHE]: https://github.com/ModProg/derive-where/blob/main/LICENSE-APACHE
+//! [zeroize]: https://crates.io/crates/zeroize/1.5.0-pre
 //! [`Debug`]: core::fmt::Debug
 //! [`Default`]: core::default::Default
 //! [`Hash`]: core::hash::Hash
 //! [`Zeroize`]: https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html
-//! [`ZeroizeOnDrop`]: https://docs.rs/zeroize/latest/zeroize/trait.ZeroizeOnDrop.html
+//! [`ZeroizeOnDrop`]: https://docs.rs/zeroize/1.5.0-pre/zeroize/trait.ZeroizeOnDrop.html
 //! [`method@zeroize`]: https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html#tymethod.zeroize
 //! [#27]: https://github.com/ModProg/derive-where/issues/27
 
