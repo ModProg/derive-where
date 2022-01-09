@@ -12,8 +12,7 @@
 //! # Usage
 //!
 //! The `derive_where` macro can be used just like std's `#[derive(...)]`
-//! statements, with the only caveat that it requires to derive `DeriveWhere`
-//! ([#27]):
+//! statements:
 //!
 //! ```
 //! # use std::marker::PhantomData;
@@ -181,7 +180,6 @@
 //! # 		}
 //! # 	}
 //! # }
-//!
 //! #[derive_where(Zeroize(crate = "zeroize_"))]
 //! struct Example(#[derive_where(Zeroize(fqs))] i32);
 //!
@@ -303,7 +301,7 @@
 //! [derivative](https://crates.io/crates/derivative)
 //! ([![Crates.io](https://img.shields.io/crates/v/derivative.svg)](https://crates.io/crates/derivative))
 //! is a great alternative with many options. Notably it has no `no_std`
-//! support.
+//! support and requires to `#[derive(Derivative)]` to use.
 //!
 //! # Changelog
 //!

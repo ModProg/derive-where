@@ -12,8 +12,7 @@ generic type bounds.
 ## Usage
 
 The `derive_where` macro can be used just like std's `#[derive(...)]`
-statements, with the only caveat that it requires to derive `DeriveWhere`
-([#27]):
+statements:
 
 ```rust
 #[derive_where(Clone, Debug)]
@@ -242,7 +241,7 @@ accompanied by a minor version bump. If MSRV is important to you, use
 [derivative](https://crates.io/crates/derivative)
 ([![Crates.io](https://img.shields.io/crates/v/derivative.svg)](https://crates.io/crates/derivative))
 is a great alternative with many options. Notably it has no `no_std`
-support.
+support and requires to `#[derive(Derivative)]` to use.
 
 ## Changelog
 
