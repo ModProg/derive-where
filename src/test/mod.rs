@@ -13,8 +13,8 @@ use syn::Result;
 
 fn test_derive(input: TokenStream, expected: TokenStream) -> Result<()> {
 	let left = crate::derive_where_internal(input.clone())?.to_string();
-	// FIXME this currently means, that `input_without_derive_where_attributes` is not
-	// actually tested.
+	// FIXME this currently means, that `input_without_derive_where_attributes` is
+	// not actually tested.
 	let item = crate::input_without_derive_where_attributes(syn::parse2(input)?);
 	let right = quote! {#item #expected}.to_string();
 
