@@ -4,7 +4,7 @@ error: key-value macro attributes are not supported
 4 | #[derive_where = invalid]
   | ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-error: unsupported trait, expected one of expected one of Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd
+error: unsupported trait, expected one of expected one of Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd, Zeroize, ZeroizeOnDrop
  --> tests/ui/item_option_syntax.rs:4:18
   |
 4 | #[derive_where = invalid]
