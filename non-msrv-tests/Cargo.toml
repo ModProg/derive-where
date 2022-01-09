@@ -8,13 +8,14 @@ version = "0.0.0"
 nightly = ["derive-where/nightly"]
 safe = ["derive-where/safe"]
 zeroize = ["derive-where/zeroize"]
+zeroize-on-drop = ["derive-where/zeroize-on-drop", "zeroize"]
 
 [dependencies]
 derive-where = { path = ".." }
 
 [dev-dependencies]
 trybuild = { version = "1", default-features = false }
-zeroize_ = { version = "1", package = "zeroize", default-features = false }
+zeroize_ = { version = "1.5.0-pre", package = "zeroize", default-features = false }
 
 [lib]
 doctest = false

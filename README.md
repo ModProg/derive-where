@@ -181,6 +181,10 @@ assert_eq!(test.0, 0);
 
 ### `ZeroizeOnDrop` options
 
+If the `zeroize-on-drop` feature is enabled, it implements [`ZeroizeOnDrop`]
+and can be implemented without [`Zeroize`], otherwise it only implements
+[`Drop`](https://doc.rust-lang.org/core/ops/trait.Drop.html) and requires [`Zeroize`] to be implemented.
+
 [`ZeroizeOnDrop`] has one option:
 - `crate`: an item-level option which specifies a path to the `zeroize`
   crate in case of a re-export or rename.
@@ -206,7 +210,9 @@ The following traits can be derived with derive-where:
 - [`PartialEq`](https://doc.rust-lang.org/core/cmp/trait.PartialEq.html)
 - [`PartialOrd`](https://doc.rust-lang.org/core/cmp/trait.PartialOrd.html)
 - [`Zeroize`]: Only available with the `zeroize` crate feature.
-- [`ZeroizeOnDrop`]: Only available with the `zeroize` crate feature.
+- [`ZeroizeOnDrop`]: Only available with the `zeroize` crate feature. If the
+  `zeroize-on-drop` feature is enabled, it implements [`ZeroizeOnDrop`],
+  otherwise it only implements [`Drop`](https://doc.rust-lang.org/core/ops/trait.Drop.html).
 
 ### Supported items
 
@@ -233,7 +239,9 @@ Unions only support [`Clone`](https://doc.rust-lang.org/core/clone/trait.Clone.h
   replaces all cases of [`core::hint::unreachable_unchecked`](https://doc.rust-lang.org/core/hint/fn.unreachable_unchecked.html) in [`Ord`](https://doc.rust-lang.org/core/hint/fn.unreachable_unchecked.html),
   [`PartialEq`](https://doc.rust-lang.org/core/cmp/trait.PartialEq.html) and [`PartialOrd`](https://doc.rust-lang.org/core/cmp/trait.PartialOrd.html), which is what std uses, with
   [`unreachable`](https://doc.rust-lang.org/core/macro.unreachable.html).
-- `zeroize`: Allows deriving [`Zeroize`] and [`ZeroizeOnDrop`].
+- `zeroize`: Allows deriving [`Zeroize`] and [`method@zeroize`] on [`Drop`](https://doc.rust-lang.org/core/ops/trait.Drop.html).
+- `zeroize-on-drop`: Allows deriving [`Zeroize`] and [`ZeroizeOnDrop`] and
+  requires [zeroize] v1.5.0-pre.
 
 ## MSRV
 
@@ -271,10 +279,11 @@ conditions.
 [CHANGELOG]: https://github.com/ModProg/derive-where/blob/main/CHANGELOG.md
 [LICENSE-MIT]: https://github.com/ModProg/derive-where/blob/main/LICENSE-MIT
 [LICENSE-APACHE]: https://github.com/ModProg/derive-where/blob/main/LICENSE-APACHE
+[zeroize]: https://crates.io/crates/zeroize/1.5.0-pre
 [`Debug`]: https://doc.rust-lang.org/core/fmt/trait.Debug.html
 [`Default`]: https://doc.rust-lang.org/core/default/trait.Default.html
 [`Hash`]: https://doc.rust-lang.org/core/hash/trait.Hash.html
 [`Zeroize`]: https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html
-[`ZeroizeOnDrop`]: https://docs.rs/zeroize/latest/zeroize/trait.ZeroizeOnDrop.html
+[`ZeroizeOnDrop`]: https://docs.rs/zeroize/1.5.0-pre/zeroize/trait.ZeroizeOnDrop.html
 [`method@zeroize`]: https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html#tymethod.zeroize
 [#27]: https://github.com/ModProg/derive-where/issues/27

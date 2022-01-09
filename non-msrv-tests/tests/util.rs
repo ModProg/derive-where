@@ -6,7 +6,9 @@ use std::{
 };
 
 #[cfg(feature = "zeroize")]
-use zeroize_::{Zeroize, ZeroizeOnDrop};
+use zeroize_::Zeroize;
+#[cfg(feature = "zeroize-on-drop")]
+use zeroize_::ZeroizeOnDrop;
 
 pub struct Wrapper<T = ()> {
 	data: i32,
@@ -44,7 +46,7 @@ impl<T> Zeroize for Wrapper<T> {
 #[cfg(feature = "zeroize")]
 pub struct AssertZeroize<'a, T: Zeroize>(pub &'a T);
 
-#[cfg(feature = "zeroize")]
+#[cfg(feature = "zeroize-on-drop")]
 pub struct AssertZeroizeOnDrop<'a, T: ZeroizeOnDrop>(pub &'a T);
 
 pub fn test_drop<T>(value: T, fun: impl FnOnce(&T)) {

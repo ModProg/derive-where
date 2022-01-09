@@ -63,8 +63,12 @@ impl TraitImpl for ZeroizeOnDrop {
 		true
 	}
 
+	#[allow(unused_variables)]
 	fn additional_impl(&self, trait_: &DeriveTrait) -> Option<(Path, TokenStream)> {
-		Some((trait_.path(), quote! {}))
+		#[cfg(feature = "zeroize-on-drop")]
+		return Some((trait_.path(), quote! {}));
+		#[cfg(not(feature = "zeroize-on-drop"))]
+		None
 	}
 
 	fn impl_path(&self, _trait_: &DeriveTrait) -> Path {
@@ -82,35 +86,36 @@ impl TraitImpl for ZeroizeOnDrop {
 				fn drop(&mut self) { }
 			},
 			_ => {
-				let crate_ = if let DeriveTrait::ZeroizeOnDrop {
-					crate_: Some(path), ..
-				} = trait_
+				#[cfg(feature = "zeroize-on-drop")]
 				{
-					path.clone()
-				} else {
-					util::path_from_strs(&["zeroize"])
-				};
+					let crate_ = trait_.crate_();
+					let internal = util::path_segment("__internal");
 
-				let internal = util::path_segment("__internal");
+					let mut assert_zeroize = crate_.clone();
+					assert_zeroize
+						.segments
+						.extend([internal.clone(), util::path_segment("AssertZeroize")]);
 
-				let mut assert_zeroize = crate_.clone();
-				assert_zeroize
-					.segments
-					.extend([internal.clone(), util::path_segment("AssertZeroize")]);
+					let mut assert_zeroize_on_drop = crate_;
+					assert_zeroize_on_drop
+						.segments
+						.extend([internal, util::path_segment("AssertZeroizeOnDrop")]);
 
-				let mut assert_zeroize_on_drop = crate_;
-				assert_zeroize_on_drop
-					.segments
-					.extend([internal, util::path_segment("AssertZeroizeOnDrop")]);
+					quote! {
+						fn drop(&mut self) {
+							use #assert_zeroize;
+							use #assert_zeroize_on_drop;
 
+							match self {
+								#body
+							}
+						}
+					}
+				}
+				#[cfg(not(feature = "zeroize-on-drop"))]
 				quote! {
 					fn drop(&mut self) {
-						use #assert_zeroize;
-						use #assert_zeroize_on_drop;
-
-						match self {
-							#body
-						}
+						#body
 					}
 				}
 			}
@@ -123,12 +128,26 @@ impl TraitImpl for ZeroizeOnDrop {
 		} else {
 			match data.simple_type() {
 				SimpleType::Struct(fields) | SimpleType::Tuple(fields) => {
-					let self_pattern = fields.self_pattern_mut();
-					let self_ident = data.iter_self_ident(trait_);
+					#[cfg(feature = "zeroize-on-drop")]
+					{
+						let self_pattern = fields.self_pattern_mut();
+						let self_ident = data.iter_self_ident(trait_);
 
-					quote! {
-						#self_pattern => {
-							#(#self_ident.zeroize_or_on_drop();)*
+						quote! {
+							#self_pattern => {
+								#(#self_ident.zeroize_or_on_drop();)*
+							}
+						}
+					}
+					#[cfg(not(feature = "zeroize-on-drop"))]
+					{
+						// Use unused variables.
+						let _ = fields;
+
+						let path = util::path_from_root_and_strs(trait_.crate_(), &["Zeroize"]);
+
+						quote! {
+							#path::zeroize(self);
 						}
 					}
 				}

@@ -408,33 +408,50 @@ impl DeriveTrait {
 		use DeriveTrait::*;
 
 		match self {
-			Clone => util::path_from_strs(&["core", "clone", "Clone"]),
-			Copy => util::path_from_strs(&["core", "marker", "Copy"]),
-			Debug => util::path_from_strs(&["core", "fmt", "Debug"]),
-			Default => util::path_from_strs(&["core", "default", "Default"]),
-			Eq => util::path_from_strs(&["core", "cmp", "Eq"]),
-			Hash => util::path_from_strs(&["core", "hash", "Hash"]),
-			Ord => util::path_from_strs(&["core", "cmp", "Ord"]),
-			PartialEq => util::path_from_strs(&["core", "cmp", "PartialEq"]),
-			PartialOrd => util::path_from_strs(&["core", "cmp", "PartialOrd"]),
+			Clone => util::path_from_root_and_strs(self.crate_(), &["clone", "Clone"]),
+			Copy => util::path_from_root_and_strs(self.crate_(), &["marker", "Copy"]),
+			Debug => util::path_from_root_and_strs(self.crate_(), &["fmt", "Debug"]),
+			Default => util::path_from_root_and_strs(self.crate_(), &["default", "Default"]),
+			Eq => util::path_from_root_and_strs(self.crate_(), &["cmp", "Eq"]),
+			Hash => util::path_from_root_and_strs(self.crate_(), &["hash", "Hash"]),
+			Ord => util::path_from_root_and_strs(self.crate_(), &["cmp", "Ord"]),
+			PartialEq => util::path_from_root_and_strs(self.crate_(), &["cmp", "PartialEq"]),
+			PartialOrd => util::path_from_root_and_strs(self.crate_(), &["cmp", "PartialOrd"]),
+			#[cfg(feature = "zeroize")]
+			Zeroize { .. } => util::path_from_root_and_strs(self.crate_(), &["Zeroize"]),
+			#[cfg(feature = "zeroize")]
+			ZeroizeOnDrop { .. } => util::path_from_root_and_strs(self.crate_(), &["ZeroizeOnDrop"]),
+		}
+	}
+
+	/// Returns the path to the root crate for this trait.
+	pub fn crate_(&self) -> Path {
+		use DeriveTrait::*;
+
+		match self {
+			Clone => util::path_from_strs(&["core"]),
+			Copy => util::path_from_strs(&["core"]),
+			Debug => util::path_from_strs(&["core"]),
+			Default => util::path_from_strs(&["core"]),
+			Eq => util::path_from_strs(&["core"]),
+			Hash => util::path_from_strs(&["core"]),
+			Ord => util::path_from_strs(&["core"]),
+			PartialEq => util::path_from_strs(&["core"]),
+			PartialOrd => util::path_from_strs(&["core"]),
 			#[cfg(feature = "zeroize")]
 			Zeroize { crate_, .. } => {
 				if let Some(crate_) = crate_ {
-					let mut crate_ = crate_.clone();
-					crate_.segments.push(util::path_segment("Zeroize"));
-					crate_
+					crate_.clone()
 				} else {
-					util::path_from_strs(&["zeroize", "Zeroize"])
+					util::path_from_strs(&["zeroize"])
 				}
 			}
 			#[cfg(feature = "zeroize")]
 			ZeroizeOnDrop { crate_, .. } => {
 				if let Some(crate_) = crate_ {
-					let mut crate_ = crate_.clone();
-					crate_.segments.push(util::path_segment("ZeroizeOnDrop"));
-					crate_
+					crate_.clone()
 				} else {
-					util::path_from_strs(&["zeroize", "ZeroizeOnDrop"])
+					util::path_from_strs(&["zeroize"])
 				}
 			}
 		}
