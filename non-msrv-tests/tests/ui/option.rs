@@ -1,11 +1,8 @@
-use std::marker::PhantomData;
-
 use derive_where::derive_where;
 
 #[derive_where(Default)]
 struct StructNoOption<T>(#[derive_where] PhantomData<T>);
 
-#[derive(derive_where::DeriveWhere)]
 #[derive_where(Default)]
 struct StructWrongSyntax<T>(#[derive_where = "default"] PhantomData<T>);
 

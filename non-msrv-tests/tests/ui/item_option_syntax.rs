@@ -1,5 +1,3 @@
-use std::marker::PhantomData;
-
 use derive_where::derive_where;
 
 // Rust itself already fails to parse this and will provide a separate error message.
@@ -18,7 +16,6 @@ struct WrongOptionSyntax<T>(PhantomData<T>);
 #[derive_where(Debug())]
 struct EmptyOption<T>(PhantomData<T>);
 
-#[derive(derive_where::DeriveWhere)]
 #[derive_where(Debug(option))]
 struct UnsupportedOption<T>(PhantomData<T>);
 

@@ -1,59 +1,59 @@
 error: duplicate `skip` option
- --> tests/ui/skip.rs:7:50
+ --> tests/ui/skip.rs:4:50
   |
-7 | struct DuplicateSkipSame<T>(#[derive_where(skip, skip)] PhantomData<T>);
+4 | struct DuplicateSkipSame<T>(#[derive_where(skip, skip)] PhantomData<T>);
   |                                                  ^^^^
 
 error: duplicate `skip` option
-  --> tests/ui/skip.rs:13:17
-   |
-13 |     #[derive_where(skip)]
-   |                    ^^^^
+ --> tests/ui/skip.rs:9:17
+  |
+9 |     #[derive_where(skip)]
+  |                    ^^^^
 
 error: empty attribute option found
-  --> tests/ui/skip.rs:19:36
+  --> tests/ui/skip.rs:14:36
    |
-19 | struct EmptySkip<T>(#[derive_where(skip())] PhantomData<T>);
+14 | struct EmptySkip<T>(#[derive_where(skip())] PhantomData<T>);
    |                                    ^^^^^^
 
 error: unexpected constraint on `skip` when unconstrained `skip` already used
-  --> tests/ui/skip.rs:25:17
+  --> tests/ui/skip.rs:19:17
    |
-25 |     #[derive_where(skip(Debug))]
+19 |     #[derive_where(skip(Debug))]
    |                    ^^^^^^^^^^^
 
 error: duplicate `skip` option
-  --> tests/ui/skip.rs:33:17
+  --> tests/ui/skip.rs:26:17
    |
-33 |     #[derive_where(skip)]
+26 |     #[derive_where(skip)]
    |                    ^^^^
 
 error: no trait that can be skipped is being implemented
-  --> tests/ui/skip.rs:39:43
+  --> tests/ui/skip.rs:31:43
    |
-39 | struct NoSupportedTrait<T>(#[derive_where(skip)] PhantomData<T>);
+31 | struct NoSupportedTrait<T>(#[derive_where(skip)] PhantomData<T>);
    |                                           ^^^^
 
 error: unsupported `Clone` constraint on `skip`
-  --> tests/ui/skip.rs:43:48
+  --> tests/ui/skip.rs:34:48
    |
-43 | struct UnsupportedTrait<T>(#[derive_where(skip(Clone))] PhantomData<T>);
+34 | struct UnsupportedTrait<T>(#[derive_where(skip(Clone))] PhantomData<T>);
    |                                                ^^^^^
 
 error: duplicate `Debug` constraint on `skip`
-  --> tests/ui/skip.rs:47:57
+  --> tests/ui/skip.rs:37:57
    |
-47 | struct DuplicateTraitSame<T>(#[derive_where(skip(Debug, Debug))] PhantomData<T>);
+37 | struct DuplicateTraitSame<T>(#[derive_where(skip(Debug, Debug))] PhantomData<T>);
    |                                                         ^^^^^
 
 error: duplicate `Debug` constraint on `skip`
-  --> tests/ui/skip.rs:53:22
+  --> tests/ui/skip.rs:42:22
    |
-53 |     #[derive_where(skip(Debug))]
+42 |     #[derive_where(skip(Debug))]
    |                         ^^^^^
 
 error: trait to be skipped isn't being implemented
-  --> tests/ui/skip.rs:59:50
+  --> tests/ui/skip.rs:47:50
    |
-59 | struct MissingDeriveTrait<T>(#[derive_where(skip(Debug))] PhantomData<T>);
+47 | struct MissingDeriveTrait<T>(#[derive_where(skip(Debug))] PhantomData<T>);
    |                                                  ^^^^^

@@ -1,41 +1,49 @@
-error: expected parentheses: #[derive_where(...)]
- --> tests/ui/item_option_syntax.rs:7:16
+error: key-value macro attributes are not supported
+ --> tests/ui/item_option_syntax.rs:4:1
   |
-7 | #[derive_where = invalid]
-  |                ^
+4 | #[derive_where = invalid]
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: unsupported trait, expected one of expected one of Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd
+ --> tests/ui/item_option_syntax.rs:4:18
+  |
+4 | #[derive_where = invalid]
+  |                  ^^^^^^^
+
+error: key-value macro attributes are not supported
+ --> tests/ui/item_option_syntax.rs:7:1
+  |
+7 | #[derive_where = "invalid"]
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: unexpected option syntax
-  --> tests/ui/item_option_syntax.rs:11:3
-   |
-11 | #[derive_where = "invalid"]
-   |   ^^^^^^^^^^^^^^^^^^^^^^^^
+ --> tests/ui/item_option_syntax.rs:7:18
+  |
+7 | #[derive_where = "invalid"]
+  |                  ^^^^^^^^^
 
 error: empty `derive_where` found
-  --> tests/ui/item_option_syntax.rs:15:3
+  --> tests/ui/item_option_syntax.rs:10:1
    |
-15 | #[derive_where()]
-   |   ^^^^^^^^^^^^^^
+10 | #[derive_where()]
+   | ^^^^^^^^^^^^^^^^^
+   |
+   = note: this error originates in the attribute macro `derive_where` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: unexpected option syntax
-  --> tests/ui/item_option_syntax.rs:19:16
+  --> tests/ui/item_option_syntax.rs:13:16
    |
-19 | #[derive_where(Debug = "option")]
+13 | #[derive_where(Debug = "option")]
    |                ^^^^^^^^^^^^^^^^
 
 error: empty attribute option found
-  --> tests/ui/item_option_syntax.rs:23:16
+  --> tests/ui/item_option_syntax.rs:16:16
    |
-23 | #[derive_where(Debug())]
+16 | #[derive_where(Debug())]
    |                ^^^^^^^
 
 error: `Debug` doesn't support any options
-  --> tests/ui/item_option_syntax.rs:27:16
+  --> tests/ui/item_option_syntax.rs:19:16
    |
-27 | #[derive_where(Debug(option))]
+19 | #[derive_where(Debug(option))]
    |                ^^^^^^^^^^^^^
-
-error: unexpected token: `invalid`
- --> tests/ui/item_option_syntax.rs:7:18
-  |
-7 | #[derive_where = invalid]
-  |                  ^^^^^^^

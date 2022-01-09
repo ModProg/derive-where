@@ -1,59 +1,59 @@
 error: enums don't support `skip_inner`, use it on a variant instead
- --> tests/ui/item_skip.rs:7:16
+ --> tests/ui/item_skip.rs:4:16
   |
-7 | #[derive_where(skip_inner)]
+4 | #[derive_where(skip_inner)]
   |                ^^^^^^^^^^
 
 error: duplicate `skip_inner` option
-  --> tests/ui/item_skip.rs:15:16
+  --> tests/ui/item_skip.rs:11:16
    |
-15 | #[derive_where(skip_inner)]
+11 | #[derive_where(skip_inner)]
    |                ^^^^^^^^^^
 
 error: empty attribute option found
-  --> tests/ui/item_skip.rs:20:16
+  --> tests/ui/item_skip.rs:15:16
    |
-20 | #[derive_where(skip_inner())]
+15 | #[derive_where(skip_inner())]
    |                ^^^^^^^^^^^^
 
 error: unexpected constraint on `skip` when unconstrained `skip` already used
-  --> tests/ui/item_skip.rs:26:16
+  --> tests/ui/item_skip.rs:20:16
    |
-26 | #[derive_where(skip_inner(Debug))]
+20 | #[derive_where(skip_inner(Debug))]
    |                ^^^^^^^^^^^^^^^^^
 
 error: duplicate `skip_inner` option
-  --> tests/ui/item_skip.rs:32:16
+  --> tests/ui/item_skip.rs:25:16
    |
-32 | #[derive_where(skip_inner)]
+25 | #[derive_where(skip_inner)]
    |                ^^^^^^^^^^
 
 error: no trait that can be skipped is being implemented
-  --> tests/ui/item_skip.rs:37:16
+  --> tests/ui/item_skip.rs:29:16
    |
-37 | #[derive_where(skip_inner)]
+29 | #[derive_where(skip_inner)]
    |                ^^^^^^^^^^
 
 error: unsupported `Clone` constraint on `skip`
-  --> tests/ui/item_skip.rs:42:27
+  --> tests/ui/item_skip.rs:33:27
    |
-42 | #[derive_where(skip_inner(Clone))]
+33 | #[derive_where(skip_inner(Clone))]
    |                           ^^^^^
 
 error: duplicate `Debug` constraint on `skip`
-  --> tests/ui/item_skip.rs:47:34
+  --> tests/ui/item_skip.rs:37:34
    |
-47 | #[derive_where(skip_inner(Debug, Debug))]
+37 | #[derive_where(skip_inner(Debug, Debug))]
    |                                  ^^^^^
 
 error: duplicate `Debug` constraint on `skip`
-  --> tests/ui/item_skip.rs:53:27
+  --> tests/ui/item_skip.rs:42:27
    |
-53 | #[derive_where(skip_inner(Debug))]
+42 | #[derive_where(skip_inner(Debug))]
    |                           ^^^^^
 
 error: trait to be skipped isn't being implemented
-  --> tests/ui/item_skip.rs:58:27
+  --> tests/ui/item_skip.rs:46:27
    |
-58 | #[derive_where(skip_inner(Debug))]
+46 | #[derive_where(skip_inner(Debug))]
    |                           ^^^^^

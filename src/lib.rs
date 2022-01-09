@@ -495,7 +495,7 @@ fn generate_body(trait_: &DeriveTrait, item: &Item) -> TokenStream {
 	}
 }
 
-/// Removes the derive_where attributes from all fields, and variants.
+/// Removes the `derive_where` attributes from all fields, and variants.
 ///
 /// This is needed, because rust does not support those for proc_macro_attribute
 /// currently
@@ -503,14 +503,14 @@ fn input_without_derive_where_attributes(mut input: DeriveInput) -> TokenStream 
 	use syn::Data;
 	let DeriveInput { data, attrs, .. } = &mut input;
 
-	/// Remove all attrs from derive_where
+	/// Remove all attributes that are `derive_where`
 	fn remove_derive_where(attrs: &mut Vec<Attribute>) {
 		// TODO find the actual path
 		let ident = Ident::new("derive_where", Span::call_site());
 		attrs.retain(|attr| !attr.path.is_ident(&ident))
 	}
 
-	/// Remove all attrs from derive_where from FieldsNamed
+	/// Remove all attributes that are `derive_where` from `FieldsNamed`
 	fn remove_derive_where_from_fields_named(fields: &mut FieldsNamed) {
 		let FieldsNamed { named, .. } = fields;
 		named
@@ -518,7 +518,7 @@ fn input_without_derive_where_attributes(mut input: DeriveInput) -> TokenStream 
 			.for_each(|field| remove_derive_where(&mut field.attrs))
 	}
 
-	/// Remove all attrs from derive_where from fields
+	/// Remove all attributes that are `derive_where` from `Fields`
 	fn remove_derive_where_from_fields(fields: &mut Fields) {
 		match fields {
 			Fields::Named(fields) => remove_derive_where_from_fields_named(fields),

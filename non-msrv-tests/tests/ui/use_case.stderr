@@ -1,57 +1,61 @@
 error: derive-where doesn't support empty items, as this can already be handled by standard `#[derive(..)]`
- --> tests/ui/use_case.rs:4:1
+ --> tests/ui/use_case.rs:3:1
   |
-4 | / #[derive_where(Clone)]
-5 | | struct StructEmpty {}
-  | |_____________________^
+3 | #[derive_where(Clone)]
+  | ^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in the attribute macro `derive_where` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: derive-where doesn't support empty items, as this can already be handled by standard `#[derive(..)]`
- --> tests/ui/use_case.rs:8:1
+ --> tests/ui/use_case.rs:6:1
   |
-8 | / #[derive_where(Clone)]
-9 | | struct TupleEmpty();
-  | |____________________^
+6 | #[derive_where(Clone)]
+  | ^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in the attribute macro `derive_where` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: derive-where doesn't support empty items, as this can already be handled by standard `#[derive(..)]`
+ --> tests/ui/use_case.rs:9:1
+  |
+9 | #[derive_where(Clone)]
+  | ^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in the attribute macro `derive_where` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: derive-where doesn't support empty items, as this can already be handled by standard `#[derive(..)]`
   --> tests/ui/use_case.rs:12:1
    |
-12 | / #[derive_where(Clone)]
-13 | | struct Unit;
-   | |____________^
-
-error: derive-where doesn't support empty items, as this can already be handled by standard `#[derive(..)]`
-  --> tests/ui/use_case.rs:16:1
+12 | #[derive_where(Clone)]
+   | ^^^^^^^^^^^^^^^^^^^^^^
    |
-16 | / #[derive_where(Clone)]
-17 | | struct UnionEmpty {}
-   | |____________________^
+   = note: this error originates in the attribute macro `derive_where` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: this can be handled by standard `#[derive(..)]`, use a `skip` attribute, implement `Default` on an enum, of different generic type parameters
-  --> tests/ui/use_case.rs:20:16
+  --> tests/ui/use_case.rs:15:16
    |
-20 | #[derive_where(Clone)]
+15 | #[derive_where(Clone)]
    |                ^^^^^
 
 error: this can be handled by standard `#[derive(..)]`, use a `skip` attribute, implement `Default` on an enum, of different generic type parameters
-  --> tests/ui/use_case.rs:24:16
+  --> tests/ui/use_case.rs:18:16
    |
-24 | #[derive_where(Clone)]
+18 | #[derive_where(Clone)]
+   |                ^^^^^
+
+error: this can be handled by standard `#[derive(..)]`, use a `skip` attribute, implement `Default` on an enum, of different generic type parameters
+  --> tests/ui/use_case.rs:23:16
+   |
+23 | #[derive_where(Clone; T)]
+   |                ^^^^^
+
+error: this can be handled by standard `#[derive(..)]`, use a `skip` attribute, implement `Default` on an enum, of different generic type parameters
+  --> tests/ui/use_case.rs:26:16
+   |
+26 | #[derive_where(Clone, Debug; T)]
    |                ^^^^^
 
 error: this can be handled by standard `#[derive(..)]`, use a `skip` attribute, implement `Default` on an enum, of different generic type parameters
   --> tests/ui/use_case.rs:30:16
    |
-30 | #[derive_where(Clone; T)]
-   |                ^^^^^
-
-error: this can be handled by standard `#[derive(..)]`, use a `skip` attribute, implement `Default` on an enum, of different generic type parameters
-  --> tests/ui/use_case.rs:34:16
-   |
-34 | #[derive_where(Clone, Debug; T)]
-   |                ^^^^^
-
-error: this can be handled by standard `#[derive(..)]`, use a `skip` attribute, implement `Default` on an enum, of different generic type parameters
-  --> tests/ui/use_case.rs:39:16
-   |
-39 | #[derive_where(Clone, Default; T)]
+30 | #[derive_where(Clone, Default; T)]
    |                ^^^^^
