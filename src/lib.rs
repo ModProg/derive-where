@@ -495,22 +495,20 @@ fn generate_body(trait_: &DeriveTrait, item: &Item) -> TokenStream {
 	}
 }
 
-/// Removes the `derive_where` attributes from all fields, and variants.
+/// Removes `derive_where` attributes from the item and all fields and variants.
 ///
-/// This is needed, because rust does not support those for proc_macro_attribute
-/// currently
+/// This is necessary because Rust currently does not support helper attributes for attribute proc-macros and therefore doesn't automatically remove them.
 fn input_without_derive_where_attributes(mut input: DeriveInput) -> TokenStream {
 	use syn::Data;
 	let DeriveInput { data, attrs, .. } = &mut input;
 
-	/// Remove all attributes that are `derive_where`
+	/// Remove all `derive_where` attributes.
 	fn remove_derive_where(attrs: &mut Vec<Attribute>) {
-		// TODO find the actual path
 		let ident = Ident::new("derive_where", Span::call_site());
 		attrs.retain(|attr| !attr.path.is_ident(&ident))
 	}
 
-	/// Remove all attributes that are `derive_where` from `FieldsNamed`
+	/// Remove all `derive_where` attributes from [`FieldsNamed`].
 	fn remove_derive_where_from_fields_named(fields: &mut FieldsNamed) {
 		let FieldsNamed { named, .. } = fields;
 		named
@@ -518,7 +516,7 @@ fn input_without_derive_where_attributes(mut input: DeriveInput) -> TokenStream 
 			.for_each(|field| remove_derive_where(&mut field.attrs))
 	}
 
-	/// Remove all attributes that are `derive_where` from `Fields`
+	/// Remove all `derive_where` attributes from [`Fields`].
 	fn remove_derive_where_from_fields(fields: &mut Fields) {
 		match fields {
 			Fields::Named(fields) => remove_derive_where_from_fields_named(fields),
@@ -529,6 +527,7 @@ fn input_without_derive_where_attributes(mut input: DeriveInput) -> TokenStream 
 		}
 	}
 
+	// Remove `derive_where` attributes from the item.
 	remove_derive_where(attrs);
 	match data {
 		Data::Struct(DataStruct { fields, .. }) => remove_derive_where_from_fields(fields),
