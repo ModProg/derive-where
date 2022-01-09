@@ -14,9 +14,12 @@ jobs:
           - { channel: stable, features: --features safe }
           - { channel: nightly, features: --features nightly }
           - { channel: stable, features: --features zeroize }
+          - { channel: stable, features: --features zeroize-on-drop }
           - { channel: nightly, features: --features safe,nightly }
           - { channel: stable, features: --features safe,zeroize }
+          - { channel: stable, features: --features safe,zeroize-on-drop }
           - { channel: nightly, features: --features nightly,zeroize }
+          - { channel: nightly, features: --features nightly,zeroize-on-drop }
           - { channel: nightly, features: --all-features }
 
     runs-on: ubuntu-latest
