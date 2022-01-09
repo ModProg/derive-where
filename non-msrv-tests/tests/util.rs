@@ -49,16 +49,7 @@ pub struct AssertZeroize<'a, T: Zeroize>(pub &'a T);
 #[cfg(feature = "zeroize-on-drop")]
 pub struct AssertZeroizeOnDrop<'a, T: ZeroizeOnDrop>(pub &'a T);
 
-pub fn test_drop<T>(value: T, fun: impl FnOnce(&T)) {
-	let mut test_holder = vec![value];
-	let ptr = &mut test_holder[0] as *mut T;
-
-	let test = unsafe {
-		test_holder.set_len(0);
-		ptr::drop_in_place(ptr);
-		&*ptr
-	};
-
-	assert_eq!(test_holder.capacity(), 1);
-	fun(test);
+pub fn test_drop<T>(mut value: T, fun: impl FnOnce(T)) {
+	unsafe { ptr::drop_in_place(&mut value) };
+	fun(value);
 }
