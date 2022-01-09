@@ -1,14 +1,12 @@
 use std::marker::PhantomData;
 
-use derive_where::DeriveWhere;
+use derive_where::derive_where;
 
-#[derive(DeriveWhere)]
 #[derive_where(Debug)]
 union UnsupportedTrait<T> {
 	a: Option<PhantomData<T>>,
 }
 
-#[derive(DeriveWhere)]
 #[derive_where(Clone)]
 union MissingCopy<T> {
 	a: Option<PhantomData<T>>,

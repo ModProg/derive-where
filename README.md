@@ -16,7 +16,6 @@ statements, with the only caveat that it requires to derive `DeriveWhere`
 ([#27]):
 
 ```rust
-#[derive(DeriveWhere)]
 #[derive_where(Clone, Debug)]
 struct Example<T>(PhantomData<T>);
 ```
@@ -34,7 +33,6 @@ specified. This example will restrict the implementation for `Example` to
 `T: Clone`:
 
 ```rust
-#[derive(DeriveWhere)]
 #[derive_where(Clone; T)]
 struct Example<T, U>(T, PhantomData<U>);
 ```
@@ -45,7 +43,6 @@ bind implementation for `Example` to `T: Super`:
 ```rust
 trait Super: Clone {}
 
-#[derive(DeriveWhere)]
 #[derive_where(Clone; T: Super)]
 struct Example<T>(PhantomData<T>);
 ```
@@ -65,7 +62,6 @@ impl Trait for Impl {
 	type Type = i32;
 }
 
-#[derive(DeriveWhere)]
 #[derive_where(Clone; T::Type)]
 struct Example<T: Trait>(T::Type);
 ```
@@ -75,7 +71,6 @@ specific constrain. It is also possible to use multiple separate
 constrain specifications when required:
 
 ```rust
-#[derive(DeriveWhere)]
 #[derive_where(Clone; T)]
 #[derive_where(Debug; U)]
 struct Example<T, U>(PhantomData<T>, PhantomData<U>);
@@ -87,7 +82,6 @@ Deriving [`Default`] on an enum is not possible in Rust at the moment.
 Derive-where allows this with a `default` attribute:
 
 ```rust
-#[derive(DeriveWhere)]
 #[derive_where(Default)]
 enum Example<T> {
 	#[derive_where(default)]
@@ -102,7 +96,6 @@ that allow it, which are: [`Debug`], [`Hash`], [`Ord`](https://doc.rust-lang.org
 [`PartialEq`](https://doc.rust-lang.org/core/cmp/trait.PartialEq.html), [`Zeroize`] and [`ZeroizeOnDrop`].
 
 ```rust
-#[derive(DeriveWhere)]
 #[derive_where(Debug, PartialEq; T)]
 struct Example<T>(#[derive_where(skip)] T);
 
@@ -113,14 +106,12 @@ assert_eq!(Example(42), Example(0));
 It is also possible to skip all fields in an item or variant if desired:
 
 ```rust
-#[derive(DeriveWhere)]
 #[derive_where(Debug)]
 #[derive_where(skip_inner)]
 struct StructExample<T>(T);
 
 assert_eq!(format!("{:?}", StructExample(42)), "StructExample");
 
-#[derive(DeriveWhere)]
 #[derive_where(Debug)]
 enum EnumExample<T> {
 	#[derive_where(skip_inner)]
@@ -134,7 +125,6 @@ Selective skipping of fields for certain traits is also an option, both in
 `skip` and `skip_inner`:
 
 ```rust
-#[derive(DeriveWhere)]
 #[derive_where(Debug, PartialEq)]
 #[derive_where(skip_inner(Debug))]
 struct Example<T>(i32, PhantomData<T>);
@@ -156,7 +146,6 @@ assert_ne!(
   This is to avoid ambiguity between another method also called `zeroize`.
 
 ```rust
-#[derive(DeriveWhere)]
 #[derive_where(Zeroize(crate = "zeroize_"))]
 struct Example(#[derive_where(Zeroize(fqs))] i32);
 
@@ -189,8 +178,7 @@ and can be implemented without [`Zeroize`], otherwise it only implements
 - `crate`: an item-level option which specifies a path to the `zeroize`
   crate in case of a re-export or rename.
 
-```
-#[derive(DeriveWhere)]
+```rust
 #[derive_where(ZeroizeOnDrop(crate = "zeroize_"))]
 struct Example(i32);
 

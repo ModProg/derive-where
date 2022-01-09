@@ -1,25 +1,21 @@
 use std::marker::PhantomData;
 
-use derive_where::DeriveWhere;
+use derive_where::derive_where;
 
-#[derive(DeriveWhere)]
 #[derive_where(Debug)]
 struct DefaultOnStruct<T>(#[derive_where(default)] PhantomData<T>);
 
-#[derive(DeriveWhere)]
 #[derive_where(Clone)]
 enum DefaultWithoutTrait<T> {
 	#[derive_where(default)]
 	A(PhantomData<T>),
 }
 
-#[derive(DeriveWhere)]
 #[derive_where(Default)]
 enum MissingDefault<T> {
 	A(PhantomData<T>),
 }
 
-#[derive(DeriveWhere)]
 #[derive_where(Default)]
 enum DuplicateDefaultSeparate<T> {
 	#[derive_where(default)]
@@ -28,14 +24,12 @@ enum DuplicateDefaultSeparate<T> {
 	B(PhantomData<T>),
 }
 
-#[derive(DeriveWhere)]
 #[derive_where(Default)]
 enum DuplicateDefaultSame<T> {
 	#[derive_where(default, default)]
 	A(PhantomData<T>),
 }
 
-#[derive(DeriveWhere)]
 #[derive_where(Default)]
 enum DuplicateDefaultSameSeparate<T> {
 	#[derive_where(default)]
