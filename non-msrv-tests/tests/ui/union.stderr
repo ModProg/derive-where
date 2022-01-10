@@ -1,10 +1,10 @@
 error: traits other then `Clone` and `Copy` aren't supported by unions
- --> tests/ui/union.rs:5:1
+ --> tests/ui/union.rs:6:1
   |
-5 | #[derive_where(Debug)]
-  | ^^^^^^^^^^^^^^^^^^^^^^
-  |
-  = note: this error originates in the attribute macro `derive_where` (in Nightly builds, run with -Z macro-backtrace for more info)
+6 | / union UnsupportedTrait<T> {
+7 | |     a: Option<PhantomData<T>>,
+8 | | }
+  | |_^
 
 error[E0277]: the trait bound `MissingCopy<T>: std::marker::Copy` is not satisfied
   --> tests/ui/union.rs:10:1

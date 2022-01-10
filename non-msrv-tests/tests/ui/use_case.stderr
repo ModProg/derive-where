@@ -1,34 +1,26 @@
 error: derive-where doesn't support empty items, as this can already be handled by standard `#[derive(..)]`
- --> tests/ui/use_case.rs:3:1
+ --> tests/ui/use_case.rs:4:1
   |
-3 | #[derive_where(Clone)]
-  | ^^^^^^^^^^^^^^^^^^^^^^
-  |
-  = note: this error originates in the attribute macro `derive_where` (in Nightly builds, run with -Z macro-backtrace for more info)
+4 | struct StructEmpty {}
+  | ^^^^^^^^^^^^^^^^^^^^^
 
 error: derive-where doesn't support empty items, as this can already be handled by standard `#[derive(..)]`
- --> tests/ui/use_case.rs:6:1
+ --> tests/ui/use_case.rs:7:1
   |
-6 | #[derive_where(Clone)]
-  | ^^^^^^^^^^^^^^^^^^^^^^
-  |
-  = note: this error originates in the attribute macro `derive_where` (in Nightly builds, run with -Z macro-backtrace for more info)
+7 | struct TupleEmpty();
+  | ^^^^^^^^^^^^^^^^^^^^
 
 error: derive-where doesn't support empty items, as this can already be handled by standard `#[derive(..)]`
- --> tests/ui/use_case.rs:9:1
-  |
-9 | #[derive_where(Clone)]
-  | ^^^^^^^^^^^^^^^^^^^^^^
-  |
-  = note: this error originates in the attribute macro `derive_where` (in Nightly builds, run with -Z macro-backtrace for more info)
-
-error: derive-where doesn't support empty items, as this can already be handled by standard `#[derive(..)]`
-  --> tests/ui/use_case.rs:12:1
+  --> tests/ui/use_case.rs:10:1
    |
-12 | #[derive_where(Clone)]
-   | ^^^^^^^^^^^^^^^^^^^^^^
+10 | struct Unit;
+   | ^^^^^^^^^^^^
+
+error: derive-where doesn't support empty items, as this can already be handled by standard `#[derive(..)]`
+  --> tests/ui/use_case.rs:13:1
    |
-   = note: this error originates in the attribute macro `derive_where` (in Nightly builds, run with -Z macro-backtrace for more info)
+13 | struct UnionEmpty {}
+   | ^^^^^^^^^^^^^^^^^^^^
 
 error: this can be handled by standard `#[derive(..)]`, use a `skip` attribute, implement `Default` on an enum, of different generic type parameters
   --> tests/ui/use_case.rs:15:16

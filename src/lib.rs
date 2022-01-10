@@ -411,8 +411,7 @@ pub fn derive_where(
 		#[derive_where(#attr)]
 		#input
 	};
-	// Save `Span` before we consume `input` when parsing it.
-	let span = input.span();
+
 	let item = match syn::parse2::<DeriveInput>(input) {
 		Ok(item) => item,
 		Err(error) => {
@@ -423,7 +422,9 @@ pub fn derive_where(
 				.collect();
 		}
 	};
+
 	let cleaned_item = input_without_derive_where_attributes(item.clone());
+	let span = cleaned_item.span();
 
 	match { Input::from_input(span, &item) } {
 		Ok(Input {

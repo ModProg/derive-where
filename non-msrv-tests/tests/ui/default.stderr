@@ -11,12 +11,12 @@ error: `default` is only supported if `Default` is being implemented
    |                    ^^^^^^^
 
 error: required `default` option on a variant if `Default` is being implemented
-  --> tests/ui/default.rs:14:1
+  --> tests/ui/default.rs:15:1
    |
-14 | #[derive_where(Default)]
-   | ^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-   = note: this error originates in the attribute macro `derive_where` (in Nightly builds, run with -Z macro-backtrace for more info)
+15 | / enum MissingDefault<T> {
+16 | |     A(PhantomData<T>),
+17 | | }
+   | |_^
 
 error: multiple `default` options in enum
   --> tests/ui/default.rs:23:17
