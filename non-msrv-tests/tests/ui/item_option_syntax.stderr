@@ -1,49 +1,37 @@
 error: key-value macro attributes are not supported
- --> tests/ui/item_option_syntax.rs:4:1
+ --> tests/ui/item_option_syntax.rs:3:1
   |
-4 | #[derive_where = invalid]
-  | ^^^^^^^^^^^^^^^^^^^^^^^^^
-
-error: unsupported trait, expected one of expected one of Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd, Zeroize, ZeroizeOnDrop
- --> tests/ui/item_option_syntax.rs:4:18
-  |
-4 | #[derive_where = invalid]
-  |                  ^^^^^^^
-
-error: key-value macro attributes are not supported
- --> tests/ui/item_option_syntax.rs:7:1
-  |
-7 | #[derive_where = "invalid"]
+3 | #[derive_where = "invalid"]
   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: unexpected option syntax
- --> tests/ui/item_option_syntax.rs:7:18
+ --> tests/ui/item_option_syntax.rs:3:18
   |
-7 | #[derive_where = "invalid"]
+3 | #[derive_where = "invalid"]
   |                  ^^^^^^^^^
 
 error: empty `derive_where` found
-  --> tests/ui/item_option_syntax.rs:10:1
-   |
-10 | #[derive_where()]
-   | ^^^^^^^^^^^^^^^^^
-   |
-   = note: this error originates in the attribute macro `derive_where` (in Nightly builds, run with -Z macro-backtrace for more info)
+ --> tests/ui/item_option_syntax.rs:6:1
+  |
+6 | #[derive_where()]
+  | ^^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in the attribute macro `derive_where` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: unexpected option syntax
-  --> tests/ui/item_option_syntax.rs:13:16
-   |
-13 | #[derive_where(Debug = "option")]
-   |                ^^^^^^^^^^^^^^^^
+ --> tests/ui/item_option_syntax.rs:9:16
+  |
+9 | #[derive_where(Debug = "option")]
+  |                ^^^^^^^^^^^^^^^^
 
 error: empty attribute option found
-  --> tests/ui/item_option_syntax.rs:16:16
+  --> tests/ui/item_option_syntax.rs:12:16
    |
-16 | #[derive_where(Debug())]
+12 | #[derive_where(Debug())]
    |                ^^^^^^^
 
 error: `Debug` doesn't support any options
-  --> tests/ui/item_option_syntax.rs:19:16
+  --> tests/ui/item_option_syntax.rs:15:16
    |
-19 | #[derive_where(Debug(option))]
+15 | #[derive_where(Debug(option))]
    |                ^^^^^^^^^^^^^

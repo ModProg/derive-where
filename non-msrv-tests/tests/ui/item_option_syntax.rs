@@ -1,9 +1,5 @@
 use derive_where::derive_where;
 
-// Rust itself already fails to parse this and will provide a separate error message.
-#[derive_where = invalid]
-struct InvalidAttribute<T>(PhantomData<T>);
-
 #[derive_where = "invalid"]
 struct WrongAttributeSyntax<T>(PhantomData<T>);
 

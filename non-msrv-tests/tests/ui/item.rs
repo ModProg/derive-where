@@ -2,8 +2,6 @@ use std::marker::PhantomData;
 
 use derive_where::derive_where;
 
-struct NoAttribute<T>(PhantomData<T>);
-
 #[derive_where]
 struct NoOption<T>(PhantomData<T>);
 

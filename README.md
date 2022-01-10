@@ -240,8 +240,8 @@ accompanied by a minor version bump. If MSRV is important to you, use
 
 [derivative](https://crates.io/crates/derivative)
 ([![Crates.io](https://img.shields.io/crates/v/derivative.svg)](https://crates.io/crates/derivative))
-is a great alternative with many options. Notably it has no `no_std`
-support and requires to `#[derive(Derivative)]` to use.
+is a great alternative with many options. Notably it doesn't support `no_std`
+and requires an extra `#[derive(Derivative)]` to use.
 
 ## Changelog
 
