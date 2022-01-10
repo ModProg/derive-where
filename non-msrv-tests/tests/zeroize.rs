@@ -10,7 +10,7 @@ use std::{
 	ops::{Deref, DerefMut},
 };
 
-use derive_where::DeriveWhere;
+use derive_where::derive_where;
 use zeroize::Zeroize;
 
 #[cfg(feature = "zeroize-on-drop")]
@@ -19,7 +19,6 @@ use self::util::{AssertZeroize, Wrapper};
 
 #[test]
 fn basic() {
-	#[derive(DeriveWhere)]
 	#[derive_where(Zeroize)]
 	struct Test<T>(Wrapper<T>);
 
@@ -36,7 +35,6 @@ fn basic() {
 
 #[test]
 fn crate_() {
-	#[derive(DeriveWhere)]
 	#[derive_where(Zeroize(crate = "zeroize_"))]
 	struct Test<T>(Wrapper<T>);
 
@@ -53,7 +51,6 @@ fn crate_() {
 
 #[test]
 fn drop() {
-	#[derive(DeriveWhere)]
 	#[derive_where(Zeroize, ZeroizeOnDrop)]
 	struct Test<T>(Wrapper<T>);
 
@@ -88,7 +85,6 @@ fn fqs() {
 		}
 	}
 
-	#[derive(DeriveWhere)]
 	#[derive_where(Zeroize, ZeroizeOnDrop)]
 	struct Test<T>(#[derive_where(Zeroize(fqs))] Fqs<T>);
 
@@ -124,7 +120,6 @@ fn deref() {
 		}
 	}
 
-	#[derive(DeriveWhere)]
 	#[derive_where(Zeroize, ZeroizeOnDrop)]
 	struct Test<T>(ZeroizeDeref<T>);
 
@@ -145,7 +140,7 @@ fn deref() {
 }
 
 mod hygiene {
-	use derive_where::DeriveWhere;
+	use derive_where::derive_where;
 
 	use crate::util::{AssertZeroize, Wrapper};
 
@@ -159,7 +154,6 @@ mod hygiene {
 
 	#[test]
 	fn hygiene() {
-		#[derive(DeriveWhere)]
 		#[derive_where(Zeroize)]
 		struct Test<T>(#[derive_where(Zeroize(fqs))] Wrapper<T>);
 

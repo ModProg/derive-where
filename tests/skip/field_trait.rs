@@ -1,6 +1,6 @@
 use std::cmp::Ordering;
 
-use derive_where::DeriveWhere;
+use derive_where::derive_where;
 
 use crate::util::{
 	self, AssertDebug, AssertHash, AssertOrd, AssertPartialEq, AssertPartialOrd, Wrapper,
@@ -8,7 +8,6 @@ use crate::util::{
 
 #[test]
 fn debug() {
-	#[derive(DeriveWhere)]
 	#[derive_where(Debug)]
 	struct Test<T>(#[derive_where(skip(Debug))] Wrapper<T>);
 
@@ -21,7 +20,6 @@ fn debug() {
 
 #[test]
 fn hash() {
-	#[derive(DeriveWhere)]
 	#[derive_where(Hash)]
 	struct Test<T>(#[derive_where(skip(Hash))] Wrapper<T>);
 
@@ -37,7 +35,6 @@ fn hash() {
 
 #[test]
 fn ord() {
-	#[derive(DeriveWhere)]
 	#[derive_where(Eq, Ord, PartialEq, PartialOrd)]
 	struct Test<T>(#[derive_where(skip(Ord))] Wrapper<T>);
 
@@ -55,7 +52,6 @@ fn ord() {
 
 #[test]
 fn partial_eq() {
-	#[derive(DeriveWhere)]
 	#[derive_where(PartialEq)]
 	struct Test<T>(
 		#[derive_where(skip(PartialEq))]
@@ -75,7 +71,6 @@ fn partial_eq() {
 
 #[test]
 fn partial_ord() {
-	#[derive(DeriveWhere)]
 	#[derive_where(PartialEq, PartialOrd)]
 	struct Test<T>(#[derive_where(skip(PartialOrd))] Wrapper<T>);
 
@@ -93,7 +88,6 @@ fn partial_ord() {
 
 #[test]
 fn all() {
-	#[derive(DeriveWhere)]
 	#[derive_where(Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 	struct Test<T>(#[derive_where(skip(Debug, Hash, Ord, PartialEq, PartialOrd))] Wrapper<T>);
 

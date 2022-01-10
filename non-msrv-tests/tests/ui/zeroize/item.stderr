@@ -1,35 +1,35 @@
 error: unsupported trait, expected one of expected one of Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd, Zeroize, ZeroizeOnDrop
- --> tests/ui/zeroize/item.rs:6:16
+ --> tests/ui/zeroize/item.rs:5:16
   |
-6 | #[derive_where(skip_inner, Clone)]
+5 | #[derive_where(skip_inner, Clone)]
   |                ^^^^^^^^^^
 
 error: unsupported trait syntax, expected one of expected one of Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd, Zeroize, ZeroizeOnDrop
-  --> tests/ui/zeroize/item.rs:10:24
+ --> tests/ui/zeroize/item.rs:8:24
+  |
+8 | #[derive_where(Debug = invalid; T)]
+  |                        ^^^^^^^
+
+error: unsupported trait syntax, expected one of expected one of Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd, Zeroize, ZeroizeOnDrop
+  --> tests/ui/zeroize/item.rs:11:16
    |
-10 | #[derive_where(Debug = invalid; T)]
-   |                        ^^^^^^^
+11 | #[derive_where(,)]
+   |                ^
 
 error: unsupported trait syntax, expected one of expected one of Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd, Zeroize, ZeroizeOnDrop
   --> tests/ui/zeroize/item.rs:14:16
    |
-14 | #[derive_where(,)]
+14 | #[derive_where(,Clone)]
    |                ^
 
 error: unsupported trait syntax, expected one of expected one of Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd, Zeroize, ZeroizeOnDrop
-  --> tests/ui/zeroize/item.rs:18:16
+  --> tests/ui/zeroize/item.rs:17:22
    |
-18 | #[derive_where(,Clone)]
-   |                ^
-
-error: unsupported trait syntax, expected one of expected one of Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd, Zeroize, ZeroizeOnDrop
-  --> tests/ui/zeroize/item.rs:22:22
-   |
-22 | #[derive_where(Clone,,)]
+17 | #[derive_where(Clone,,)]
    |                      ^
 
 error: unsupported trait, expected one of expected one of Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd, Zeroize, ZeroizeOnDrop
-  --> tests/ui/zeroize/item.rs:26:16
+  --> tests/ui/zeroize/item.rs:20:16
    |
-26 | #[derive_where(T)]
+20 | #[derive_where(T)]
    |                ^

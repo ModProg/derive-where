@@ -1,53 +1,51 @@
-error: no traits found to implement, use `#[derive_where(..)` to specify some
- --> tests/ui/item.rs:6:1
+error: empty `derive_where` found
+ --> tests/ui/item.rs:5:1
   |
-6 | struct NoAttribute<T>(PhantomData<T>);
-  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-error: unexpected option syntax
- --> tests/ui/item.rs:9:3
+5 | #[derive_where]
+  | ^^^^^^^^^^^^^^^
   |
-9 | #[derive_where]
-  |   ^^^^^^^^^^^^
+  = note: this error originates in the attribute macro `derive_where` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: empty `derive_where` found
-  --> tests/ui/item.rs:13:3
-   |
-13 | #[derive_where()]
-   |   ^^^^^^^^^^^^^^
+ --> tests/ui/item.rs:8:1
+  |
+8 | #[derive_where()]
+  | ^^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in the attribute macro `derive_where` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: expected `,`
-  --> tests/ui/item.rs:17:24
+  --> tests/ui/item.rs:11:24
    |
-17 | #[derive_where(Clone; T;)]
+11 | #[derive_where(Clone; T;)]
    |                        ^
 
 error: expected type to bind to, expected one of: `for`, parentheses, `fn`, `unsafe`, `extern`, identifier, `::`, `<`, square brackets, `*`, `&`, `!`, `impl`, `_`, lifetime
-  --> tests/ui/item.rs:21:25
+  --> tests/ui/item.rs:14:25
    |
-21 | #[derive_where(Clone; T,,)]
+14 | #[derive_where(Clone; T,,)]
    |                         ^
 
 error: expected type to bind to, expected one of: `for`, parentheses, `fn`, `unsafe`, `extern`, identifier, `::`, `<`, square brackets, `*`, `&`, `!`, `impl`, `_`, lifetime
-  --> tests/ui/item.rs:25:23
+  --> tests/ui/item.rs:17:23
    |
-25 | #[derive_where(Clone; where)]
+17 | #[derive_where(Clone; where)]
    |                       ^^^^^
 
 error: expected `;` or `,
-  --> tests/ui/item.rs:29:22
+  --> tests/ui/item.rs:20:22
    |
-29 | #[derive_where(Clone Debug)]
+20 | #[derive_where(Clone Debug)]
    |                      ^^^^^
 
 error: expected `,`
-  --> tests/ui/item.rs:33:25
+  --> tests/ui/item.rs:23:25
    |
-33 | #[derive_where(Clone; T U)]
+23 | #[derive_where(Clone; T U)]
    |                         ^
 
 error: unexpected option syntax
-  --> tests/ui/item.rs:37:16
+  --> tests/ui/item.rs:26:16
    |
-37 | #[derive_where("Clone")]
+26 | #[derive_where("Clone")]
    |                ^^^^^^^

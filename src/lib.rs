@@ -12,13 +12,11 @@
 //! # Usage
 //!
 //! The `derive_where` macro can be used just like std's `#[derive(...)]`
-//! statements, with the only caveat that it requires to derive `DeriveWhere`
-//! ([#27]):
+//! statements:
 //!
 //! ```
 //! # use std::marker::PhantomData;
-//! # use derive_where::DeriveWhere;
-//! #[derive(DeriveWhere)]
+//! # use derive_where::derive_where;
 //! #[derive_where(Clone, Debug)]
 //! struct Example<T>(PhantomData<T>);
 //! ```
@@ -37,8 +35,7 @@
 //!
 //! ```
 //! # use std::marker::PhantomData;
-//! # use derive_where::DeriveWhere;
-//! #[derive(DeriveWhere)]
+//! # use derive_where::derive_where;
 //! #[derive_where(Clone; T)]
 //! struct Example<T, U>(T, PhantomData<U>);
 //! ```
@@ -48,10 +45,9 @@
 //!
 //! ```
 //! # use std::marker::PhantomData;
-//! # use derive_where::DeriveWhere;
+//! # use derive_where::derive_where;
 //! trait Super: Clone {}
 //!
-//! #[derive(DeriveWhere)]
 //! #[derive_where(Clone; T: Super)]
 //! struct Example<T>(PhantomData<T>);
 //! ```
@@ -62,7 +58,7 @@
 //!
 //! ```
 //! # use std::marker::PhantomData;
-//! # use derive_where::DeriveWhere;
+//! # use derive_where::derive_where;
 //! trait Trait {
 //! 	type Type;
 //! }
@@ -73,7 +69,6 @@
 //! 	type Type = i32;
 //! }
 //!
-//! #[derive(DeriveWhere)]
 //! #[derive_where(Clone; T::Type)]
 //! struct Example<T: Trait>(T::Type);
 //! ```
@@ -84,8 +79,7 @@
 //!
 //! ```
 //! # use std::marker::PhantomData;
-//! # use derive_where::DeriveWhere;
-//! #[derive(DeriveWhere)]
+//! # use derive_where::derive_where;
 //! #[derive_where(Clone; T)]
 //! #[derive_where(Debug; U)]
 //! struct Example<T, U>(PhantomData<T>, PhantomData<U>);
@@ -98,8 +92,7 @@
 //!
 //! ```
 //! # use std::marker::PhantomData;
-//! # use derive_where::DeriveWhere;
-//! #[derive(DeriveWhere)]
+//! # use derive_where::derive_where;
 //! #[derive_where(Default)]
 //! enum Example<T> {
 //! 	#[derive_where(default)]
@@ -115,8 +108,7 @@
 //!
 //! ```
 //! # use std::marker::PhantomData;
-//! # use derive_where::DeriveWhere;
-//! #[derive(DeriveWhere)]
+//! # use derive_where::derive_where;
 //! #[derive_where(Debug, PartialEq; T)]
 //! struct Example<T>(#[derive_where(skip)] T);
 //!
@@ -128,15 +120,13 @@
 //!
 //! ```
 //! # use std::marker::PhantomData;
-//! # use derive_where::DeriveWhere;
-//! #[derive(DeriveWhere)]
+//! # use derive_where::derive_where;
 //! #[derive_where(Debug)]
 //! #[derive_where(skip_inner)]
 //! struct StructExample<T>(T);
 //!
 //! assert_eq!(format!("{:?}", StructExample(42)), "StructExample");
 //!
-//! #[derive(DeriveWhere)]
 //! #[derive_where(Debug)]
 //! enum EnumExample<T> {
 //! 	#[derive_where(skip_inner)]
@@ -151,8 +141,7 @@
 //!
 //! ```
 //! # use std::marker::PhantomData;
-//! # use derive_where::DeriveWhere;
-//! #[derive(DeriveWhere)]
+//! # use derive_where::derive_where;
 //! #[derive_where(Debug, PartialEq)]
 //! #[derive_where(skip_inner(Debug))]
 //! struct Example<T>(i32, PhantomData<T>);
@@ -177,7 +166,7 @@
 //! # #[cfg(feature = "zeroize")]
 //! # {
 //! # use std::marker::PhantomData;
-//! # use derive_where::DeriveWhere;
+//! # use derive_where::derive_where;
 //! # use zeroize_::Zeroize;
 //! # // Fake `Zeroize` implementation because this crate doesn't have access to
 //! # // the zeroize crate because of MSRV.
@@ -191,7 +180,6 @@
 //! # 		}
 //! # 	}
 //! # }
-//! #[derive(DeriveWhere)]
 //! #[derive_where(Zeroize(crate = "zeroize_"))]
 //! struct Example(#[derive_where(Zeroize(fqs))] i32);
 //!
@@ -229,7 +217,7 @@
 //! # #[cfg(feature = "zeroize-on-drop")]
 //! # {
 //! # use std::marker::PhantomData;
-//! # use derive_where::DeriveWhere;
+//! # use derive_where::derive_where;
 //! # // Fake `ZeroizeOnDrop` implementation because this crate doesn't have access to
 //! # // the zeroize crate because of MSRV.
 //! # mod zeroize_ {
@@ -249,7 +237,6 @@
 //! # 		}
 //! # 	}
 //! # }
-//! #[derive(DeriveWhere)]
 //! #[derive_where(ZeroizeOnDrop(crate = "zeroize_"))]
 //! struct Example(i32);
 //!
@@ -313,8 +300,8 @@
 //!
 //! [derivative](https://crates.io/crates/derivative)
 //! ([![Crates.io](https://img.shields.io/crates/v/derivative.svg)](https://crates.io/crates/derivative))
-//! is a great alternative with many options. Notably it has no `no_std`
-//! support.
+//! is a great alternative with many options. Notably it doesn't support
+//! `no_std` and requires an extra `#[derive(Derivative)]` to use.
 //!
 //! # Changelog
 //!
@@ -363,9 +350,12 @@ mod util;
 
 use std::{borrow::Cow, iter};
 
-use proc_macro2::TokenStream;
-use quote::quote;
-use syn::{spanned::Spanned, DeriveInput, Generics, Result};
+use proc_macro2::{Ident, Span, TokenStream};
+use quote::{quote, ToTokens};
+use syn::{
+	spanned::Spanned, Attribute, DataEnum, DataStruct, DataUnion, DeriveInput, Fields, FieldsNamed,
+	FieldsUnnamed, Generics, Variant,
+};
 
 #[cfg(feature = "zeroize")]
 use self::attr::ZeroizeFqs;
@@ -409,32 +399,54 @@ const DERIVE_WHERE: &str = "derive_where";
 ///
 /// [`Zeroize`]: https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html
 /// [`ZeroizeOnDrop`]: https://docs.rs/zeroize/latest/zeroize/trait.ZeroizeOnDrop.html
-#[proc_macro_derive(DeriveWhere, attributes(derive_where))]
+#[proc_macro_attribute]
 #[cfg_attr(feature = "nightly", allow_internal_unstable(core_intrinsics))]
-pub fn derive_where(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-	match derive_where_internal(input.into()) {
-		Ok(output) => output.into(),
-		Err(error) => error.into_compile_error().into(),
+pub fn derive_where(
+	attr: proc_macro::TokenStream,
+	original_input: proc_macro::TokenStream,
+) -> proc_macro::TokenStream {
+	let attr: TokenStream = attr.into();
+	let input: TokenStream = original_input.clone().into();
+	let input = quote! {
+		#[derive_where(#attr)]
+		#input
+	};
+
+	let item = match syn::parse2::<DeriveInput>(input) {
+		Ok(item) => item,
+		Err(error) => {
+			return iter::once(original_input)
+				.chain(iter::once(proc_macro::TokenStream::from(
+					error.into_compile_error(),
+				)))
+				.collect();
+		}
+	};
+
+	let cleaned_item = input_without_derive_where_attributes(item.clone());
+	let span = cleaned_item.span();
+
+	match { Input::from_input(span, &item) } {
+		Ok(Input {
+			derive_wheres,
+			generics,
+			item,
+		}) => iter::once(cleaned_item)
+			.chain(
+				derive_wheres
+					.iter()
+					.flat_map(|derive_where| iter::repeat(derive_where).zip(&derive_where.traits))
+					.map(|(derive_where, trait_)| {
+						generate_impl(derive_where, trait_, &item, generics)
+					}),
+			)
+			.collect::<TokenStream>()
+			.into(),
+		Err(error) => iter::once(cleaned_item)
+			.chain(iter::once(error.into_compile_error()))
+			.collect::<TokenStream>()
+			.into(),
 	}
-}
-
-/// Internal derive function for handling errors.
-fn derive_where_internal(input: TokenStream) -> Result<TokenStream> {
-	// Save `Span` before we consume `input` when parsing it.
-	let span = input.span();
-	let item = syn::parse2::<DeriveInput>(input).expect("derive on unparsable item");
-
-	let Input {
-		derive_wheres,
-		generics,
-		item,
-	} = Input::from_input(span, &item)?;
-
-	Ok(derive_wheres
-		.iter()
-		.flat_map(|derive_where| iter::repeat(derive_where).zip(&derive_where.traits))
-		.map(|(derive_where, trait_)| generate_impl(derive_where, trait_, &item, generics))
-		.collect())
 }
 
 /// Generate implementation for a [`Trait`].
@@ -489,4 +501,55 @@ fn generate_body(trait_: &DeriveTrait, item: &Item) -> TokenStream {
 			trait_.build_signature(item, trait_, &body)
 		}
 	}
+}
+
+/// Removes `derive_where` attributes from the item and all fields and variants.
+///
+/// This is necessary because Rust currently does not support helper attributes
+/// for attribute proc-macros and therefore doesn't automatically remove them.
+fn input_without_derive_where_attributes(mut input: DeriveInput) -> TokenStream {
+	use syn::Data;
+	let DeriveInput { data, attrs, .. } = &mut input;
+
+	/// Remove all `derive_where` attributes.
+	fn remove_derive_where(attrs: &mut Vec<Attribute>) {
+		let ident = Ident::new("derive_where", Span::call_site());
+		attrs.retain(|attr| !attr.path.is_ident(&ident))
+	}
+
+	/// Remove all `derive_where` attributes from [`FieldsNamed`].
+	fn remove_derive_where_from_fields_named(fields: &mut FieldsNamed) {
+		let FieldsNamed { named, .. } = fields;
+		named
+			.iter_mut()
+			.for_each(|field| remove_derive_where(&mut field.attrs))
+	}
+
+	/// Remove all `derive_where` attributes from [`Fields`].
+	fn remove_derive_where_from_fields(fields: &mut Fields) {
+		match fields {
+			Fields::Named(fields) => remove_derive_where_from_fields_named(fields),
+			Fields::Unnamed(FieldsUnnamed { unnamed, .. }) => unnamed
+				.iter_mut()
+				.for_each(|field| remove_derive_where(&mut field.attrs)),
+			Fields::Unit => (),
+		}
+	}
+
+	// Remove `derive_where` attributes from the item.
+	remove_derive_where(attrs);
+	match data {
+		Data::Struct(DataStruct { fields, .. }) => remove_derive_where_from_fields(fields),
+		Data::Enum(DataEnum { variants, .. }) => {
+			variants
+				.iter_mut()
+				.for_each(|Variant { attrs, fields, .. }| {
+					remove_derive_where(attrs);
+					remove_derive_where_from_fields(fields)
+				})
+		}
+		Data::Union(DataUnion { fields, .. }) => remove_derive_where_from_fields_named(fields),
+	}
+
+	input.to_token_stream()
 }

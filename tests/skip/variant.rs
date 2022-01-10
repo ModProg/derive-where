@@ -1,6 +1,6 @@
 use std::cmp::Ordering;
 
-use derive_where::DeriveWhere;
+use derive_where::derive_where;
 
 use crate::util::{
 	self, AssertClone, AssertCopy, AssertDebug, AssertEq, AssertHash, AssertOrd, AssertPartialEq,
@@ -9,7 +9,6 @@ use crate::util::{
 
 #[test]
 fn single() {
-	#[derive(DeriveWhere)]
 	#[derive_where(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 	enum Test<T> {
 		#[derive_where(default, skip_inner)]
@@ -58,7 +57,6 @@ fn single() {
 
 #[test]
 fn multiple() {
-	#[derive(DeriveWhere)]
 	#[derive_where(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 	enum Test<T> {
 		#[derive_where(default, skip_inner)]

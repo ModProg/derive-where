@@ -2,13 +2,12 @@
 
 mod util;
 
-use derive_where::DeriveWhere;
+use derive_where::derive_where;
 
 use self::util::{AssertClone, AssertCopy, Wrapper};
 
 #[test]
 fn single() {
-	#[derive(DeriveWhere)]
 	#[derive_where(Clone, Copy)]
 	union Test<T> {
 		a: Wrapper<T>,
@@ -28,7 +27,6 @@ fn single() {
 
 #[test]
 fn multiple() {
-	#[derive(DeriveWhere)]
 	#[derive_where(Clone, Copy)]
 	union Test<T> {
 		a: Wrapper<T>,

@@ -8,7 +8,7 @@ use std::{
 	hash::Hasher,
 };
 
-use derive_where::DeriveWhere;
+use derive_where::derive_where;
 
 use self::util::{
 	AssertClone, AssertCopy, AssertDebug, AssertEq, AssertHash, AssertOrd, AssertPartialEq,
@@ -86,7 +86,6 @@ impl<T: std::cmp::PartialOrd> PartialOrd for T {}
 
 #[test]
 fn test() {
-	#[derive(DeriveWhere)]
 	#[derive_where(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 	struct Test<T>(Wrapper<T>);
 

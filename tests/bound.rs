@@ -2,7 +2,7 @@ mod util;
 
 use std::marker::PhantomData;
 
-use derive_where::DeriveWhere;
+use derive_where::derive_where;
 
 use self::util::AssertClone;
 
@@ -18,7 +18,6 @@ fn custom_generic() {
 		type Type = i32;
 	}
 
-	#[derive(DeriveWhere)]
 	#[derive_where(Clone; T::Type)]
 	struct Test<T: Trait>(T::Type);
 
@@ -39,7 +38,6 @@ fn custom_bound() {
 
 	impl Trait for Impl {}
 
-	#[derive(DeriveWhere)]
 	#[derive_where(Clone; T: Trait)]
 	struct Test<T>(u8, PhantomData<T>);
 
