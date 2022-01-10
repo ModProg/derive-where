@@ -354,7 +354,7 @@ use proc_macro2::{Ident, Span, TokenStream};
 use quote::{quote, ToTokens};
 use syn::{
 	spanned::Spanned, Attribute, DataEnum, DataStruct, DataUnion, DeriveInput, Fields, FieldsNamed,
-	FieldsUnnamed, Generics, Result, Variant,
+	FieldsUnnamed, Generics, Variant,
 };
 
 #[cfg(feature = "zeroize")]
@@ -403,42 +403,49 @@ const DERIVE_WHERE: &str = "derive_where";
 #[cfg_attr(feature = "nightly", allow_internal_unstable(core_intrinsics))]
 pub fn derive_where(
 	attr: proc_macro::TokenStream,
-	input: proc_macro::TokenStream,
+	original_input: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
 	let attr: TokenStream = attr.into();
-	let input: TokenStream = input.into();
+	let input: TokenStream = original_input.clone().into();
 	let input = quote! {
 		#[derive_where(#attr)]
 		#input
 	};
-
-	match derive_where_internal(input) {
-		Ok(output) => output.into(),
-		Err(error) => error.into_compile_error().into(),
-	}
-}
-
-/// Internal derive function for handling errors.
-fn derive_where_internal(input: TokenStream) -> Result<TokenStream> {
 	// Save `Span` before we consume `input` when parsing it.
 	let span = input.span();
-	let item = syn::parse2::<DeriveInput>(input).expect("derive on unparsable item");
+	let item = match syn::parse2::<DeriveInput>(input) {
+		Ok(item) => item,
+		Err(error) => {
+			return iter::once(original_input)
+				.chain(iter::once(proc_macro::TokenStream::from(
+					error.into_compile_error(),
+				)))
+				.collect();
+		}
+	};
 	let cleaned_item = input_without_derive_where_attributes(item.clone());
 
-	let Input {
-		derive_wheres,
-		generics,
-		item,
-	} = Input::from_input(span, &item)?;
-
-	Ok(iter::once(cleaned_item)
-		.chain(
-			derive_wheres
-				.iter()
-				.flat_map(|derive_where| iter::repeat(derive_where).zip(&derive_where.traits))
-				.map(|(derive_where, trait_)| generate_impl(derive_where, trait_, &item, generics)),
-		)
-		.collect())
+	match { Input::from_input(span, &item) } {
+		Ok(Input {
+			derive_wheres,
+			generics,
+			item,
+		}) => iter::once(cleaned_item)
+			.chain(
+				derive_wheres
+					.iter()
+					.flat_map(|derive_where| iter::repeat(derive_where).zip(&derive_where.traits))
+					.map(|(derive_where, trait_)| {
+						generate_impl(derive_where, trait_, &item, generics)
+					}),
+			)
+			.collect::<TokenStream>()
+			.into(),
+		Err(error) => iter::once(cleaned_item)
+			.chain(iter::once(error.into_compile_error()))
+			.collect::<TokenStream>()
+			.into(),
+	}
 }
 
 /// Generate implementation for a [`Trait`].
@@ -497,7 +504,8 @@ fn generate_body(trait_: &DeriveTrait, item: &Item) -> TokenStream {
 
 /// Removes `derive_where` attributes from the item and all fields and variants.
 ///
-/// This is necessary because Rust currently does not support helper attributes for attribute proc-macros and therefore doesn't automatically remove them.
+/// This is necessary because Rust currently does not support helper attributes
+/// for attribute proc-macros and therefore doesn't automatically remove them.
 fn input_without_derive_where_attributes(mut input: DeriveInput) -> TokenStream {
 	use syn::Data;
 	let DeriveInput { data, attrs, .. } = &mut input;

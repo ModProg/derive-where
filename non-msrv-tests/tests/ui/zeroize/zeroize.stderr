@@ -1,35 +1,35 @@
 error: `Zeroize` doesn't support this option
- --> tests/ui/zeroize/zeroize.rs:5:24
+ --> tests/ui/zeroize/zeroize.rs:7:24
   |
-5 | #[derive_where(Zeroize(test))]
+7 | #[derive_where(Zeroize(test))]
   |                        ^^^^
 
 error: `Zeroize` doesn't support this option
- --> tests/ui/zeroize/zeroize.rs:8:24
-  |
-8 | #[derive_where(Zeroize(test = "test"))]
-  |                        ^^^^
+  --> tests/ui/zeroize/zeroize.rs:10:24
+   |
+10 | #[derive_where(Zeroize(test = "test"))]
+   |                        ^^^^
 
 error: unexpected option syntax
-  --> tests/ui/zeroize/zeroize.rs:11:24
+  --> tests/ui/zeroize/zeroize.rs:13:24
    |
-11 | #[derive_where(Zeroize("option"))]
+13 | #[derive_where(Zeroize("option"))]
    |                        ^^^^^^^^
 
 error: unexpected option syntax
-  --> tests/ui/zeroize/zeroize.rs:14:24
+  --> tests/ui/zeroize/zeroize.rs:16:24
    |
-14 | #[derive_where(Zeroize(crate(zeroize_)))]
+16 | #[derive_where(Zeroize(crate(zeroize_)))]
    |                        ^^^^^^^^^^^^^^^
 
 error: expected path, expected identifier
-  --> tests/ui/zeroize/zeroize.rs:17:32
+  --> tests/ui/zeroize/zeroize.rs:19:32
    |
-17 | #[derive_where(Zeroize(crate = "struct Test"))]
+19 | #[derive_where(Zeroize(crate = "struct Test"))]
    |                                ^^^^^^^^^^^^^
 
 error: duplicate `crate` option
-  --> tests/ui/zeroize/zeroize.rs:20:44
+  --> tests/ui/zeroize/zeroize.rs:22:44
    |
-20 | #[derive_where(Zeroize(crate = "zeroize_", crate = "zeroize_"))]
+22 | #[derive_where(Zeroize(crate = "zeroize_", crate = "zeroize_"))]
    |                                            ^^^^^^^^^^^^^^^^^^

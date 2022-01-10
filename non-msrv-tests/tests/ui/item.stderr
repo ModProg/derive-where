@@ -49,11 +49,3 @@ error: unexpected option syntax
    |
 26 | #[derive_where("Clone")]
    |                ^^^^^^^
-
-warning: unused import: `std::marker::PhantomData`
- --> tests/ui/item.rs:1:5
-  |
-1 | use std::marker::PhantomData;
-  |     ^^^^^^^^^^^^^^^^^^^^^^^^
-  |
-  = note: `#[warn(unused_imports)]` on by default
