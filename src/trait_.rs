@@ -89,6 +89,7 @@ impl Trait {
 				"Zeroize" => Ok(Zeroize),
 				#[cfg(feature = "zeroize")]
 				"ZeroizeOnDrop" => Ok(ZeroizeOnDrop),
+				"crate" => Err(Error::crate_(path.span())),
 				_ => Err(Error::trait_(path.span())),
 			}
 		} else {

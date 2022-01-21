@@ -1,14 +1,19 @@
 //! Parses [`DeriveInput`] into something more useful.
 
 use proc_macro2::Span;
-use syn::{DeriveInput, GenericParam, Generics, Result};
+use syn::{DeriveInput, GenericParam, Generics, Path, Result};
 
 #[cfg(feature = "zeroize")]
 use crate::DeriveTrait;
-use crate::{Data, DeriveWhere, Either, Error, Item, ItemAttr, Trait};
+use crate::{
+	util, Data, DeriveWhere, Either, Error, Item, ItemAttr, Trait, DERIVE_WHERE,
+	DERIVE_WHERE_VISITED,
+};
 
 /// Parsed input.
 pub struct Input<'a> {
+	/// [`Path`] to the `derive_where_visited` proc-macro.
+	pub derive_where_visited: Path,
 	/// `derive_where` attributes on the item.
 	pub derive_wheres: Vec<DeriveWhere>,
 	/// Generics necessary to define for an `impl`.
@@ -31,9 +36,23 @@ impl<'a> Input<'a> {
 	) -> Result<Self> {
 		// Parse `Attribute`s on item.
 		let ItemAttr {
+			crate_,
 			skip_inner,
 			derive_wheres,
 		} = ItemAttr::from_attrs(span, data, attrs)?;
+
+		// Build `derive_where_visited` path.
+		let derive_where_visited = util::path_from_root_and_strs(
+			crate_.unwrap_or_else(|| util::path_from_strs(&[DERIVE_WHERE])),
+			&[DERIVE_WHERE_VISITED],
+		);
+
+		// Check if we already parsed this item before.
+		for attr in attrs {
+			if attr.path == derive_where_visited {
+				return Err(Error::visited(span));
+			}
+		}
 
 		// Extract fields and variants of this item.
 		let item = match &data {
@@ -163,6 +182,7 @@ impl<'a> Input<'a> {
 		}
 
 		Ok(Self {
+			derive_where_visited,
 			derive_wheres,
 			generics,
 			item,

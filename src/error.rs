@@ -6,6 +6,34 @@ use proc_macro2::Span;
 pub struct Error;
 
 impl Error {
+	/// `derive_where` was already applied on this item before.
+	pub fn visited(span: Span) -> syn::Error {
+		syn::Error::new(
+			span,
+			"`#[derive_where(..)` was already applied to this item before, this occurs when using \
+			 a qualified path for any `#[derive_where(..)`s except the first",
+		)
+	}
+
+	/// Unnecessary `crate` option because it is equal to the default.
+	pub fn path_unnecessary(span: Span, default: &str) -> syn::Error {
+		syn::Error::new(
+			span,
+			format!(
+				"unnecessary path qualification, `{}` is used by default",
+				default
+			),
+		)
+	}
+
+	/// The `crate` option was defined together with traits.
+	pub fn crate_(span: Span) -> syn::Error {
+		syn::Error::new(
+			span,
+			"the `crate` option has to be defined in it's own `#[derive_where(..)` attribute",
+		)
+	}
+
 	/// No `derive_where` with [`Trait`](crate::Trait) found.
 	pub fn none(span: Span) -> syn::Error {
 		syn::Error::new(
@@ -144,8 +172,7 @@ impl Error {
 		syn::Error::new(span, "trait to be skipped isn't being implemented")
 	}
 
-	/// Invalid value for the `Zeroize` `crate` option.
-	#[cfg(feature = "zeroize")]
+	/// Invalid value for the `derive_where` or `Zeroize` `crate` option.
 	pub fn path(span: Span, parse_error: syn::Error) -> syn::Error {
 		syn::Error::new(span, format!("expected path, {}", parse_error))
 	}
@@ -154,10 +181,7 @@ impl Error {
 	pub fn trait_(span: Span) -> syn::Error {
 		syn::Error::new(
 			span,
-			format!(
-				"unsupported trait, expected one of expected one of {}",
-				Self::trait_list()
-			),
+			format!("unsupported trait, expected one of {}", Self::trait_list()),
 		)
 	}
 
@@ -166,7 +190,7 @@ impl Error {
 		syn::Error::new(
 			span,
 			format!(
-				"unsupported trait syntax, expected one of expected one of {}",
+				"unsupported trait syntax, expected one of {}",
 				Self::trait_list()
 			),
 		)
