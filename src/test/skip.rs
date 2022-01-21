@@ -122,16 +122,8 @@ fn variants_empty() -> Result<()> {
 	#[cfg(all(not(feature = "nightly"), feature = "safe"))]
 	let ord = quote! {
 		match self {
-			Test::A(ref __0) =>
-				match __other {
-					Test::B (ref __other_0) => ::core::cmp::Ordering::Less,
-					_ => ::core::unreachable!("comparing variants yielded unexpected results"),
-				},
-			Test::B(ref __0) =>
-				match __other {
-					Test::A (ref __other_0) => ::core::cmp::Ordering::Greater,
-					_ => ::core::unreachable!("comparing variants yielded unexpected results"),
-				},
+			Test::A(ref __0) => ::core::cmp::Ordering::Less,
+			Test::B(ref __0) => ::core::cmp::Ordering::Greater,
 		}
 	};
 
@@ -190,16 +182,8 @@ fn variants_partly_empty() -> Result<()> {
 	#[cfg(all(not(feature = "nightly"), feature = "safe"))]
 	let ord = quote! {
 		match self {
-			Test::A(ref __0) =>
-				match __other {
-					Test::B (ref __other_0, ref __other_1) => ::core::cmp::Ordering::Less,
-					_ => ::core::unreachable!("comparing variants yielded unexpected results"),
-				},
-			Test::B(ref __0, ref __1) =>
-				match __other {
-					Test::A (ref __other_0) => ::core::cmp::Ordering::Greater,
-					_ => ::core::unreachable!("comparing variants yielded unexpected results"),
-				},
+			Test::A(ref __0) => ::core::cmp::Ordering::Less,
+			Test::B(ref __0, ref __1) => ::core::cmp::Ordering::Greater,
 		}
 	};
 
