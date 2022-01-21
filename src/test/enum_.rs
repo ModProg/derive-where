@@ -136,16 +136,8 @@ fn two_data() -> Result<()> {
 	#[cfg(all(not(feature = "nightly"), feature = "safe"))]
 	let partial_ord = quote! {
 		match self {
-			Test::A(ref __0) =>
-				match __other {
-					Test::B(ref __other_0) => ::core::option::Option::Some(::core::cmp::Ordering::Less),
-					_ => #unreachable,
-				},
-			Test::B(ref __0) =>
-				match __other {
-					Test::A(ref __other_0) => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
-					_ => #unreachable,
-				},
+			Test::A(ref __0) => ::core::option::Option::Some(::core::cmp::Ordering::Less),
+			Test::B(ref __0) => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
 		}
 	};
 
@@ -228,16 +220,8 @@ fn unit() -> Result<()> {
 	#[cfg(all(not(feature = "nightly"), feature = "safe"))]
 	let partial_ord = quote! {
 		match self {
-			Test::A(ref __0) =>
-				match __other {
-					Test::B => ::core::option::Option::Some(::core::cmp::Ordering::Less),
-					_ => ::core::unreachable!("comparing variants yielded unexpected results"),
-				},
-			Test::B =>
-				match __other {
-					Test::A(ref __other_0) => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
-					_ => ::core::unreachable!("comparing variants yielded unexpected results"),
-				},
+			Test::A(ref __0) => ::core::option::Option::Some(::core::cmp::Ordering::Less),
+			Test::B => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
 		}
 	};
 
@@ -313,16 +297,8 @@ fn struct_unit() -> Result<()> {
 	#[cfg(all(not(feature = "nightly"), feature = "safe"))]
 	let partial_ord = quote! {
 		match self {
-			Test::A(ref __0) =>
-				match __other {
-					Test::B { } => ::core::option::Option::Some(::core::cmp::Ordering::Less),
-					_ => ::core::unreachable!("comparing variants yielded unexpected results"),
-				},
-			Test::B { } =>
-				match __other {
-					Test::A(ref __other_0) => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
-					_ => ::core::unreachable!("comparing variants yielded unexpected results"),
-				},
+			Test::A(ref __0) => ::core::option::Option::Some(::core::cmp::Ordering::Less),
+			Test::B { } => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
 		}
 	};
 
@@ -398,16 +374,8 @@ fn tuple_unit() -> Result<()> {
 	#[cfg(all(not(feature = "nightly"), feature = "safe"))]
 	let partial_ord = quote! {
 		match self {
-			Test::A(ref __0) =>
-				match __other {
-					Test::B() => ::core::option::Option::Some(::core::cmp::Ordering::Less),
-					_ => ::core::unreachable!("comparing variants yielded unexpected results"),
-				},
-			Test::B() =>
-				match __other {
-					Test::A(ref __other_0) => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
-					_ => ::core::unreachable!("comparing variants yielded unexpected results"),
-				},
+			Test::A(ref __0) => ::core::option::Option::Some(::core::cmp::Ordering::Less),
+			Test::B() => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
 		}
 	};
 

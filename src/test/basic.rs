@@ -220,14 +220,7 @@ fn enum_() -> Result<()> {
 	#[cfg(all(not(feature = "nightly"), feature = "safe"))]
 	let ord = quote! {
 		match self {
-			Test::A { field: ref __field } =>
-				match __other {
-					Test::B { } => ::core::cmp::Ordering::Less,
-					Test::C(ref __other_0) => ::core::cmp::Ordering::Less,
-					Test::D() => ::core::cmp::Ordering::Less,
-					Test::E => ::core::cmp::Ordering::Less,
-					_ => ::core::unreachable!("comparing variants yielded unexpected results"),
-				},
+			Test::A { field: ref __field } => ::core::cmp::Ordering::Less,
 			Test::B { } =>
 				match __other {
 					Test::A { field: ref __other_field } => ::core::cmp::Ordering::Greater,
@@ -252,14 +245,7 @@ fn enum_() -> Result<()> {
 					Test::E => ::core::cmp::Ordering::Less,
 					_ => ::core::unreachable!("comparing variants yielded unexpected results"),
 				},
-			Test::E =>
-				match __other {
-					Test::A { field: ref __other_field } => ::core::cmp::Ordering::Greater,
-					Test::B { } => ::core::cmp::Ordering::Greater,
-					Test::C(ref __other_0) => ::core::cmp::Ordering::Greater,
-					Test::D() => ::core::cmp::Ordering::Greater,
-					_ => ::core::unreachable!("comparing variants yielded unexpected results"),
-				},
+			Test::E => ::core::cmp::Ordering::Greater,
 		}
 	};
 	#[cfg(feature = "nightly")]
@@ -276,14 +262,7 @@ fn enum_() -> Result<()> {
 	#[cfg(all(not(feature = "nightly"), feature = "safe"))]
 	let partial_ord = quote! {
 		match self {
-			Test::A { field: ref __field } =>
-				match __other {
-					Test::B { } => ::core::option::Option::Some(::core::cmp::Ordering::Less),
-					Test::C(ref __other_0) => ::core::option::Option::Some(::core::cmp::Ordering::Less),
-					Test::D() => ::core::option::Option::Some(::core::cmp::Ordering::Less),
-					Test::E => ::core::option::Option::Some(::core::cmp::Ordering::Less),
-					_ => ::core::unreachable!("comparing variants yielded unexpected results"),
-				},
+			Test::A { field: ref __field } => ::core::option::Option::Some(::core::cmp::Ordering::Less),
 			Test::B { } =>
 				match __other {
 					Test::A { field: ref __other_field } => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
@@ -308,14 +287,7 @@ fn enum_() -> Result<()> {
 					Test::E => ::core::option::Option::Some(::core::cmp::Ordering::Less),
 					_ => ::core::unreachable!("comparing variants yielded unexpected results"),
 				},
-			Test::E =>
-				match __other {
-					Test::A { field: ref __other_field } => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
-					Test::B { } => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
-					Test::C(ref __other_0) => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
-					Test::D() => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
-					_ => ::core::unreachable!("comparing variants yielded unexpected results"),
-				},
+			Test::E => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
 		}
 	};
 

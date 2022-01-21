@@ -105,35 +105,48 @@ pub fn build_ord_signature(item: &Item, trait_: &DeriveTrait, body: &TokenStream
 				// other. The index for these variants is used to determine which
 				// `Ordering` to return.
 				for (index, variant) in variants.iter().enumerate() {
-					let mut arms = Vec::with_capacity(variants.len() - 1);
-
-					for (index_other, variant_other) in variants.iter().enumerate() {
-						// Make sure we aren't comparing the same variant with itself.
-						if index != index_other {
-							use std::cmp::Ordering::*;
-
-							let ordering = match index.cmp(&index_other) {
-								Less => &less,
-								Equal => &equal,
-								Greater => &greater,
-							};
-
-							let pattern = &variant_other.other_pattern();
-
-							arms.push(quote! {
-								#pattern => #ordering,
-							});
-						}
-					}
-
 					let pattern = &variant.self_pattern();
 
-					different.push(quote! {
-						#pattern => match __other {
-							#(#arms)*
-							_ => ::core::unreachable!("comparing variants yielded unexpected results"),
-						},
-					});
+					// The first variant is always `Less` then everything.
+					if index == 0 {
+						different.push(quote! {
+							#pattern => #less,
+						})
+					}
+					// The last variant is always `Greater` then everything.
+					else if index == variants.len() - 1 {
+						different.push(quote! {
+							#pattern => #greater,
+						})
+					} else {
+						let mut arms = Vec::with_capacity(variants.len() - 1);
+
+						for (index_other, variant_other) in variants.iter().enumerate() {
+							// Make sure we aren't comparing the same variant with itself.
+							if index != index_other {
+								use std::cmp::Ordering::*;
+
+								let ordering = match index.cmp(&index_other) {
+									Less => &less,
+									Equal => &equal,
+									Greater => &greater,
+								};
+
+								let pattern = &variant_other.other_pattern();
+
+								arms.push(quote! {
+									#pattern => #ordering,
+								});
+							}
+						}
+
+						different.push(quote! {
+							#pattern => match __other {
+								#(#arms)*
+								_ => ::core::unreachable!("comparing variants yielded unexpected results"),
+							},
+						});
+					}
 				}
 
 				quote! {
