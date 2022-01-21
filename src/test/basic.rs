@@ -223,27 +223,18 @@ fn enum_() -> Result<()> {
 			Test::A { field: ref __field } => ::core::cmp::Ordering::Less,
 			Test::B { } =>
 				match __other {
-					Test::A { field: ref __other_field } => ::core::cmp::Ordering::Greater,
-					Test::C(ref __other_0) => ::core::cmp::Ordering::Less,
-					Test::D() => ::core::cmp::Ordering::Less,
-					Test::E => ::core::cmp::Ordering::Less,
-					_ => ::core::unreachable!("comparing variants yielded unexpected results"),
+					Test::A { .. } => ::core::cmp::Ordering::Greater,
+					_ => ::core::cmp::Ordering::Less,
 				},
 			Test::C(ref __0) =>
 				match __other {
-					Test::A { field: ref __other_field } => ::core::cmp::Ordering::Greater,
-					Test::B { } => ::core::cmp::Ordering::Greater,
-					Test::D() => ::core::cmp::Ordering::Less,
-					Test::E => ::core::cmp::Ordering::Less,
-					_ => ::core::unreachable!("comparing variants yielded unexpected results"),
+					Test::A { .. } | Test::B { .. } => ::core::cmp::Ordering::Greater,
+					_ => ::core::cmp::Ordering::Less,
 				},
 			Test::D() =>
 				match __other {
-					Test::A { field: ref __other_field } => ::core::cmp::Ordering::Greater,
-					Test::B { } => ::core::cmp::Ordering::Greater,
-					Test::C(ref __other_0) => ::core::cmp::Ordering::Greater,
-					Test::E => ::core::cmp::Ordering::Less,
-					_ => ::core::unreachable!("comparing variants yielded unexpected results"),
+					Test::A { .. } | Test::B { .. } | Test::C(..) => ::core::cmp::Ordering::Greater,
+					_ => ::core::cmp::Ordering::Less,
 				},
 			Test::E => ::core::cmp::Ordering::Greater,
 		}
@@ -265,27 +256,18 @@ fn enum_() -> Result<()> {
 			Test::A { field: ref __field } => ::core::option::Option::Some(::core::cmp::Ordering::Less),
 			Test::B { } =>
 				match __other {
-					Test::A { field: ref __other_field } => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
-					Test::C(ref __other_0) => ::core::option::Option::Some(::core::cmp::Ordering::Less),
-					Test::D() => ::core::option::Option::Some(::core::cmp::Ordering::Less),
-					Test::E => ::core::option::Option::Some(::core::cmp::Ordering::Less),
-					_ => ::core::unreachable!("comparing variants yielded unexpected results"),
+					Test::A { .. } => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
+					_ => ::core::option::Option::Some(::core::cmp::Ordering::Less),
 				},
 			Test::C(ref __0) =>
 				match __other {
-					Test::A { field: ref __other_field } => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
-					Test::B { } => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
-					Test::D() => ::core::option::Option::Some(::core::cmp::Ordering::Less),
-					Test::E => ::core::option::Option::Some(::core::cmp::Ordering::Less),
-					_ => ::core::unreachable!("comparing variants yielded unexpected results"),
+					Test::A { .. } | Test::B { .. } => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
+					_ => ::core::option::Option::Some(::core::cmp::Ordering::Less),
 				},
 			Test::D() =>
 				match __other {
-					Test::A { field: ref __other_field } => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
-					Test::B { } => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
-					Test::C(ref __other_0) => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
-					Test::E => ::core::option::Option::Some(::core::cmp::Ordering::Less),
-					_ => ::core::unreachable!("comparing variants yielded unexpected results"),
+					Test::A { .. } | Test::B { .. } | Test::C(..) => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
+					_ => ::core::option::Option::Some(::core::cmp::Ordering::Less),
 				},
 			Test::E => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
 		}

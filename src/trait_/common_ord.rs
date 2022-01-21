@@ -90,6 +90,8 @@ pub fn build_ord_signature(item: &Item, trait_: &DeriveTrait, body: &TokenStream
 			// Safe implementation when not on nightly.
 			#[cfg(all(not(feature = "nightly"), feature = "safe"))]
 			{
+				use syn::PatOr;
+
 				let mut less = quote! { ::core::cmp::Ordering::Less };
 				let mut greater = quote! { ::core::cmp::Ordering::Greater };
 
@@ -118,32 +120,29 @@ pub fn build_ord_signature(item: &Item, trait_: &DeriveTrait, body: &TokenStream
 						different.push(quote! {
 							#pattern => #greater,
 						})
-					} else {
-						let mut arms = Vec::with_capacity(variants.len() - 1);
+					}
+					// Any variant between the first and last.
+					else {
+						// Collect all variants that are `Less`.
+						let cases = variants
+							.iter()
+							.enumerate()
+							.filter(|(index_other, _)| *index_other < index)
+							.map(|(_, variant_other)| variant_other.other_pattern_skip().clone())
+							.collect();
 
-						for (index_other, variant_other) in variants.iter().enumerate() {
-							// Make sure we aren't comparing the same variant with itself.
-							if index != index_other {
-								use std::cmp::Ordering::*;
+						// Build one match arm pattern with all variants that are `Greater`.
+						let pattern_less = PatOr {
+							attrs: Vec::new(),
+							leading_vert: None,
+							cases,
+						};
 
-								let ordering = match index.cmp(&index_other) {
-									Less => &less,
-									Equal => &equal,
-									Greater => &greater,
-								};
-
-								let pattern = &variant_other.other_pattern();
-
-								arms.push(quote! {
-									#pattern => #ordering,
-								});
-							}
-						}
-
+						// All other variants are `Less`.
 						different.push(quote! {
 							#pattern => match __other {
-								#(#arms)*
-								_ => ::core::unreachable!("comparing variants yielded unexpected results"),
+								#pattern_less => #greater,
+								_ => #less,
 							},
 						});
 					}

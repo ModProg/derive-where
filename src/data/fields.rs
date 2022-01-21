@@ -5,6 +5,8 @@ use syn::{
 	FieldPat, FieldsNamed, FieldsUnnamed, Ident, Pat, PatIdent, PatStruct, PatTuple,
 	PatTupleStruct, Path, Result, Token,
 };
+#[cfg(all(not(feature = "nightly"), feature = "safe"))]
+use {std::iter, syn::punctuated::Punctuated, syn::PatRest};
 
 use crate::{DeriveWhere, Field, Skip, Trait};
 
@@ -15,6 +17,10 @@ pub struct Fields<'a> {
 	pub self_pattern: Pat,
 	/// [Pattern](Pat) to use in a match arm to destructure `other`.
 	pub other_pattern: Pat,
+	/// [Pattern](Pat) to use in a match arm to destructure `other` but skipping
+	/// all fields.
+	#[cfg(all(not(feature = "nightly"), feature = "safe"))]
+	pub other_pattern_skip: Pat,
 	/// [`Field`]s of this struct, union or variant.
 	pub fields: Vec<Field<'a>>,
 }
@@ -30,11 +36,21 @@ impl<'a> Fields<'a> {
 		let fields = Field::from_named(derive_wheres, skip_inner, fields)?;
 
 		let self_pattern = Self::struct_pattern(path.clone(), &fields, |field| &field.self_ident);
+		#[cfg(all(not(feature = "nightly"), feature = "safe"))]
+		let other_pattern_skip = Pat::Struct(PatStruct {
+			attrs: Vec::new(),
+			path: path.clone(),
+			brace_token: Brace::default(),
+			fields: Punctuated::new(),
+			dot2_token: Some(<Token![..]>::default()),
+		});
 		let other_pattern = Self::struct_pattern(path, &fields, |field| &field.other_ident);
 
 		Ok(Self {
 			self_pattern,
 			other_pattern,
+			#[cfg(all(not(feature = "nightly"), feature = "safe"))]
+			other_pattern_skip,
 			fields,
 		})
 	}
@@ -49,11 +65,27 @@ impl<'a> Fields<'a> {
 		let fields = Field::from_unnamed(derive_wheres, skip_inner, fields)?;
 
 		let self_pattern = Self::tuple_pattern(path.clone(), &fields, |field| &field.self_ident);
+		#[cfg(all(not(feature = "nightly"), feature = "safe"))]
+		let other_pattern_skip = Pat::TupleStruct(PatTupleStruct {
+			attrs: Vec::new(),
+			path: path.clone(),
+			pat: PatTuple {
+				attrs: Vec::new(),
+				paren_token: Paren::default(),
+				elems: iter::once(Pat::Rest(PatRest {
+					attrs: Vec::new(),
+					dot2_token: <Token![..]>::default(),
+				}))
+				.collect(),
+			},
+		});
 		let other_pattern = Self::tuple_pattern(path, &fields, |field| &field.other_ident);
 
 		Ok(Self {
 			self_pattern,
 			other_pattern,
+			#[cfg(all(not(feature = "nightly"), feature = "safe"))]
+			other_pattern_skip,
 			fields,
 		})
 	}
