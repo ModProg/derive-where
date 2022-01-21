@@ -288,7 +288,7 @@
 //!   [`unreachable`].
 //! - `zeroize`: Allows deriving [`Zeroize`] and [`method@zeroize`] on [`Drop`].
 //! - `zeroize-on-drop`: Allows deriving [`Zeroize`] and [`ZeroizeOnDrop`] and
-//!   requires [zeroize] v1.5.0-pre.
+//!   requires [zeroize] v1.5.0.
 //!
 //! # MSRV
 //!
@@ -326,12 +326,12 @@
 //! [CHANGELOG]: https://github.com/ModProg/derive-where/blob/main/CHANGELOG.md
 //! [LICENSE-MIT]: https://github.com/ModProg/derive-where/blob/main/LICENSE-MIT
 //! [LICENSE-APACHE]: https://github.com/ModProg/derive-where/blob/main/LICENSE-APACHE
-//! [zeroize]: https://crates.io/crates/zeroize/1.5.0-pre
+//! [zeroize]: https://crates.io/crates/zeroize/1.5.0
 //! [`Debug`]: core::fmt::Debug
 //! [`Default`]: core::default::Default
 //! [`Hash`]: core::hash::Hash
 //! [`Zeroize`]: https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html
-//! [`ZeroizeOnDrop`]: https://docs.rs/zeroize/1.5.0-pre/zeroize/trait.ZeroizeOnDrop.html
+//! [`ZeroizeOnDrop`]: https://docs.rs/zeroize/1.5.0/zeroize/trait.ZeroizeOnDrop.html
 //! [`method@zeroize`]: https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html#tymethod.zeroize
 //! [#27]: https://github.com/ModProg/derive-where/issues/27
 

@@ -15,7 +15,7 @@ derive-where = { path = ".." }
 
 [dev-dependencies]
 trybuild = { version = "1", default-features = false }
-zeroize_ = { version = "1.5.0-pre", package = "zeroize", default-features = false }
+zeroize_ = { version = "1.5.0", package = "zeroize", default-features = false }
 
 [lib]
 doctest = false
