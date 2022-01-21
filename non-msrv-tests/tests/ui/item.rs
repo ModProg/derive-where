@@ -8,6 +8,21 @@ struct NoOption<T>(PhantomData<T>);
 #[derive_where()]
 struct EmptyAttribute<T>(PhantomData<T>);
 
+#[derive_where(crate(derive_where_))]
+struct WrongCrateSyntax<T>(PhantomData<T>);
+
+#[derive_where(crate = "struct Test")]
+struct InvalidPath<T>(PhantomData<T>);
+
+#[derive_where(crate = "derive_where_", crate = "derive_where_")]
+struct DuplicateCrate1<T>(PhantomData<T>);
+
+#[derive_where(crate = "derive_where_")]
+struct OnlyCrate<T>(PhantomData<T>);
+
+#[derive_where(crate = "::derive_where")]
+struct DefaultCrate<T>(PhantomData<T>);
+
 #[derive_where(Clone; T;)]
 struct SemiColonAtTheEnd<T, U>(T, PhantomData<U>);
 

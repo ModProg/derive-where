@@ -17,9 +17,12 @@ struct WrongOptionSyntax2<T>(PhantomData<T>);
 struct WrongCrateSyntax<T>(PhantomData<T>);
 
 #[derive_where(Zeroize(crate = "struct Test"))]
-struct InvalidCrate<T>(PhantomData<T>);
+struct InvalidPath<T>(PhantomData<T>);
 
 #[derive_where(Zeroize(crate = "zeroize_", crate = "zeroize_"))]
 struct DuplicateCrate<T>(PhantomData<T>);
+
+#[derive_where(Zeroize(crate = "::zeroize"))]
+struct DefaultCrate<T>(PhantomData<T>);
 
 fn main() {}

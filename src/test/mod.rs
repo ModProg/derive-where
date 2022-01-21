@@ -37,6 +37,7 @@ fn derive_where_internal(input: TokenStream) -> Result<TokenStream> {
 		derive_wheres,
 		generics,
 		item,
+		..
 	} = Input::from_input(span, &item)?;
 
 	Ok(derive_wheres

@@ -33,3 +33,9 @@ error: duplicate `crate` option
    |
 22 | #[derive_where(Zeroize(crate = "zeroize_", crate = "zeroize_"))]
    |                                            ^^^^^^^^^^^^^^^^^^
+
+error: unnecessary path qualification, `::zeroize` is used by default
+  --> tests/ui/zeroize/zeroize.rs:25:32
+   |
+25 | #[derive_where(Zeroize(crate = "::zeroize"))]
+   |                                ^^^^^^^^^^^

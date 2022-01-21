@@ -2,9 +2,9 @@
 
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::{spanned::Spanned, Lit, Meta, MetaList, NestedMeta, Result};
+use syn::{spanned::Spanned, Lit, Meta, MetaList, NestedMeta, Path, Result};
 
-use crate::{Data, DeriveTrait, Error, Item, SimpleType, TraitImpl};
+use crate::{util, Data, DeriveTrait, Error, Item, SimpleType, TraitImpl};
 
 /// Dummy-struct implement [`Trait`](crate::Trait) for [`Zeroize`](https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html) .
 pub struct Zeroize;
@@ -38,8 +38,15 @@ impl TraitImpl for Zeroize {
 						// Check for duplicate `crate` option.
 						if crate_.is_none() {
 							if let Lit::Str(lit_str) = &name_value.lit {
-								match lit_str.parse() {
+								match lit_str.parse::<Path>() {
 									Ok(path) => {
+										if path == util::path_from_strs(&["zeroize"]) {
+											return Err(Error::path_unnecessary(
+												path.span(),
+												"::zeroize",
+											));
+										}
+
 										crate_ = Some(path);
 									}
 									Err(error) => return Err(Error::path(lit_str.span(), error)),

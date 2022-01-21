@@ -7,7 +7,7 @@ use syn::{
 	parse::{discouraged::Speculative, Parse, ParseStream},
 	punctuated::Punctuated,
 	spanned::Spanned,
-	Attribute, Data, Ident, Meta, NestedMeta, Path, PredicateType, Result, Token, TraitBound,
+	Attribute, Data, Ident, Lit, Meta, NestedMeta, Path, PredicateType, Result, Token, TraitBound,
 	TraitBoundModifier, Type, TypeParamBound, TypePath, WhereClause, WherePredicate,
 };
 
@@ -16,6 +16,8 @@ use crate::{util, Error, Item, Skip, Trait, TraitImpl, DERIVE_WHERE};
 /// Attributes on item.
 #[derive(Default)]
 pub struct ItemAttr {
+	/// [`Path`] to this crate.
+	pub crate_: Option<Path>,
 	/// [`Trait`]s to skip all fields for.
 	pub skip_inner: Skip,
 	/// [`DeriveWhere`]s on this item.
@@ -52,8 +54,49 @@ impl ItemAttr {
 										// Don't parse `Skip` yet, because it needs access to all
 										// `DeriveWhere`s.
 										skip_inners.push(meta);
+									} else if let Meta::NameValue(name_value) = meta {
+										if name_value.path.is_ident("crate") {
+											if let Lit::Str(lit_str) = &name_value.lit {
+												match lit_str.parse::<Path>() {
+													Ok(path) => {
+														if path
+															== util::path_from_strs(&[DERIVE_WHERE])
+														{
+															return Err(Error::path_unnecessary(
+																path.span(),
+																&format!("::{}", DERIVE_WHERE),
+															));
+														}
+
+														match self_.crate_ {
+															Some(_) => {
+																return Err(
+																	Error::option_duplicate(
+																		name_value.span(),
+																		"crate",
+																	),
+																)
+															}
+															None => self_.crate_ = Some(path),
+														}
+													}
+													Err(error) => {
+														return Err(Error::path(
+															lit_str.span(),
+															error,
+														))
+													}
+												}
+											} else {
+												return Err(Error::option_syntax(
+													name_value.lit.span(),
+												));
+											}
+										} else {
+											return Err(Error::option_syntax(name_value.span()));
+										}
 									}
-									// The list can have one item but stil not be the `skip_inner`
+									// The list can have one item but still not be the `skip_inner`
 									// attribute, continue with parsing `DeriveWhere`.
 									else {
 										self_

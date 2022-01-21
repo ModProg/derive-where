@@ -14,38 +14,68 @@ error: empty `derive_where` found
   |
   = note: this error originates in the attribute macro `derive_where` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: expected `,`
-  --> tests/ui/item.rs:11:24
+error: the `crate` option has to be defined in it's own `#[derive_where(..)` attribute
+  --> tests/ui/item.rs:11:16
    |
-11 | #[derive_where(Clone; T;)]
+11 | #[derive_where(crate(derive_where_))]
+   |                ^^^^^
+
+error: expected path, expected identifier
+  --> tests/ui/item.rs:14:24
+   |
+14 | #[derive_where(crate = "struct Test")]
+   |                        ^^^^^^^^^^^^^
+
+error: the `crate` option has to be defined in it's own `#[derive_where(..)` attribute
+  --> tests/ui/item.rs:17:16
+   |
+17 | #[derive_where(crate = "derive_where_", crate = "derive_where_")]
+   |                ^^^^^
+
+error: no traits found to implement, use `#[derive_where(..)` to specify some
+  --> tests/ui/item.rs:21:1
+   |
+21 | struct OnlyCrate<T>(PhantomData<T>);
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: unnecessary path qualification, `::derive_where` is used by default
+  --> tests/ui/item.rs:23:24
+   |
+23 | #[derive_where(crate = "::derive_where")]
+   |                        ^^^^^^^^^^^^^^^^
+
+error: expected `,`
+  --> tests/ui/item.rs:26:24
+   |
+26 | #[derive_where(Clone; T;)]
    |                        ^
 
 error: expected type to bind to, expected one of: `for`, parentheses, `fn`, `unsafe`, `extern`, identifier, `::`, `<`, square brackets, `*`, `&`, `!`, `impl`, `_`, lifetime
-  --> tests/ui/item.rs:14:25
+  --> tests/ui/item.rs:29:25
    |
-14 | #[derive_where(Clone; T,,)]
+29 | #[derive_where(Clone; T,,)]
    |                         ^
 
 error: expected type to bind to, expected one of: `for`, parentheses, `fn`, `unsafe`, `extern`, identifier, `::`, `<`, square brackets, `*`, `&`, `!`, `impl`, `_`, lifetime
-  --> tests/ui/item.rs:17:23
+  --> tests/ui/item.rs:32:23
    |
-17 | #[derive_where(Clone; where)]
+32 | #[derive_where(Clone; where)]
    |                       ^^^^^
 
 error: expected `;` or `,
-  --> tests/ui/item.rs:20:22
+  --> tests/ui/item.rs:35:22
    |
-20 | #[derive_where(Clone Debug)]
+35 | #[derive_where(Clone Debug)]
    |                      ^^^^^
 
 error: expected `,`
-  --> tests/ui/item.rs:23:25
+  --> tests/ui/item.rs:38:25
    |
-23 | #[derive_where(Clone; T U)]
+38 | #[derive_where(Clone; T U)]
    |                         ^
 
 error: unexpected option syntax
-  --> tests/ui/item.rs:26:16
+  --> tests/ui/item.rs:41:16
    |
-26 | #[derive_where("Clone")]
+41 | #[derive_where("Clone")]
    |                ^^^^^^^

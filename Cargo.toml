@@ -32,13 +32,11 @@ quote = { version = "1", default-features = false }
 syn = { version = "1", default-features = false, features = [
 	"clone-impls",
 	"derive",
+	"extra-traits",
 	"full",
 	"parsing",
 	"printing",
 ] }
-
-[dev-dependencies]
-syn = { version = "1", default-features = false, features = ["extra-traits"] }
 
 [[test]]
 name = "util"

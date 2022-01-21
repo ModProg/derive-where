@@ -34,8 +34,15 @@ impl TraitImpl for ZeroizeOnDrop {
 						// Check for duplicate `crate` option.
 						if crate_.is_none() {
 							if let Lit::Str(lit_str) = &name_value.lit {
-								match lit_str.parse() {
+								match lit_str.parse::<Path>() {
 									Ok(path) => {
+										if path == util::path_from_strs(&["zeroize"]) {
+											return Err(Error::path_unnecessary(
+												path.span(),
+												"::zeroize",
+											));
+										}
+
 										crate_ = Some(path);
 									}
 									Err(error) => return Err(Error::path(lit_str.span(), error)),

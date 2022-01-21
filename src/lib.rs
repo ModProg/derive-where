@@ -369,8 +369,10 @@ use self::{
 	util::Either,
 };
 
-/// Token used for attributes.
+/// Name of the `derive_where` proc-macro.
 const DERIVE_WHERE: &str = "derive_where";
+/// Name of the `derive_where_visited` proc-macro.
+const DERIVE_WHERE_VISITED: &str = "derive_where_visited";
 
 /// Item-level options:
 /// - `#[derive_where(Clone, ..; T, ..)]`: Specify traits to implement and
@@ -423,30 +425,52 @@ pub fn derive_where(
 		}
 	};
 
-	let cleaned_item = input_without_derive_where_attributes(item.clone());
+	let mut cleaned_item = input_without_derive_where_attributes(item.clone());
 	let span = cleaned_item.span();
 
 	match { Input::from_input(span, &item) } {
 		Ok(Input {
+			derive_where_visited,
 			derive_wheres,
 			generics,
 			item,
-		}) => iter::once(cleaned_item)
-			.chain(
-				derive_wheres
-					.iter()
-					.flat_map(|derive_where| iter::repeat(derive_where).zip(&derive_where.traits))
-					.map(|(derive_where, trait_)| {
-						generate_impl(derive_where, trait_, &item, generics)
-					}),
-			)
-			.collect::<TokenStream>()
-			.into(),
-		Err(error) => iter::once(cleaned_item)
+		}) => {
+			cleaned_item
+				.attrs
+				.push(syn::parse_quote! { #[#derive_where_visited] });
+
+			iter::once(cleaned_item.into_token_stream())
+				.chain(
+					derive_wheres
+						.iter()
+						.flat_map(|derive_where| {
+							iter::repeat(derive_where).zip(&derive_where.traits)
+						})
+						.map(|(derive_where, trait_)| {
+							generate_impl(derive_where, trait_, &item, generics)
+						}),
+				)
+				.collect::<TokenStream>()
+				.into()
+		}
+		Err(error) => iter::once(cleaned_item.into_token_stream())
 			.chain(iter::once(error.into_compile_error()))
 			.collect::<TokenStream>()
 			.into(),
 	}
+}
+
+/// Marker attribute signifying that this item was already processed by a
+/// `derive_where` attribute before. This should prevent users to wrongly use a
+/// qualified path for a `derive_where` attribute except the first one.
+#[doc(hidden)]
+#[proc_macro_attribute]
+pub fn derive_where_visited(
+	_attr: proc_macro::TokenStream,
+	input: proc_macro::TokenStream,
+) -> proc_macro::TokenStream {
+	// No-op, just here to mark the item as visited.
+	input
 }
 
 /// Generate implementation for a [`Trait`].
@@ -507,7 +531,7 @@ fn generate_body(trait_: &DeriveTrait, item: &Item) -> TokenStream {
 ///
 /// This is necessary because Rust currently does not support helper attributes
 /// for attribute proc-macros and therefore doesn't automatically remove them.
-fn input_without_derive_where_attributes(mut input: DeriveInput) -> TokenStream {
+fn input_without_derive_where_attributes(mut input: DeriveInput) -> DeriveInput {
 	use syn::Data;
 	let DeriveInput { data, attrs, .. } = &mut input;
 
@@ -538,6 +562,8 @@ fn input_without_derive_where_attributes(mut input: DeriveInput) -> TokenStream 
 
 	// Remove `derive_where` attributes from the item.
 	remove_derive_where(attrs);
+
+	// Remove `derive_where` attributes from variants or fields.
 	match data {
 		Data::Struct(DataStruct { fields, .. }) => remove_derive_where_from_fields(fields),
 		Data::Enum(DataEnum { variants, .. }) => {
@@ -551,5 +577,5 @@ fn input_without_derive_where_attributes(mut input: DeriveInput) -> TokenStream 
 		Data::Union(DataUnion { fields, .. }) => remove_derive_where_from_fields_named(fields),
 	}
 
-	input.to_token_stream()
+	input
 }
