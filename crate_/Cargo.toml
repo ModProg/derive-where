@@ -1,0 +1,19 @@
+[package]
+edition = "2018"
+name = "crate_"
+publish = false
+version = "0.0.0"
+
+[features]
+nightly = ["derive-where_/nightly"]
+safe = ["derive-where_/safe"]
+zeroize = ["derive-where_/zeroize", "zeroize_"]
+zeroize-on-drop = ["derive-where_/zeroize-on-drop", "zeroize"]
+
+[dependencies]
+derive-where_ = { path = "..", package = "derive-where" }
+zeroize_ = { version = "1.5.0-pre", package = "zeroize", default-features = false, optional = true }
+
+[lib]
+doctest = false
+test = false

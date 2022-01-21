@@ -1,6 +1,6 @@
 [workspace]
 default-members = [""]
-members = ["", "ensure-no-std", "non-msrv-tests"]
+members = ["", "crate_", "ensure-no-std", "non-msrv-tests"]
 resolver = "2"
 
 [package]
