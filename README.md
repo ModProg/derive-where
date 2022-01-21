@@ -23,6 +23,68 @@ This will generate trait implementations for `Example` for any `T`,
 as opposed to std's derives, which would only implement these traits with
 `T: Trait` bound to the corresponding trait.
 
+Multiple `derive_where` attributes can be added to an item, but only the
+first one should use any path qualifications. Otherwise helper attributes
+won't be applied to any but the first `derive_where` attribute on the item.
+
+```rust
+#[derive_where::derive_where(Clone, Debug)]
+#[derive_where(Default, Hash)]
+struct Example<T>(PhantomData<T>);
+```
+
+Multiple `derive_where` attributes can be added to an item, but only the
+first one should use any path qualifications. Otherwise helper attributes
+won't be applied to any but the first `derive_where` attribute on the item.
+
+```rust
+#[derive_where::derive_where(Clone, Debug; T)]
+#[derive_where(PartialEq)]
+struct Example1<T, U> {
+	a: u8,
+	#[derive_where(skip)]
+	b: u8,
+	ph: PhantomData<(T, U)>,
+}
+
+let var1 = Example1 {
+	a: 42,
+	b: 42,
+	ph: PhantomData::<((), ())>,
+};
+let var2 = Example1 {
+	a: 42,
+	b: 0,
+	ph: PhantomData::<((), ())>,
+};
+
+// Field `b` is not compared, as expected.
+assert_eq!(var1, var2);
+
+#[derive_where::derive_where(Clone, Debug; T)]
+#[derive_where::derive_where(PartialEq)]
+struct Example2<T, U> {
+	a: u8,
+	#[derive_where(skip)]
+	b: u8,
+	ph: PhantomData<(T, U)>,
+}
+
+let var1 = Example2 {
+	a: 42,
+	b: 42,
+	ph: PhantomData::<((), ())>,
+};
+let var2 = Example2 {
+	a: 42,
+	b: 0,
+	ph: PhantomData::<((), ())>,
+};
+
+// Field `b` is compared!
+assert_ne!(var1, var2);
+```
+
 In addition, the following convenience options are available:
 
 ### Generic type bounds
