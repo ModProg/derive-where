@@ -41,4 +41,8 @@ struct MissingCommaBetweenGenerics<T, U, V>(T, PhantomData<(U, V)>);
 #[derive_where("Clone")]
 struct InvalidTrait<T>(PhantomData<T>);
 
+#[derive_where(Clone)]
+#[derive_where::derive_where(Copy)]
+struct QualifiedNotFirstMacro<T>(PhantomData<T>);
+
 fn main() {}

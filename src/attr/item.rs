@@ -54,8 +54,8 @@ impl ItemAttr {
 										// Don't parse `Skip` yet, because it needs access to all
 										// `DeriveWhere`s.
 										skip_inners.push(meta);
-									} else if let Meta::NameValue(name_value) = meta {
-										if name_value.path.is_ident("crate") {
+									} else if meta.path().is_ident("crate") {
+										if let Meta::NameValue(name_value) = meta {
 											if let Lit::Str(lit_str) = &name_value.lit {
 												match lit_str.parse::<Path>() {
 													Ok(path) => {
@@ -93,7 +93,7 @@ impl ItemAttr {
 												));
 											}
 										} else {
-											return Err(Error::option_syntax(name_value.span()));
+											return Err(Error::option_syntax(meta.span()));
 										}
 									}
 									// The list can have one item but still not be the `skip_inner`
