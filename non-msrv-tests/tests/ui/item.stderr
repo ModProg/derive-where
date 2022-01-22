@@ -14,11 +14,11 @@ error: empty `derive_where` found
   |
   = note: this error originates in the attribute macro `derive_where` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: the `crate` option has to be defined in it's own `#[derive_where(..)` attribute
+error: unexpected option syntax
   --> tests/ui/item.rs:11:16
    |
 11 | #[derive_where(crate(derive_where_))]
-   |                ^^^^^
+   |                ^^^^^^^^^^^^^^^^^^^^
 
 error: expected path, expected identifier
   --> tests/ui/item.rs:14:24
@@ -79,3 +79,11 @@ error: unexpected option syntax
    |
 41 | #[derive_where("Clone")]
    |                ^^^^^^^
+
+error: `#[derive_where(..)` was already applied to this item before, this occurs when using a qualified path for any `#[derive_where(..)`s except the first
+  --> tests/ui/item.rs:44:1
+   |
+44 | #[derive_where(Clone)]
+   | ^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this error originates in the attribute macro `derive_where` (in Nightly builds, run with -Z macro-backtrace for more info)
