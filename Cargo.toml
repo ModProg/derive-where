@@ -14,7 +14,7 @@ license = "MIT OR Apache-2.0"
 name = "derive-where"
 readme = "README.md"
 repository = "https://github.com/ModProg/derive-where"
-rust-version = "1.34.2"
+rust-version = "1.34"
 version = "1.0.0-rc.2"
 
 [lib]
