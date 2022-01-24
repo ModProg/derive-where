@@ -24,16 +24,6 @@ as opposed to std's derives, which would only implement these traits with
 `T: Trait` bound to the corresponding trait.
 
 Multiple `derive_where` attributes can be added to an item, but only the
-first one should use any path qualifications. Otherwise helper attributes
-won't be applied to any but the first `derive_where` attribute on the item.
-
-```rust
-#[derive_where::derive_where(Clone, Debug)]
-#[derive_where(Default, Hash)]
-struct Example<T>(PhantomData<T>);
-```
-
-Multiple `derive_where` attributes can be added to an item, but only the
 first one must use any path qualifications.
 
 ```rust
