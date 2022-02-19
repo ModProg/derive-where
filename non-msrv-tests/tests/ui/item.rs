@@ -1,3 +1,5 @@
+extern crate derive_where as derive_where_;
+
 use std::marker::PhantomData;
 
 use derive_where::derive_where;

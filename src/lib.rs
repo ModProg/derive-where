@@ -360,11 +360,11 @@ mod util;
 
 use std::{borrow::Cow, iter};
 
-use proc_macro2::{Ident, Span, TokenStream};
-use quote::{quote, ToTokens};
+use proc_macro2::TokenStream;
+use quote::{quote, quote_spanned, ToTokens};
 use syn::{
 	spanned::Spanned, Attribute, DataEnum, DataStruct, DataUnion, DeriveInput, Fields, FieldsNamed,
-	FieldsUnnamed, Generics, Variant,
+	FieldsUnnamed, Generics, Lit, Meta, NestedMeta, Path, Variant,
 };
 
 #[cfg(feature = "zeroize")]
@@ -379,8 +379,10 @@ use self::{
 	util::Either,
 };
 
-/// Name of the `derive_where` proc-macro.
+/// Name of the `derive_where` attribute proc-macro.
 const DERIVE_WHERE: &str = "derive_where";
+/// Name of the `DeriveWhere` derive proc-macro.
+const DERIVE_WHERE_INTERNAL: &str = "DeriveWhere";
 /// Name of the `derive_where_visited` proc-macro.
 const DERIVE_WHERE_VISITED: &str = "derive_where_visited";
 
@@ -412,61 +414,149 @@ const DERIVE_WHERE_VISITED: &str = "derive_where_visited";
 /// [`Zeroize`]: https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html
 /// [`ZeroizeOnDrop`]: https://docs.rs/zeroize/latest/zeroize/trait.ZeroizeOnDrop.html
 #[proc_macro_attribute]
-#[cfg_attr(feature = "nightly", allow_internal_unstable(core_intrinsics))]
 pub fn derive_where(
 	attr: proc_macro::TokenStream,
 	original_input: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
-	let attr: TokenStream = attr.into();
-	let input: TokenStream = original_input.clone().into();
-	let input = quote! {
-		#[derive_where(#attr)]
-		#input
-	};
+	let attr = TokenStream::from(attr);
+	let mut original_input = TokenStream::from(original_input);
+	let mut input = quote_spanned! { attr.span()=> #[derive_where(#attr)] };
+	input.extend(original_input.clone());
 
+	match syn::parse2::<DeriveInput>(input) {
+		Ok(input) => match derive_where_internal(input.clone()) {
+			Ok(item) => item.into(),
+			Err(error) => {
+				let mut clean_input =
+					input_without_derive_where_attributes(input).into_token_stream();
+				clean_input.extend(error.into_compile_error());
+				clean_input.into()
+			}
+		},
+		Err(error) => {
+			original_input.extend(error.into_compile_error());
+			original_input.into()
+		}
+	}
+}
+
+/// Convenient way to deal with [`Result`] for [`derive_where`].
+fn derive_where_internal(mut item: DeriveInput) -> Result<TokenStream, syn::Error> {
+	let mut crate_ = None;
+
+	// Search for `crate` option.
+	for attr in &item.attrs {
+		if attr.path.is_ident(DERIVE_WHERE) {
+			if let Ok(Meta::List(list)) = attr.parse_meta() {
+				if list.nested.len() == 1 {
+					if let NestedMeta::Meta(meta) = list
+						.nested
+						.into_iter()
+						.next()
+						.expect("unexpected empty list")
+					{
+						if meta.path().is_ident("crate") {
+							if let Meta::NameValue(name_value) = meta {
+								if let Lit::Str(lit_str) = &name_value.lit {
+									match lit_str.parse::<Path>() {
+										Ok(path) => {
+											if path == util::path_from_strs(&[DERIVE_WHERE]) {
+												return Err(Error::path_unnecessary(
+													path.span(),
+													&format!("::{}", DERIVE_WHERE),
+												));
+											}
+
+											match crate_ {
+												Some(_) => {
+													return Err(Error::option_duplicate(
+														name_value.span(),
+														"crate",
+													))
+												}
+												None => crate_ = Some(path),
+											}
+										}
+										Err(error) => {
+											return Err(Error::path(lit_str.span(), error))
+										}
+									}
+								} else {
+									return Err(Error::option_syntax(name_value.lit.span()));
+								}
+							} else {
+								return Err(Error::option_syntax(meta.span()));
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// Build [`Path`] to crate.
+	let crate_ = crate_.unwrap_or_else(|| util::path_from_strs(&[DERIVE_WHERE]));
+
+	// Build `derive_where_visited` path.
+	let derive_where_visited =
+		util::path_from_root_and_strs(crate_.clone(), &[DERIVE_WHERE_VISITED]);
+
+	// Check if we already parsed this item before.
+	for attr in &item.attrs {
+		if attr.path == derive_where_visited {
+			return Err(Error::visited(attr.span()));
+		}
+	}
+
+	// Mark this as visited to prevent duplicate `derive_where` attributes.
+	item.attrs
+		.push(syn::parse_quote! { #[#derive_where_visited] });
+
+	// Build `DeriveWhere` path.
+	let derive_where = util::path_from_root_and_strs(crate_, &[DERIVE_WHERE_INTERNAL]);
+
+	// Let the `derive` proc-macro parse this.
+	let mut output = quote! { #[derive(#derive_where)] };
+	output.extend(item.into_token_stream());
+	Ok(output)
+}
+
+#[doc(hidden)]
+#[proc_macro_derive(DeriveWhere, attributes(derive_where))]
+#[cfg_attr(feature = "nightly", allow_internal_unstable(core_intrinsics))]
+pub fn derive_where_actual(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+	let input = TokenStream::from(input);
 	let item = match syn::parse2::<DeriveInput>(input) {
 		Ok(item) => item,
 		Err(error) => {
-			return iter::once(original_input)
-				.chain(iter::once(proc_macro::TokenStream::from(
-					error.into_compile_error(),
-				)))
-				.collect();
+			return error.into_compile_error().into();
 		}
 	};
 
-	let mut cleaned_item = input_without_derive_where_attributes(item.clone());
-	let span = cleaned_item.span();
+	let span = {
+		let clean_item = DeriveInput {
+			attrs: Vec::new(),
+			vis: item.vis.clone(),
+			ident: item.ident.clone(),
+			generics: item.generics.clone(),
+			data: item.data.clone(),
+		};
+
+		clean_item.span()
+	};
 
 	match { Input::from_input(span, &item) } {
 		Ok(Input {
-			derive_where_visited,
 			derive_wheres,
 			generics,
 			item,
-		}) => {
-			cleaned_item
-				.attrs
-				.push(syn::parse_quote! { #[#derive_where_visited] });
-
-			iter::once(cleaned_item.into_token_stream())
-				.chain(
-					derive_wheres
-						.iter()
-						.flat_map(|derive_where| {
-							iter::repeat(derive_where).zip(&derive_where.traits)
-						})
-						.map(|(derive_where, trait_)| {
-							generate_impl(derive_where, trait_, &item, generics)
-						}),
-				)
-				.collect::<TokenStream>()
-				.into()
-		}
-		Err(error) => iter::once(cleaned_item.into_token_stream())
-			.chain(iter::once(error.into_compile_error()))
+		}) => derive_wheres
+			.iter()
+			.flat_map(|derive_where| iter::repeat(derive_where).zip(&derive_where.traits))
+			.map(|(derive_where, trait_)| generate_impl(derive_where, trait_, &item, generics))
 			.collect::<TokenStream>()
 			.into(),
+		Err(error) => error.into_compile_error().into(),
 	}
 }
 
@@ -547,8 +637,7 @@ fn input_without_derive_where_attributes(mut input: DeriveInput) -> DeriveInput 
 
 	/// Remove all `derive_where` attributes.
 	fn remove_derive_where(attrs: &mut Vec<Attribute>) {
-		let ident = Ident::new("derive_where", Span::call_site());
-		attrs.retain(|attr| !attr.path.is_ident(&ident))
+		attrs.retain(|attr| !attr.path.is_ident(DERIVE_WHERE))
 	}
 
 	/// Remove all `derive_where` attributes from [`FieldsNamed`].
