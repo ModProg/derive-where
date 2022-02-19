@@ -17,4 +17,4 @@ note: required by a bound in `__AssertCopy`
    |
 10 | #[derive_where(Clone)]
    | ^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `__AssertCopy`
-   = note: this error originates in the attribute macro `derive_where` (in Nightly builds, run with -Z macro-backtrace for more info)
+   = note: this error originates in the derive macro `::derive_where::DeriveWhere` (in Nightly builds, run with -Z macro-backtrace for more info)

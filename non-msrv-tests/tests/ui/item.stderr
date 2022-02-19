@@ -1,95 +1,95 @@
 error: empty `derive_where` found
- --> tests/ui/item.rs:5:1
+ --> tests/ui/item.rs:7:1
   |
-5 | #[derive_where]
+7 | #[derive_where]
   | ^^^^^^^^^^^^^^^
   |
   = note: this error originates in the attribute macro `derive_where` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: empty `derive_where` found
- --> tests/ui/item.rs:8:1
-  |
-8 | #[derive_where()]
-  | ^^^^^^^^^^^^^^^^^
-  |
-  = note: this error originates in the attribute macro `derive_where` (in Nightly builds, run with -Z macro-backtrace for more info)
+  --> tests/ui/item.rs:10:1
+   |
+10 | #[derive_where()]
+   | ^^^^^^^^^^^^^^^^^
+   |
+   = note: this error originates in the attribute macro `derive_where` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: unexpected option syntax
-  --> tests/ui/item.rs:11:16
+  --> tests/ui/item.rs:13:16
    |
-11 | #[derive_where(crate(derive_where_))]
+13 | #[derive_where(crate(derive_where_))]
    |                ^^^^^^^^^^^^^^^^^^^^
 
 error: expected path, expected identifier
-  --> tests/ui/item.rs:14:24
+  --> tests/ui/item.rs:16:24
    |
-14 | #[derive_where(crate = "struct Test")]
+16 | #[derive_where(crate = "struct Test")]
    |                        ^^^^^^^^^^^^^
 
 error: the `crate` option has to be defined in it's own `#[derive_where(..)` attribute
-  --> tests/ui/item.rs:20:16
+  --> tests/ui/item.rs:22:16
    |
-20 | #[derive_where(crate = "derive_where_", crate = "derive_where_")]
+22 | #[derive_where(crate = "derive_where_", crate = "derive_where_")]
    |                ^^^^^
 
 error: duplicate `crate` option
-  --> tests/ui/item.rs:24:16
+  --> tests/ui/item.rs:26:16
    |
-24 | #[derive_where(crate = "derive_where_")]
+26 | #[derive_where(crate = "derive_where_")]
    |                ^^^^^^^^^^^^^^^^^^^^^^^
 
 error: no traits found to implement, use `#[derive_where(..)` to specify some
-  --> tests/ui/item.rs:28:1
+  --> tests/ui/item.rs:30:1
    |
-28 | struct OnlyCrate<T>(PhantomData<T>);
+30 | struct OnlyCrate<T>(PhantomData<T>);
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: unnecessary path qualification, `::derive_where` is used by default
-  --> tests/ui/item.rs:30:24
+  --> tests/ui/item.rs:32:24
    |
-30 | #[derive_where(crate = "::derive_where")]
+32 | #[derive_where(crate = "::derive_where")]
    |                        ^^^^^^^^^^^^^^^^
 
 error: expected `,`
-  --> tests/ui/item.rs:33:24
+  --> tests/ui/item.rs:35:24
    |
-33 | #[derive_where(Clone; T;)]
+35 | #[derive_where(Clone; T;)]
    |                        ^
 
 error: expected type to bind to, expected one of: `for`, parentheses, `fn`, `unsafe`, `extern`, identifier, `::`, `<`, square brackets, `*`, `&`, `!`, `impl`, `_`, lifetime
-  --> tests/ui/item.rs:36:25
+  --> tests/ui/item.rs:38:25
    |
-36 | #[derive_where(Clone; T,,)]
+38 | #[derive_where(Clone; T,,)]
    |                         ^
 
 error: expected type to bind to, expected one of: `for`, parentheses, `fn`, `unsafe`, `extern`, identifier, `::`, `<`, square brackets, `*`, `&`, `!`, `impl`, `_`, lifetime
-  --> tests/ui/item.rs:39:23
+  --> tests/ui/item.rs:41:23
    |
-39 | #[derive_where(Clone; where)]
+41 | #[derive_where(Clone; where)]
    |                       ^^^^^
 
 error: expected `;` or `,
-  --> tests/ui/item.rs:42:22
+  --> tests/ui/item.rs:44:22
    |
-42 | #[derive_where(Clone Debug)]
+44 | #[derive_where(Clone Debug)]
    |                      ^^^^^
 
 error: expected `,`
-  --> tests/ui/item.rs:45:25
+  --> tests/ui/item.rs:47:25
    |
-45 | #[derive_where(Clone; T U)]
+47 | #[derive_where(Clone; T U)]
    |                         ^
 
 error: unexpected option syntax
-  --> tests/ui/item.rs:48:16
+  --> tests/ui/item.rs:50:16
    |
-48 | #[derive_where("Clone")]
+50 | #[derive_where("Clone")]
    |                ^^^^^^^
 
 error: `#[derive_where(..)` was already applied to this item before, this occurs when using a qualified path for any `#[derive_where(..)`s except the first
-  --> tests/ui/item.rs:51:1
+  --> tests/ui/item.rs:53:1
    |
-51 | #[derive_where(Clone)]
+53 | #[derive_where(Clone)]
    | ^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: this error originates in the attribute macro `derive_where` (in Nightly builds, run with -Z macro-backtrace for more info)
