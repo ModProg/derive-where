@@ -35,6 +35,17 @@
 //! struct Example1<T>(PhantomData<T>);
 //! ```
 //!
+//! If using a different package name, you must specify this:
+//!
+//! ```
+//! # extern crate derive_where as derive_where_;
+//! # use std::marker::PhantomData;
+//! # use derive_where::derive_where;
+//! #[derive_where(crate = "derive_where_")]
+//! #[derive_where(Clone, Debug)]
+//! struct Example<T>(PhantomData<T>);
+//! ```
+//!
 //! In addition, the following convenience options are available:
 //!
 //! ## Generic type bounds
@@ -387,6 +398,8 @@ const DERIVE_WHERE_INTERNAL: &str = "DeriveWhere";
 const DERIVE_WHERE_VISITED: &str = "derive_where_visited";
 
 /// Item-level options:
+/// - `#[derive_where(crate = "path")]`: Specify path to the `derive_where`
+///   crate.
 /// - `#[derive_where(Clone, ..; T, ..)]`: Specify traits to implement and
 ///   optionally bounds.
 ///   - `#[derive_where(Zeroize(crate = "path"))]`: Specify path to [`Zeroize`]

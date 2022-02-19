@@ -32,6 +32,14 @@ first one must use any path qualifications.
 struct Example1<T>(PhantomData<T>);
 ```
 
+If using a different package name, you must specify this:
+
+```rust
+#[derive_where(crate = "derive_where_")]
+#[derive_where(Clone, Debug)]
+struct Example<T>(PhantomData<T>);
+```
+
 In addition, the following convenience options are available:
 
 ### Generic type bounds
