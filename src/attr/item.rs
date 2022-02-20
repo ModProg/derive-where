@@ -90,6 +90,33 @@ impl ItemAttr {
 			return Err(Error::none(span));
 		}
 
+		// Merge `DeriveWhere`s with the same bounds.
+		self_
+			.derive_wheres
+			.dedup_by(|derive_where_1, derive_where_2| {
+				if derive_where_1.generics == derive_where_2.generics {
+					derive_where_2.traits.append(&mut derive_where_1.traits);
+					true
+				} else {
+					false
+				}
+			});
+
+		// Check for duplicate traits in the same `derive_where` after merging with the
+		// same bounds.
+		for derive_where in &self_.derive_wheres {
+			for (skip, trait_) in (1..).zip(&derive_where.traits) {
+				if let Some(trait_) = derive_where
+					.traits
+					.iter()
+					.skip(skip)
+					.find(|other_trait| other_trait.trait_ == trait_.trait_)
+				{
+					return Err(Error::trait_duplicate(trait_.span));
+				}
+			}
+		}
+
 		// Delayed parsing of `skip_inner` to get access to all traits to be
 		// implemented.
 		for meta in skip_inners {
@@ -104,8 +131,6 @@ impl ItemAttr {
 
 /// Holds parsed [generics](Generic) and [traits](crate::Trait).
 pub struct DeriveWhere {
-	/// Save [`Span`] for error messages.
-	pub span: Span,
 	/// [traits](DeriveTrait) to implement.
 	pub traits: Vec<DeriveTraitWrapper>,
 	/// [generics](Generic) for where clause.
@@ -126,8 +151,8 @@ impl DeriveWhere {
 			// Check for an empty list is already done in `ItemAttr::from_attrs`.
 			while !input.is_empty() {
 				// Start with parsing a trait.
-				// Not checking for duplicates here, because these should produce a Rust error
-				// anyway.
+				// Not checking for duplicates here, we do that after merging `derive_where`s
+				// with the same bounds.
 				traits.push(DeriveTraitWrapper::from_stream(span, data, input)?);
 
 				if !input.is_empty() {
@@ -169,11 +194,7 @@ impl DeriveWhere {
 				}
 			}
 
-			Ok(Self {
-				span: attr.span(),
-				generics,
-				traits,
-			})
+			Ok(Self { generics, traits })
 		})
 	}
 
@@ -247,6 +268,7 @@ impl DeriveWhere {
 }
 
 /// Holds a single generic [type](Type) or [type with bound](PredicateType).
+#[derive(Eq, PartialEq)]
 pub enum Generic {
 	/// Generic type with custom [specified bounds](PredicateType).
 	CustomBound(PredicateType),
@@ -288,6 +310,7 @@ pub struct DeriveTraitWrapper {
 }
 
 /// Trait to implement.
+#[derive(Eq, PartialEq)]
 pub enum DeriveTrait {
 	/// [`Clone`].
 	Clone,

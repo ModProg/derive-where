@@ -212,6 +212,11 @@ impl Error {
 		syn::Error::new(span, format!("expected type to bind to, {}", parse_error))
 	}
 
+	/// Duplicate trait with the same bound.
+	pub fn trait_duplicate(span: Span) -> syn::Error {
+		syn::Error::new(span, "duplicate trait with the same bound")
+	}
+
 	/// Unsupported default option if [`Default`] isn't implemented.
 	pub fn default(span: Span) -> syn::Error {
 		syn::Error::new(
@@ -229,8 +234,7 @@ impl Error {
 		)
 	}
 
-	/// Missing `default` option on a variant when [`Default`] is implemented
-	/// for an enum.
+	/// Duplicate `default` option on a variant.
 	pub fn default_duplicate(span: Span) -> syn::Error {
 		syn::Error::new(span, "multiple `default` options in enum")
 	}

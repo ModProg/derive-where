@@ -54,4 +54,11 @@ struct InvalidTrait<T>(PhantomData<T>);
 #[derive_where::derive_where(Copy)]
 struct QualifiedNotFirstMacro<T>(PhantomData<T>);
 
+#[derive_where(Clone, Clone)]
+struct DuplicateTrait1<T>(PhantomData<T>);
+
+#[derive_where(Clone)]
+#[derive_where(Clone)]
+struct DuplicateTrait2<T>(PhantomData<T>);
+
 fn main() {}
