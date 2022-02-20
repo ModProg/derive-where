@@ -11,8 +11,7 @@ fn basic() -> Result<()> {
 			struct Test<T>(std::marker::PhantomData<T>);
 		},
 		quote! {
-			impl<T> ::zeroize::Zeroize for Test<T>
-			{
+			impl<T> ::zeroize::Zeroize for Test<T> {
 				fn zeroize(&mut self) {
 					use ::zeroize::Zeroize;
 
@@ -204,8 +203,7 @@ fn fqs() -> Result<()> {
 			struct Test<T>(#[derive_where(Zeroize(fqs))] std::marker::PhantomData<T>);
 		},
 		quote! {
-			impl<T> ::zeroize::Zeroize for Test<T>
-			{
+			impl<T> ::zeroize::Zeroize for Test<T> {
 				fn zeroize(&mut self) {
 					use ::zeroize::Zeroize;
 

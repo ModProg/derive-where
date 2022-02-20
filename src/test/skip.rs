@@ -12,8 +12,7 @@ fn struct_inner() -> Result<()> {
 			struct Test<T>(std::marker::PhatomData<T>);
 		},
 		quote! {
-			impl<T> ::core::fmt::Debug for Test<T>
-			{
+			impl<T> ::core::fmt::Debug for Test<T> {
 				fn fmt(&self, __f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
 					match self {
 						Test(ref __0) => {
@@ -38,8 +37,7 @@ fn enum_inner() -> Result<()> {
 			}
 		},
 		quote! {
-			impl<T> ::core::fmt::Debug for Test<T>
-			{
+			impl<T> ::core::fmt::Debug for Test<T> {
 				fn fmt(&self, __f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
 					match self {
 						Test::A(ref __0) => {
@@ -62,8 +60,7 @@ fn struct_empty() -> Result<()> {
 			struct Test<T>(std::marker::PhatomData<T>);
 		},
 		quote! {
-			impl<T> ::core::cmp::Ord for Test<T>
-			{
+			impl<T> ::core::cmp::Ord for Test<T> {
 				#[inline]
 				fn cmp(&self, __other: &Self) -> ::core::cmp::Ordering {
 					::core::cmp::Ordering::Equal
@@ -84,8 +81,7 @@ fn variant_empty() -> Result<()> {
 			}
 		},
 		quote! {
-			impl<T> ::core::cmp::Ord for Test<T>
-			{
+			impl<T> ::core::cmp::Ord for Test<T> {
 				#[inline]
 				fn cmp(&self, __other: &Self) -> ::core::cmp::Ordering {
 					::core::cmp::Ordering::Equal
@@ -138,8 +134,7 @@ fn variants_empty() -> Result<()> {
 			}
 		},
 		quote! {
-			impl<T> ::core::cmp::Ord for Test<T>
-			{
+			impl<T> ::core::cmp::Ord for Test<T> {
 				#[inline]
 				fn cmp(&self, __other: &Self) -> ::core::cmp::Ordering {
 					#discriminant
@@ -197,8 +192,7 @@ fn variants_partly_empty() -> Result<()> {
 			}
 		},
 		quote! {
-			impl<T> ::core::cmp::Ord for Test<T>
-			{
+			impl<T> ::core::cmp::Ord for Test<T> {
 				#[inline]
 				fn cmp(&self, __other: &Self) -> ::core::cmp::Ordering {
 					#discriminant
