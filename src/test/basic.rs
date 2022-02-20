@@ -11,8 +11,7 @@ fn struct_() -> Result<()> {
 			struct Test<T> { field: std::marker::PhatomData<T> }
 		},
 		quote! {
-			impl<T> ::core::clone::Clone for Test<T>
-			{
+			impl<T> ::core::clone::Clone for Test<T> {
 				#[inline]
 				fn clone(&self) -> Self {
 					*self
@@ -22,8 +21,7 @@ fn struct_() -> Result<()> {
 			impl<T> ::core::marker::Copy for Test<T>
 			{ }
 
-			impl<T> ::core::fmt::Debug for Test<T>
-			{
+			impl<T> ::core::fmt::Debug for Test<T> {
 				fn fmt(&self, __f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
 					match self {
 						Test { field: ref __field } => {
@@ -35,8 +33,7 @@ fn struct_() -> Result<()> {
 				}
 			}
 
-			impl<T> ::core::default::Default for Test<T>
-			{
+			impl<T> ::core::default::Default for Test<T> {
 				fn default() -> Self {
 					Test { field: ::core::default::Default::default() }
 				}
@@ -45,8 +42,7 @@ fn struct_() -> Result<()> {
 			impl<T> ::core::cmp::Eq for Test<T>
 			{ }
 
-			impl<T> ::core::hash::Hash for Test<T>
-			{
+			impl<T> ::core::hash::Hash for Test<T> {
 				fn hash<__H: ::core::hash::Hasher>(&self, __state: &mut __H) {
 					match self {
 						Test { field: ref __field } => { ::core::hash::Hash::hash(__field, __state); }
@@ -54,8 +50,7 @@ fn struct_() -> Result<()> {
 				}
 			}
 
-			impl<T> ::core::cmp::Ord for Test<T>
-			{
+			impl<T> ::core::cmp::Ord for Test<T> {
 				#[inline]
 				fn cmp(&self, __other: &Self) -> ::core::cmp::Ordering {
 					match (self, __other) {
@@ -68,8 +63,7 @@ fn struct_() -> Result<()> {
 				}
 			}
 
-			impl<T> ::core::cmp::PartialEq for Test<T>
-			{
+			impl<T> ::core::cmp::PartialEq for Test<T> {
 				#[inline]
 				fn eq(&self, __other: &Self) -> bool {
 					match (self, __other) {
@@ -79,8 +73,7 @@ fn struct_() -> Result<()> {
 				}
 			}
 
-			impl<T> ::core::cmp::PartialOrd for Test<T>
-			{
+			impl<T> ::core::cmp::PartialOrd for Test<T> {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
 					match (self, __other) {
@@ -104,8 +97,7 @@ fn tuple() -> Result<()> {
 			struct Test<T>(std::marker::PhatomData<T>);
 		},
 		quote! {
-			impl<T> ::core::clone::Clone for Test<T>
-			{
+			impl<T> ::core::clone::Clone for Test<T> {
 				#[inline]
 				fn clone(&self) -> Self {
 					*self
@@ -115,8 +107,7 @@ fn tuple() -> Result<()> {
 			impl<T> ::core::marker::Copy for Test<T>
 			{ }
 
-			impl<T> ::core::fmt::Debug for Test<T>
-			{
+			impl<T> ::core::fmt::Debug for Test<T> {
 				fn fmt(&self, __f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
 					match self {
 						Test(ref __0) => {
@@ -128,8 +119,7 @@ fn tuple() -> Result<()> {
 				}
 			}
 
-			impl<T> ::core::default::Default for Test<T>
-			{
+			impl<T> ::core::default::Default for Test<T> {
 				fn default() -> Self {
 					Test(::core::default::Default::default())
 				}
@@ -138,8 +128,7 @@ fn tuple() -> Result<()> {
 			impl<T> ::core::cmp::Eq for Test<T>
 			{ }
 
-			impl<T> ::core::hash::Hash for Test<T>
-			{
+			impl<T> ::core::hash::Hash for Test<T> {
 				fn hash<__H: ::core::hash::Hasher>(&self, __state: &mut __H) {
 					match self {
 						Test(ref __0) => { ::core::hash::Hash::hash(__0, __state); }
@@ -147,8 +136,7 @@ fn tuple() -> Result<()> {
 				}
 			}
 
-			impl<T> ::core::cmp::Ord for Test<T>
-			{
+			impl<T> ::core::cmp::Ord for Test<T> {
 				#[inline]
 				fn cmp(&self, __other: &Self) -> ::core::cmp::Ordering {
 					match (self, __other) {
@@ -161,8 +149,7 @@ fn tuple() -> Result<()> {
 				}
 			}
 
-			impl<T> ::core::cmp::PartialEq for Test<T>
-			{
+			impl<T> ::core::cmp::PartialEq for Test<T> {
 				#[inline]
 				fn eq(&self, __other: &Self) -> bool {
 					match (self, __other) {
@@ -172,8 +159,7 @@ fn tuple() -> Result<()> {
 				}
 			}
 
-			impl<T> ::core::cmp::PartialOrd for Test<T>
-			{
+			impl<T> ::core::cmp::PartialOrd for Test<T> {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
 					match (self, __other) {
@@ -282,8 +268,7 @@ fn enum_() -> Result<()> {
 			}
 		},
 		quote! {
-			impl<T> ::core::clone::Clone for Test<T>
-			{
+			impl<T> ::core::clone::Clone for Test<T> {
 				#[inline]
 				fn clone(&self) -> Self {
 					*self
@@ -293,8 +278,7 @@ fn enum_() -> Result<()> {
 			impl<T> ::core::marker::Copy for Test<T>
 			{ }
 
-			impl<T> ::core::fmt::Debug for Test<T>
-			{
+			impl<T> ::core::fmt::Debug for Test<T> {
 				fn fmt(&self, __f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
 					match self {
 						Test::A { field: ref __field } => {
@@ -320,8 +304,7 @@ fn enum_() -> Result<()> {
 				}
 			}
 
-			impl<T> ::core::default::Default for Test<T>
-			{
+			impl<T> ::core::default::Default for Test<T> {
 				fn default() -> Self {
 					Test::E
 				}
@@ -330,8 +313,7 @@ fn enum_() -> Result<()> {
 			impl<T> ::core::cmp::Eq for Test<T>
 			{ }
 
-			impl<T> ::core::hash::Hash for Test<T>
-			{
+			impl<T> ::core::hash::Hash for Test<T> {
 				fn hash<__H: ::core::hash::Hasher>(&self, __state: &mut __H) {
 					match self {
 						Test::A { field: ref __field } => {
@@ -355,8 +337,7 @@ fn enum_() -> Result<()> {
 				}
 			}
 
-			impl<T> ::core::cmp::Ord for Test<T>
-			{
+			impl<T> ::core::cmp::Ord for Test<T> {
 				#[inline]
 				fn cmp(&self, __other: &Self) -> ::core::cmp::Ordering {
 					#discriminant
@@ -381,8 +362,7 @@ fn enum_() -> Result<()> {
 				}
 			}
 
-			impl<T> ::core::cmp::PartialEq for Test<T>
-			{
+			impl<T> ::core::cmp::PartialEq for Test<T> {
 				#[inline]
 				fn eq(&self, __other: &Self) -> bool {
 					if ::core::mem::discriminant(self) == ::core::mem::discriminant(__other) {
@@ -399,8 +379,7 @@ fn enum_() -> Result<()> {
 				}
 			}
 
-			impl<T> ::core::cmp::PartialOrd for Test<T>
-			{
+			impl<T> ::core::cmp::PartialOrd for Test<T> {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
 					#discriminant
@@ -439,8 +418,7 @@ fn union_() -> Result<()> {
 			}
 		},
 		quote! {
-			impl<T> ::core::clone::Clone for Test<T>
-			{
+			impl<T> ::core::clone::Clone for Test<T> {
 				#[inline]
 				fn clone(&self) -> Self {
 					*self

@@ -78,8 +78,7 @@ fn one_data() -> Result<()> {
 			enum Test<T> { A(std::marker::PhantomData<T>) }
 		},
 		quote! {
-			impl<T> ::core::cmp::PartialEq for Test<T>
-			{
+			impl<T> ::core::cmp::PartialEq for Test<T> {
 				#[inline]
 				fn eq(&self, __other: &Self) -> bool {
 					match (self, __other) {
@@ -89,8 +88,7 @@ fn one_data() -> Result<()> {
 				}
 			}
 
-			impl<T> ::core::cmp::PartialOrd for Test<T>
-			{
+			impl<T> ::core::cmp::PartialOrd for Test<T> {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
 					match (self, __other) {
@@ -147,8 +145,7 @@ fn two_data() -> Result<()> {
 			enum Test<T> { A(std::marker::PhantomData<T>), B(std::marker::PhantomData<T>) }
 		},
 		quote! {
-			impl<T> ::core::cmp::PartialEq for Test<T>
-			{
+			impl<T> ::core::cmp::PartialEq for Test<T> {
 				#[inline]
 				fn eq(&self, __other: &Self) -> bool {
 					if ::core::mem::discriminant(self) == ::core::mem::discriminant(__other) {
@@ -165,8 +162,7 @@ fn two_data() -> Result<()> {
 				}
 			}
 
-			impl<T> ::core::cmp::PartialOrd for Test<T>
-			{
+			impl<T> ::core::cmp::PartialOrd for Test<T> {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
 					#discriminant
@@ -231,8 +227,7 @@ fn unit() -> Result<()> {
 			enum Test<T> { A(std::marker::PhantomData<T>), B }
 		},
 		quote! {
-			impl<T> ::core::cmp::PartialEq for Test<T>
-			{
+			impl<T> ::core::cmp::PartialEq for Test<T> {
 				#[inline]
 				fn eq(&self, __other: &Self) -> bool {
 					if ::core::mem::discriminant(self) == ::core::mem::discriminant(__other) {
@@ -247,8 +242,7 @@ fn unit() -> Result<()> {
 				}
 			}
 
-			impl<T> ::core::cmp::PartialOrd for Test<T>
-			{
+			impl<T> ::core::cmp::PartialOrd for Test<T> {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
 					#discriminant
@@ -308,8 +302,7 @@ fn struct_unit() -> Result<()> {
 			enum Test<T> { A(std::marker::PhantomData<T>), B { } }
 		},
 		quote! {
-			impl<T> ::core::cmp::PartialEq for Test<T>
-			{
+			impl<T> ::core::cmp::PartialEq for Test<T> {
 				#[inline]
 				fn eq(&self, __other: &Self) -> bool {
 					if ::core::mem::discriminant(self) == ::core::mem::discriminant(__other) {
@@ -324,8 +317,7 @@ fn struct_unit() -> Result<()> {
 				}
 			}
 
-			impl<T> ::core::cmp::PartialOrd for Test<T>
-			{
+			impl<T> ::core::cmp::PartialOrd for Test<T> {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
 					#discriminant
@@ -385,8 +377,7 @@ fn tuple_unit() -> Result<()> {
 			enum Test<T> { A(std::marker::PhantomData<T>), B() }
 		},
 		quote! {
-			impl<T> ::core::cmp::PartialEq for Test<T>
-			{
+			impl<T> ::core::cmp::PartialEq for Test<T> {
 				#[inline]
 				fn eq(&self, __other: &Self) -> bool {
 					if ::core::mem::discriminant(self) == ::core::mem::discriminant(__other) {
@@ -401,8 +392,7 @@ fn tuple_unit() -> Result<()> {
 				}
 			}
 
-			impl<T> ::core::cmp::PartialOrd for Test<T>
-			{
+			impl<T> ::core::cmp::PartialOrd for Test<T> {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
 					#discriminant
