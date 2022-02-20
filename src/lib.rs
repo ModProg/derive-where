@@ -189,18 +189,6 @@
 //! # use std::marker::PhantomData;
 //! # use derive_where::derive_where;
 //! # use zeroize_::Zeroize;
-//! # // Fake `Zeroize` implementation because this crate doesn't have access to
-//! # // the zeroize crate because of MSRV.
-//! # mod zeroize_ {
-//! # 	pub trait Zeroize {
-//! # 		fn zeroize(&mut self);
-//! # 	}
-//! # 	impl Zeroize for i32 {
-//! # 		fn zeroize(&mut self) {
-//! # 			*self = 0;
-//! # 		}
-//! # 	}
-//! # }
 //! #[derive_where(Zeroize(crate = "zeroize_"))]
 //! struct Example(#[derive_where(Zeroize(fqs))] i32);
 //!
@@ -239,25 +227,6 @@
 //! # {
 //! # use std::marker::PhantomData;
 //! # use derive_where::derive_where;
-//! # // Fake `ZeroizeOnDrop` implementation because this crate doesn't have access to
-//! # // the zeroize crate because of MSRV.
-//! # mod zeroize_ {
-//! # 	pub trait ZeroizeOnDrop: Drop {}
-//! #
-//! # 	pub mod __internal {
-//! # 		pub trait AssertZeroizeOnDrop {
-//! # 			fn zeroize_or_on_drop(&mut self);
-//! # 		}
-//! #
-//! # 		pub trait AssertZeroize {
-//! # 			fn zeroize_or_on_drop(&mut self);
-//! # 		}
-//! #
-//! # 		impl AssertZeroize for i32 {
-//! # 			fn zeroize_or_on_drop(&mut self) {}
-//! # 		}
-//! # 	}
-//! # }
 //! #[derive_where(ZeroizeOnDrop(crate = "zeroize_"))]
 //! struct Example(i32);
 //!
@@ -309,11 +278,11 @@
 //!   [`unreachable`].
 //! - `zeroize`: Allows deriving [`Zeroize`] and [`method@zeroize`] on [`Drop`].
 //! - `zeroize-on-drop`: Allows deriving [`Zeroize`] and [`ZeroizeOnDrop`] and
-//!   requires [zeroize] v1.5.0.
+//!   requires [zeroize] v1.5.
 //!
 //! # MSRV
 //!
-//! The current MSRV is 1.34 and is being checked by the CI. A change will be
+//! The current MSRV is 1.57 and is being checked by the CI. A change will be
 //! accompanied by a minor version bump. If MSRV is important to you, use
 //! `derive-where = "~1.x"` to pin a specific minor version to your crate.
 //!
@@ -347,17 +316,14 @@
 //! [CHANGELOG]: https://github.com/ModProg/derive-where/blob/main/CHANGELOG.md
 //! [LICENSE-MIT]: https://github.com/ModProg/derive-where/blob/main/LICENSE-MIT
 //! [LICENSE-APACHE]: https://github.com/ModProg/derive-where/blob/main/LICENSE-APACHE
-//! [zeroize]: https://crates.io/crates/zeroize/1.5.0
+//! [zeroize]: https://crates.io/crates/zeroize/1.5.2
 //! [`Debug`]: core::fmt::Debug
 //! [`Default`]: core::default::Default
 //! [`Hash`]: core::hash::Hash
 //! [`Zeroize`]: https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html
-//! [`ZeroizeOnDrop`]: https://docs.rs/zeroize/1.5.0/zeroize/trait.ZeroizeOnDrop.html
+//! [`ZeroizeOnDrop`]: https://docs.rs/zeroize/1.5/zeroize/trait.ZeroizeOnDrop.html
 //! [`method@zeroize`]: https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html#tymethod.zeroize
 //! [#27]: https://github.com/ModProg/derive-where/issues/27
-
-// MSRV: needed to support a lower MSRV.
-extern crate proc_macro;
 
 mod attr;
 mod data;

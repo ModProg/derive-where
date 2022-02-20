@@ -10,7 +10,7 @@ jobs:
       fail-fast: false
       matrix:
         rust:
-          - { version: 1.34.2, workspace: "" }
+          - { version: 1.57.0, workspace: "" }
           - { version: stable, workspace: "--workspace" }
           - { version: nightly, workspace: "--workspace" }
         features:
@@ -20,15 +20,6 @@ jobs:
           - --features zeroize-on-drop
           - --features safe,zeroize
           - --features safe,zeroize-on-drop
-        exclude:
-          - rust: { version: 1.34.2, workspace: "" }
-            features: --features zeroize
-          - rust: { version: 1.34.2, workspace: "" }
-            features: --features zeroize-on-drop
-          - rust: { version: 1.34.2, workspace: "" }
-            features: --features safe,zeroize
-          - rust: { version: 1.34.2, workspace: "" }
-            features: --features safe,zeroize-on-drop
         include:
           - rust: { version: nightly, workspace: "--workspace" }
             features: --features nightly
@@ -67,7 +58,7 @@ jobs:
       fail-fast: false
       matrix:
         rust:
-          - 1.34.2
+          - 1.57.0
           - stable
           - nightly
         features:
@@ -77,15 +68,6 @@ jobs:
           - --features zeroize-on-drop
           - --features safe,zeroize
           - --features safe,zeroize-on-drop
-        exclude:
-          - rust: 1.34.2
-            features: --features zeroize
-          - rust: 1.34.2
-            features: --features zeroize-on-drop
-          - rust: 1.34.2
-            features: --features safe,zeroize
-          - rust: 1.34.2
-            features: --features safe,zeroize-on-drop
         include:
           - rust: nightly
             features: --features nightly

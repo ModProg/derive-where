@@ -1,21 +1,21 @@
 [workspace]
 default-members = [""]
-members = ["", "crate_", "ensure-no-std", "non-msrv-tests"]
+members = ["", "crate_", "ensure-no-std"]
 resolver = "2"
 
 [package]
 categories = ["rust-patterns", "no-std"]
 description = "Deriving with custom trait bounds"
 documentation = "https://docs.rs/derive-where"
-edition = "2018"
+edition = "2021"
 include = ["src/**/*", "Cargo.toml", "LICENSE-*", "README.md"]
 keywords = ["derive", "macro"]
 license = "MIT OR Apache-2.0"
 name = "derive-where"
 readme = "README.md"
 repository = "https://github.com/ModProg/derive-where"
-rust-version = "1.34"
-version = "1.0.0-rc.2"
+rust-version = "1.57"
+version = "1.0.0-rc.3"
 
 [lib]
 proc-macro = true
@@ -37,6 +37,10 @@ syn = { version = "1", default-features = false, features = [
 	"parsing",
 	"printing",
 ] }
+
+[dev-dependencies]
+trybuild = { version = "1", default-features = false }
+zeroize_ = { version = "1.5", package = "zeroize", default-features = false }
 
 [[test]]
 name = "util"

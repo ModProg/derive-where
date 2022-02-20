@@ -1,5 +1,5 @@
 [package]
-edition = "2018"
+edition = "2021"
 name = "ensure-no-std"
 publish = false
 version = "0.0.0"
@@ -12,7 +12,7 @@ zeroize-on-drop = ["derive-where/zeroize-on-drop", "zeroize"]
 
 [dependencies]
 derive-where = { path = ".." }
-zeroize_ = { version = "1.5.0", package = "zeroize", default-features = false, optional = true }
+zeroize_ = { version = "1.5", package = "zeroize", default-features = false, optional = true }
 
 [lib]
 doctest = false
