@@ -541,6 +541,11 @@ pub fn derive_where_actual(input: proc_macro::TokenStream) -> proc_macro::TokenS
 /// Marker attribute signifying that this item was already processed by a
 /// `derive_where` attribute before. This should prevent users to wrongly use a
 /// qualified path for a `derive_where` attribute except the first one.
+///
+/// MSRV: This currently prevents an MSRV down to 1.34, as proc-macro derives
+/// are not allowed to come before a proc-macro attribute. But the logic of this
+/// proc-macro attribute is circumvented if it isn't inserted at the end, after
+/// the proc-macro derive.
 #[doc(hidden)]
 #[proc_macro_attribute]
 pub fn derive_where_visited(
