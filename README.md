@@ -290,4 +290,3 @@ conditions.
 [`Zeroize`]: https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html
 [`ZeroizeOnDrop`]: https://docs.rs/zeroize/1.5/zeroize/trait.ZeroizeOnDrop.html
 [`method@zeroize`]: https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html#tymethod.zeroize
-[#27]: https://github.com/ModProg/derive-where/issues/27
