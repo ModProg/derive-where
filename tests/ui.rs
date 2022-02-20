@@ -1,5 +1,5 @@
-// TODO: Remove this constraint when `Span`s stabilize.
-#![cfg(feature = "nightly")]
+// TODO: Remove nightly constraint when `Span`s stabilize.
+#![cfg(all(feature = "nightly", not(miri)))]
 
 #[test]
 fn ui() {

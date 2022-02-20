@@ -10,9 +10,9 @@ jobs:
       fail-fast: false
       matrix:
         rust:
-          - { version: 1.57.0, workspace: "" }
-          - { version: stable, workspace: "--workspace" }
-          - { version: nightly, workspace: "--workspace" }
+          - 1.57.0
+          - stable
+          - nightly
         features:
           - ""
           - --features safe
@@ -21,15 +21,15 @@ jobs:
           - --features safe,zeroize
           - --features safe,zeroize-on-drop
         include:
-          - rust: { version: nightly, workspace: "--workspace" }
+          - rust: nightly
             features: --features nightly
-          - rust: { version: nightly, workspace: "--workspace" }
+          - rust: nightly
             features: --features safe,nightly
-          - rust: { version: nightly, workspace: "--workspace" }
+          - rust: nightly
             features: --features nightly,zeroize
-          - rust: { version: nightly, workspace: "--workspace" }
+          - rust: nightly
             features: --features nightly,zeroize-on-drop
-          - rust: { version: nightly, workspace: "--workspace" }
+          - rust: nightly
             features: --all-features
 
     runs-on: ubuntu-latest
@@ -37,19 +37,19 @@ jobs:
     steps:
       - name: Update Rust
         run: |
-          rustup toolchain install ${{ matrix.rust.version }} --profile minimal --allow-downgrade
-          rustup default ${{ matrix.rust.version }}
+          rustup toolchain install ${{ matrix.rust }} --profile minimal --allow-downgrade
+          rustup default ${{ matrix.rust }}
       - name: Checkout
         uses: actions/checkout@v2
       - name: Build
         run:
-          cargo build ${{ matrix.rust.workspace }} ${{ matrix.features }}
+          cargo build --workspace ${{ matrix.features }}
       - name: Test
         run:
-          cargo test ${{ matrix.rust.workspace }} ${{ matrix.features }} --all-targets --no-fail-fast
+          cargo test --workspace ${{ matrix.features }} --all-targets --no-fail-fast
       - name: Doc Test
         run:
-          cargo test ${{ matrix.rust.workspace }} ${{ matrix.features }} --doc --no-fail-fast
+          cargo test --workspace ${{ matrix.features }} --doc --no-fail-fast
 
   no-std-build:
     name: no_std Build
