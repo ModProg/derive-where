@@ -15,9 +15,7 @@ fn struct_() -> Result<()> {
 			{
 				#[inline]
 				fn clone(&self) -> Self {
-					match self {
-						Test { field: ref __field } => Test { field: ::core::clone::Clone::clone(__field) },
-					}
+					*self
 				}
 			}
 
@@ -110,9 +108,7 @@ fn tuple() -> Result<()> {
 			{
 				#[inline]
 				fn clone(&self) -> Self {
-					match self {
-						Test(ref __0) => Test(::core::clone::Clone::clone(__0)),
-					}
+					*self
 				}
 			}
 
@@ -290,13 +286,7 @@ fn enum_() -> Result<()> {
 			{
 				#[inline]
 				fn clone(&self) -> Self {
-					match self {
-						Test::A { field: ref __field } => Test::A { field: ::core::clone::Clone::clone(__field) },
-						Test::B { } => Test::B { },
-						Test::C(ref __0) => Test::C(::core::clone::Clone::clone(__0)),
-						Test::D() => Test::D(),
-						Test::E => Test::E,
-					}
+					*self
 				}
 			}
 
@@ -453,8 +443,6 @@ fn union_() -> Result<()> {
 			{
 				#[inline]
 				fn clone(&self) -> Self {
-					struct __AssertCopy<__T: ::core::marker::Copy + ?::core::marker::Sized>(::core::marker::PhantomData<__T>);
-					let _: __AssertCopy<Self>;
 					*self
 				}
 			}
