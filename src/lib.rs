@@ -393,7 +393,7 @@ use self::{
 /// Name of the `derive_where` attribute proc-macro.
 const DERIVE_WHERE: &str = "derive_where";
 /// Name of the `DeriveWhere` derive proc-macro.
-const DERIVE_WHERE_INTERNAL: &str = "DeriveWhere";
+const DERIVE_WHERE_FORWARD: &str = "DeriveWhere";
 /// Name of the `derive_where_visited` proc-macro.
 const DERIVE_WHERE_VISITED: &str = "derive_where_visited";
 
@@ -453,7 +453,7 @@ pub fn derive_where(
 	}
 }
 
-/// Convenient way to deal with [`Result`] for [`derive_where`].
+/// Convenient way to deal with [`Result`] for [`derive_where()`].
 fn derive_where_internal(mut item: DeriveInput) -> Result<TokenStream, syn::Error> {
 	let mut crate_ = None;
 
@@ -526,7 +526,7 @@ fn derive_where_internal(mut item: DeriveInput) -> Result<TokenStream, syn::Erro
 		.push(syn::parse_quote! { #[#derive_where_visited] });
 
 	// Build `DeriveWhere` path.
-	let derive_where = util::path_from_root_and_strs(crate_, &[DERIVE_WHERE_INTERNAL]);
+	let derive_where = util::path_from_root_and_strs(crate_, &[DERIVE_WHERE_FORWARD]);
 
 	// Let the `derive` proc-macro parse this.
 	let mut output = quote! { #[derive(#derive_where)] };
@@ -646,6 +646,7 @@ fn generate_body(trait_: &DeriveTrait, item: &Item) -> TokenStream {
 /// for attribute proc-macros and therefore doesn't automatically remove them.
 fn input_without_derive_where_attributes(mut input: DeriveInput) -> DeriveInput {
 	use syn::Data;
+
 	let DeriveInput { data, attrs, .. } = &mut input;
 
 	/// Remove all `derive_where` attributes.
