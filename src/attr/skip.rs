@@ -31,15 +31,7 @@ impl Skip {
 
 	/// Returns `true` if variant is [`Skip::None`].
 	pub fn is_none(&self) -> bool {
-		// MSRV: `matches!` was added in 1.42.0.
-		#[allow(clippy::match_like_matches_macro)]
-		{
-			if let Skip::None = self {
-				true
-			} else {
-				false
-			}
-		}
+		matches!(self, Skip::None)
 	}
 
 	/// Adds a [`Meta`] to this [`Skip`].
@@ -95,7 +87,6 @@ impl Skip {
 				let traits = match self {
 					// If no traits are set, change to empty `Skip::Traits` and return that.
 					Skip::None => {
-						// MSRV: Could have used `Option::insert`, but it is only available in 1.53.
 						*self = Skip::Traits(Vec::new());
 
 						if let Skip::Traits(traits) = self {

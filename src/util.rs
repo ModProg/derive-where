@@ -1,7 +1,5 @@
 //! Utility functions.
 
-use std::iter::FromIterator;
-
 use proc_macro2::Span;
 use syn::{punctuated::Punctuated, Ident, Path, PathArguments, PathSegment, Token};
 

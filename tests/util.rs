@@ -5,7 +5,13 @@ use std::{
 	fmt::{Debug, Formatter},
 	hash::{Hash, Hasher},
 	marker::PhantomData,
+	ptr,
 };
+
+#[cfg(feature = "zeroize")]
+use zeroize_::Zeroize;
+#[cfg(feature = "zeroize-on-drop")]
+use zeroize_::ZeroizeOnDrop;
 
 pub struct Wrapper<T = ()> {
 	data: i32,
@@ -79,6 +85,14 @@ impl<T> PartialOrd for Wrapper<T> {
 	}
 }
 
+#[cfg(feature = "zeroize")]
+impl<T> Zeroize for Wrapper<T> {
+	fn zeroize(&mut self) {
+		self.data.zeroize();
+	}
+}
+
+#[allow(dead_code)]
 pub struct AssertClone<'a, T: Clone>(pub &'a T);
 
 #[allow(dead_code)]
@@ -102,16 +116,13 @@ pub struct AssertPartialEq<'a, T: PartialEq>(pub &'a T);
 #[allow(dead_code)]
 pub struct AssertPartialOrd<'a, T: PartialOrd>(pub &'a T);
 
-// Copied from std. Changed `pat_param` to `pat` to support MSRV.
-#[allow(unused_macros)]
-macro_rules! matches {
-    ($expression:expr, $(|)? $( $pattern:pat )|+ $( if $guard: expr )? $(,)?) => {
-        match $expression {
-            $( $pattern )|+ $( if $guard )? => true,
-            _ => false
-        }
-    }
-}
+#[cfg(feature = "zeroize")]
+#[allow(dead_code)]
+pub struct AssertZeroize<'a, T: Zeroize>(pub &'a T);
+
+#[cfg(feature = "zeroize-on-drop")]
+#[allow(dead_code)]
+pub struct AssertZeroizeOnDrop<'a, T: ZeroizeOnDrop>(pub &'a T);
 
 #[allow(dead_code)]
 pub fn hash_eq<T: Hash>(test_1: T, test_2: T) {
@@ -133,4 +144,10 @@ pub fn hash_ne<T: Hash>(test_1: T, test_2: T) {
 	test_2.hash(&mut hasher);
 	let hash_2 = hasher.finish();
 	assert_ne!(hash_1, hash_2);
+}
+
+#[allow(dead_code)]
+pub fn test_drop<T>(mut value: T, fun: impl FnOnce(T)) {
+	unsafe { ptr::drop_in_place(&mut value) };
+	fun(value);
 }
