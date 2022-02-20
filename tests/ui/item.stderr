@@ -93,3 +93,15 @@ error: `#[derive_where(..)` was already applied to this item before, this occurs
    | ^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: this error originates in the attribute macro `derive_where` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: duplicate trait with the same bound
+  --> tests/ui/item.rs:57:23
+   |
+57 | #[derive_where(Clone, Clone)]
+   |                       ^^^^^
+
+error: duplicate trait with the same bound
+  --> tests/ui/item.rs:61:16
+   |
+61 | #[derive_where(Clone)]
+   |                ^^^^^
