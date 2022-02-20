@@ -21,6 +21,7 @@ impl TraitImpl for Default {
 	fn build_signature(
 		&self,
 		_item: &Item,
+		_traits: &[DeriveTrait],
 		_trait_: &DeriveTrait,
 		body: &TokenStream,
 	) -> TokenStream {
@@ -31,7 +32,12 @@ impl TraitImpl for Default {
 		}
 	}
 
-	fn build_body(&self, trait_: &DeriveTrait, data: &Data) -> TokenStream {
+	fn build_body(
+		&self,
+		_traits: &[DeriveTrait],
+		trait_: &DeriveTrait,
+		data: &Data,
+	) -> TokenStream {
 		if data.is_default() {
 			let path = &data.path;
 

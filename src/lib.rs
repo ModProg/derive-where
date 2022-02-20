@@ -567,7 +567,7 @@ fn generate_impl(
 	let mut where_clause = where_clause.map(Cow::Borrowed);
 	derive_where.where_clause(&mut where_clause, trait_, item);
 
-	let body = generate_body(trait_, item);
+	let body = generate_body(&derive_where.traits, trait_, item);
 
 	let ident = item.ident();
 	let path = trait_.impl_path(trait_);
@@ -593,19 +593,19 @@ fn generate_impl(
 }
 
 /// Generate implementation method body for a [`Trait`].
-fn generate_body(trait_: &DeriveTrait, item: &Item) -> TokenStream {
+fn generate_body(traits: &[DeriveTrait], trait_: &DeriveTrait, item: &Item) -> TokenStream {
 	match &item {
 		Item::Item(data) => {
-			let body = trait_.build_body(trait_, data);
-			trait_.build_signature(item, trait_, &body)
+			let body = trait_.build_body(traits, trait_, data);
+			trait_.build_signature(item, traits, trait_, &body)
 		}
 		Item::Enum { variants, .. } => {
 			let body: TokenStream = variants
 				.iter()
-				.map(|data| trait_.build_body(trait_, data))
+				.map(|data| trait_.build_body(traits, trait_, data))
 				.collect();
 
-			trait_.build_signature(item, trait_, &body)
+			trait_.build_signature(item, traits, trait_, &body)
 		}
 	}
 }

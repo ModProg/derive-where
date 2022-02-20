@@ -95,6 +95,7 @@ impl ItemAttr {
 			.derive_wheres
 			.dedup_by(|derive_where_1, derive_where_2| {
 				if derive_where_1.generics == derive_where_2.generics {
+					derive_where_2.spans.append(&mut derive_where_1.spans);
 					derive_where_2.traits.append(&mut derive_where_1.traits);
 					true
 				} else {
@@ -106,13 +107,14 @@ impl ItemAttr {
 		// same bounds.
 		for derive_where in &self_.derive_wheres {
 			for (skip, trait_) in (1..).zip(&derive_where.traits) {
-				if let Some(trait_) = derive_where
-					.traits
+				if let Some((span, _)) = derive_where
+					.spans
 					.iter()
+					.zip(&derive_where.traits)
 					.skip(skip)
-					.find(|other_trait| other_trait.trait_ == trait_.trait_)
+					.find(|(_, other_trait)| *other_trait == trait_)
 				{
-					return Err(Error::trait_duplicate(trait_.span));
+					return Err(Error::trait_duplicate(*span));
 				}
 			}
 		}
@@ -131,9 +133,11 @@ impl ItemAttr {
 
 /// Holds parsed [generics](Generic) and [traits](crate::Trait).
 pub struct DeriveWhere {
-	/// [traits](DeriveTrait) to implement.
-	pub traits: Vec<DeriveTraitWrapper>,
-	/// [generics](Generic) for where clause.
+	/// [`Span`]s for each [trait](DeriveTrait).
+	pub spans: Vec<Span>,
+	/// [Traits](DeriveTrait) to implement.
+	pub traits: Vec<DeriveTrait>,
+	/// [Generics](Generic) for where clause.
 	pub generics: Vec<Generic>,
 }
 
@@ -145,6 +149,7 @@ impl DeriveWhere {
 			// - Comma separated traits.
 			// - Comma separated traits `;` Comma separated generics.
 
+			let mut spans = Vec::new();
 			let mut traits = Vec::new();
 			let mut generics = Vec::new();
 
@@ -153,7 +158,9 @@ impl DeriveWhere {
 				// Start with parsing a trait.
 				// Not checking for duplicates here, we do that after merging `derive_where`s
 				// with the same bounds.
-				traits.push(DeriveTraitWrapper::from_stream(span, data, input)?);
+				let (span, trait_) = DeriveTrait::from_stream(span, data, input)?;
+				spans.push(span);
+				traits.push(trait_);
 
 				if !input.is_empty() {
 					let mut fork = input.fork();
@@ -194,7 +201,11 @@ impl DeriveWhere {
 				}
 			}
 
-			Ok(Self { generics, traits })
+			Ok(Self {
+				generics,
+				spans,
+				traits,
+			})
 		})
 	}
 
@@ -202,7 +213,6 @@ impl DeriveWhere {
 	pub fn trait_(&self, trait_: &Trait) -> Option<&DeriveTrait> {
 		self.traits
 			.iter()
-			.map(|wrapper| &wrapper.trait_)
 			.find(|derive_trait| derive_trait == trait_)
 	}
 
@@ -301,14 +311,6 @@ impl Parse for Generic {
 	}
 }
 
-/// Wrapper around [`DeriveTrait`] to add [`Span`].
-pub struct DeriveTraitWrapper {
-	/// [`Span`] for error messages.
-	pub span: Span,
-	/// Trait in this wrapper.
-	trait_: DeriveTrait,
-}
-
 /// Trait to implement.
 #[derive(Eq, PartialEq)]
 pub enum DeriveTrait {
@@ -344,14 +346,6 @@ pub enum DeriveTrait {
 	},
 }
 
-impl Deref for DeriveTraitWrapper {
-	type Target = DeriveTrait;
-
-	fn deref(&self) -> &Self::Target {
-		&self.trait_
-	}
-}
-
 impl Deref for DeriveTrait {
 	type Target = Trait;
 
@@ -376,55 +370,10 @@ impl Deref for DeriveTrait {
 	}
 }
 
-impl PartialEq<Trait> for &DeriveTraitWrapper {
-	fn eq(&self, other: &Trait) -> bool {
-		let trait_: &DeriveTrait = self;
-		trait_ == *other
-	}
-}
-
 impl PartialEq<Trait> for &DeriveTrait {
 	fn eq(&self, other: &Trait) -> bool {
 		let trait_: &Trait = self;
 		trait_ == other
-	}
-}
-
-impl DeriveTraitWrapper {
-	/// Create [`DeriveTrait`] from [`ParseStream`].
-	fn from_stream(span: Span, data: &Data, input: ParseStream) -> Result<Self> {
-		match Meta::parse(input) {
-			Ok(meta) => {
-				let trait_ = Trait::from_path(meta.path())?;
-
-				if let Data::Union(_) = data {
-					// Make sure this `Trait` supports unions.
-					if !trait_.supports_union() {
-						return Err(Error::union(span));
-					}
-				}
-
-				match meta {
-					Meta::Path(path) => Ok(Self {
-						span: path.span(),
-						trait_: trait_.default_derive_trait(),
-					}),
-					Meta::List(list) => {
-						if list.nested.is_empty() {
-							return Err(Error::option_empty(list.span()));
-						}
-
-						Ok(Self {
-							span: list.span(),
-							// This will return an error if no options are supported.
-							trait_: trait_.parse_derive_trait(list)?,
-						})
-					}
-					Meta::NameValue(name_value) => Err(Error::option_syntax(name_value.span())),
-				}
-			}
-			Err(error) => Err(Error::trait_syntax(error.span())),
-		}
 	}
 }
 
@@ -500,5 +449,35 @@ impl DeriveTrait {
 		}
 
 		list
+	}
+
+	/// Create [`DeriveTrait`] from [`ParseStream`].
+	fn from_stream(span: Span, data: &Data, input: ParseStream) -> Result<(Span, Self)> {
+		match Meta::parse(input) {
+			Ok(meta) => {
+				let trait_ = Trait::from_path(meta.path())?;
+
+				if let Data::Union(_) = data {
+					// Make sure this `Trait` supports unions.
+					if !trait_.supports_union() {
+						return Err(Error::union(span));
+					}
+				}
+
+				match meta {
+					Meta::Path(path) => Ok((path.span(), trait_.default_derive_trait())),
+					Meta::List(list) => {
+						if list.nested.is_empty() {
+							return Err(Error::option_empty(list.span()));
+						}
+
+						// This will return an error if no options are supported.
+						Ok((list.span(), trait_.parse_derive_trait(list)?))
+					}
+					Meta::NameValue(name_value) => Err(Error::option_syntax(name_value.span())),
+				}
+			}
+			Err(error) => Err(Error::trait_syntax(error.span())),
+		}
 	}
 }

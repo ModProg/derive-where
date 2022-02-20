@@ -152,9 +152,7 @@ fn check_trait_bounds() -> Result<()> {
 			{
 				#[inline]
 				fn clone(&self) -> Self {
-					match self {
-						Test(ref __0, ref __1) => Test(::core::clone::Clone::clone(__0), ::core::clone::Clone::clone(__1)),
-					}
+					*self
 				}
 			}
 
@@ -270,9 +268,7 @@ fn check_multiple_trait_bounds() -> Result<()> {
 			{
 				#[inline]
 				fn clone(&self) -> Self {
-					match self {
-						Test(ref __0, ref __1) => Test(::core::clone::Clone::clone(__0), ::core::clone::Clone::clone(__1)),
-					}
+					*self
 				}
 			}
 

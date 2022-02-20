@@ -85,6 +85,7 @@ impl TraitImpl for ZeroizeOnDrop {
 	fn build_signature(
 		&self,
 		item: &Item,
+		_traits: &[DeriveTrait],
 		trait_: &DeriveTrait,
 		body: &TokenStream,
 	) -> TokenStream {
@@ -129,7 +130,12 @@ impl TraitImpl for ZeroizeOnDrop {
 		}
 	}
 
-	fn build_body(&self, trait_: &DeriveTrait, data: &Data) -> TokenStream {
+	fn build_body(
+		&self,
+		_traits: &[DeriveTrait],
+		trait_: &DeriveTrait,
+		data: &Data,
+	) -> TokenStream {
 		if data.is_empty(trait_) {
 			TokenStream::new()
 		} else {

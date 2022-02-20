@@ -43,9 +43,18 @@ impl TraitImpl for Clone {
 	fn build_signature(
 		&self,
 		item: &Item,
+		traits: &[DeriveTrait],
 		_trait_: &DeriveTrait,
 		body: &TokenStream,
 	) -> TokenStream {
+		// Special implementation for items also implementing `Copy`.
+		if traits.iter().any(|trait_| trait_ == Trait::Copy) {
+			return quote! {
+				#[inline]
+				fn clone(&self) -> Self { *self }
+			};
+		}
+
 		// Special implementation for unions.
 		if let Item::Item(Data {
 			type_: DataType::Union(..),
@@ -72,7 +81,11 @@ impl TraitImpl for Clone {
 		}
 	}
 
-	fn build_body(&self, trait_: &DeriveTrait, data: &Data) -> TokenStream {
+	fn build_body(&self, traits: &[DeriveTrait], trait_: &DeriveTrait, data: &Data) -> TokenStream {
+		if traits.iter().any(|trait_| trait_ == Trait::Copy) {
+			return TokenStream::new();
+		}
+
 		match data.simple_type() {
 			SimpleType::Struct(fields) => {
 				let self_pattern = &fields.self_pattern;

@@ -25,6 +25,7 @@ impl TraitImpl for Hash {
 	fn build_signature(
 		&self,
 		_item: &Item,
+		_traits: &[DeriveTrait],
 		_trait_: &DeriveTrait,
 		body: &TokenStream,
 	) -> TokenStream {
@@ -37,7 +38,12 @@ impl TraitImpl for Hash {
 		}
 	}
 
-	fn build_body(&self, trait_: &DeriveTrait, data: &Data) -> TokenStream {
+	fn build_body(
+		&self,
+		_traits: &[DeriveTrait],
+		trait_: &DeriveTrait,
+		data: &Data,
+	) -> TokenStream {
 		let self_pattern = data.self_pattern();
 		let trait_path = trait_.path();
 

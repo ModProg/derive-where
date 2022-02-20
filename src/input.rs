@@ -132,7 +132,7 @@ impl<'a> Input<'a> {
 			// type parameters were found.
 
 			// Don't allow no use-case compared to std `derive`.
-			for trait_ in &derive_where.traits {
+			for (span, trait_) in derive_where.spans.iter().zip(&derive_where.traits) {
 				// `Default` is used on an enum.
 				if trait_ == Trait::Default && item.is_enum() {
 					continue;
@@ -147,7 +147,7 @@ impl<'a> Input<'a> {
 				{
 					// `Zeroize(crate = "..")` or `ZeroizeOnDrop(crate = "..")` is used.
 					if let DeriveTrait::Zeroize { crate_: Some(_) }
-					| DeriveTrait::ZeroizeOnDrop { crate_: Some(_) } = **trait_
+					| DeriveTrait::ZeroizeOnDrop { crate_: Some(_) } = *trait_
 					{
 						continue;
 					}
@@ -158,7 +158,7 @@ impl<'a> Input<'a> {
 					}
 				}
 
-				return Err(Error::use_case(trait_.span));
+				return Err(Error::use_case(*span));
 			}
 		}
 
