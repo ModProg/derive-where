@@ -185,7 +185,16 @@ fn check_trait_bounds() -> Result<()> {
 
 			impl<T, U> ::core::cmp::Eq for Test<T, U>
 			where T: ::core::cmp::Eq
-			{ }
+			{
+				#[inline]
+				fn assert_receiver_is_total_eq(&self) {
+					struct __AssertEq<__T: ::core::cmp::Eq + ?::core::marker::Sized>(::core::marker::PhantomData<__T>);
+
+					// For some reason the comparison fails without the extra space at the end.
+					let _: __AssertEq<T >;
+					let _: __AssertEq<std::marker::PhatomData<U> >;
+				}
+			}
 
 			impl<T, U> ::core::hash::Hash for Test<T, U>
 			where T: ::core::hash::Hash
@@ -309,7 +318,16 @@ fn check_multiple_trait_bounds() -> Result<()> {
 			where
 				T: ::core::cmp::Eq,
 				U: ::core::cmp::Eq
-			{ }
+			{
+				#[inline]
+				fn assert_receiver_is_total_eq(&self) {
+					struct __AssertEq<__T: ::core::cmp::Eq + ?::core::marker::Sized>(::core::marker::PhantomData<__T>);
+
+					// For some reason the comparison fails without the extra space at the end.
+					let _: __AssertEq<T >;
+					let _: __AssertEq<std::marker::PhatomData<(U, V)> >;
+				}
+			}
 
 			impl<T, U, V> ::core::hash::Hash for Test<T, U, V>
 			where

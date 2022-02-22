@@ -4,7 +4,7 @@ use std::fmt::{self, Display, Formatter};
 
 use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, IdentFragment, ToTokens, TokenStreamExt};
-use syn::{Attribute, FieldsNamed, FieldsUnnamed, Ident, Index, Result};
+use syn::{Attribute, FieldsNamed, FieldsUnnamed, Ident, Index, Result, Type};
 
 use crate::{DeriveWhere, FieldAttr, Skip, Trait};
 
@@ -13,12 +13,14 @@ use crate::{DeriveWhere, FieldAttr, Skip, Trait};
 pub struct Field<'a> {
 	/// Attributes.
 	pub attr: FieldAttr,
-	/// [`struct@Ident`] or [`Index`] for this field.
+	/// [`struct@Ident`] or [`Index`] for this field.
 	pub member: Member<'a>,
 	/// [`struct@Ident`] used as a Temporary variable for destructuring `self`.
 	pub self_ident: Ident,
 	/// [`struct@Ident`] used as a Temporary variable for destructuring `other`.
 	pub other_ident: Ident,
+	/// [`Type`] used for asserting traits on fields for [`Eq`].
+	pub type_: &'a Type,
 }
 
 /// Borrowed version of [`syn::Member`], to avoid unnecessary allocations.
@@ -70,6 +72,7 @@ impl<'a> Field<'a> {
 					skip_inner,
 					&field.attrs,
 					Member::Named(field.ident.as_ref().expect("unexpected unnamed field")),
+					&field.ty,
 				)
 			})
 			.collect()
@@ -92,6 +95,7 @@ impl<'a> Field<'a> {
 						index,
 						span: Span::call_site(),
 					}),
+					&field.ty,
 				)
 			})
 			.collect()
@@ -103,6 +107,7 @@ impl<'a> Field<'a> {
 		skip_inner: &Skip,
 		attrs: &[Attribute],
 		member: Member<'a>,
+		type_: &'a Type,
 	) -> Result<Self> {
 		let attr = FieldAttr::from_attrs(derive_wheres, skip_inner, attrs)?;
 		let self_ident = format_ident!("__{}", member);
@@ -113,6 +118,7 @@ impl<'a> Field<'a> {
 			member,
 			self_ident,
 			other_ident,
+			type_,
 		})
 	}
 
