@@ -39,8 +39,15 @@ fn struct_() -> Result<()> {
 				}
 			}
 
-			impl<T> ::core::cmp::Eq for Test<T>
-			{ }
+			impl<T> ::core::cmp::Eq for Test<T> {
+				#[inline]
+				fn assert_receiver_is_total_eq(&self) {
+					struct __AssertEq<__T: ::core::cmp::Eq + ?::core::marker::Sized>(::core::marker::PhantomData<__T>);
+
+					// For some reason the comparison fails without the extra space at the end.
+					let _: __AssertEq<std::marker::PhatomData<T> >;
+				}
+			}
 
 			impl<T> ::core::hash::Hash for Test<T> {
 				fn hash<__H: ::core::hash::Hasher>(&self, __state: &mut __H) {
@@ -125,8 +132,15 @@ fn tuple() -> Result<()> {
 				}
 			}
 
-			impl<T> ::core::cmp::Eq for Test<T>
-			{ }
+			impl<T> ::core::cmp::Eq for Test<T> {
+				#[inline]
+				fn assert_receiver_is_total_eq(&self) {
+					struct __AssertEq<__T: ::core::cmp::Eq + ?::core::marker::Sized>(::core::marker::PhantomData<__T>);
+
+					// For some reason the comparison fails without the extra space at the end.
+					let _: __AssertEq<std::marker::PhatomData<T> >;
+				}
+			}
 
 			impl<T> ::core::hash::Hash for Test<T> {
 				fn hash<__H: ::core::hash::Hasher>(&self, __state: &mut __H) {
@@ -310,8 +324,16 @@ fn enum_() -> Result<()> {
 				}
 			}
 
-			impl<T> ::core::cmp::Eq for Test<T>
-			{ }
+			impl<T> ::core::cmp::Eq for Test<T> {
+				#[inline]
+				fn assert_receiver_is_total_eq(&self) {
+					struct __AssertEq<__T: ::core::cmp::Eq + ?::core::marker::Sized>(::core::marker::PhantomData<__T>);
+
+					// For some reason the comparison fails without the extra space at the end.
+					let _: __AssertEq<std::marker::PhatomData<T> >;
+					let _: __AssertEq<std::marker::PhatomData<T> >;
+				}
+			}
 
 			impl<T> ::core::hash::Hash for Test<T> {
 				fn hash<__H: ::core::hash::Hasher>(&self, __state: &mut __H) {
