@@ -30,7 +30,7 @@ jobs:
           rustup toolchain install ${{ matrix.matrix.channel }} --profile minimal --component clippy --allow-downgrade
           rustup default ${{ matrix.matrix.channel }}
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Run Clippy
         run:
           cargo clippy --all-targets --workspace ${{ matrix.matrix.features }} -- -D warnings
