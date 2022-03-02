@@ -28,7 +28,7 @@ jobs:
           rustup toolchain install ${{ matrix.rust }} --profile minimal --allow-downgrade
           rustup default ${{ matrix.rust }}
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Test
         run:
           cargo test --workspace --all-targets --no-fail-fast
@@ -62,7 +62,7 @@ jobs:
       - name: Install xargo
         run: cargo install xargo
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Test
         run:
           cargo miri test --workspace ${{ matrix.features }} --all-targets --no-fail-fast
