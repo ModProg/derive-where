@@ -257,13 +257,13 @@ impl<'a> Data<'a> {
 	}
 
 	/// Returns `true` if this [`Data`] has no [`Fields`].
-	pub fn is_empty(&self, trait_: &Trait) -> bool {
+	pub fn is_empty(&self, trait_: Trait) -> bool {
 		self.iter_fields(trait_).count() == 0
 	}
 
 	/// Returns `true` if a field is skipped with that [`Trait`].
-	pub fn any_skip_trait(&self, trait_: &Trait) -> bool {
-		self.skip_inner.skip(trait_)
+	pub fn any_skip_trait(&self, trait_: Trait) -> bool {
+		self.skip_inner.trait_skipped(trait_)
 			|| match self.fields() {
 				Either::Left(fields) => fields.any_skip_trait(trait_),
 				Either::Right(_) => false,
@@ -271,8 +271,8 @@ impl<'a> Data<'a> {
 	}
 
 	/// Returns `true` if all fields are skipped with that [`Trait`].
-	fn skip(&self, trait_: &Trait) -> bool {
-		self.skip_inner.skip(trait_)
+	fn skip(&self, trait_: Trait) -> bool {
+		self.skip_inner.trait_skipped(trait_)
 			|| match self.fields() {
 				Either::Left(fields) => fields.skip(trait_),
 				Either::Right(_) => false,
@@ -302,9 +302,9 @@ impl<'a> Data<'a> {
 
 	/// Returns an [`Iterator`] over [`Field`]s.
 	pub fn iter_fields(
-		&'a self,
-		trait_: &'a Trait,
-	) -> impl 'a + Iterator<Item = &'a Field> + DoubleEndedIterator {
+		&self,
+		trait_: Trait,
+	) -> impl '_ + Iterator<Item = &'_ Field> + DoubleEndedIterator {
 		if self.skip(trait_) {
 			[].iter()
 		} else {
@@ -317,25 +317,25 @@ impl<'a> Data<'a> {
 	}
 
 	/// Returns an [`Iterator`] over [`Member`]s.
-	pub fn iter_field_ident(&'a self, trait_: &'a Trait) -> impl 'a + Iterator<Item = &'a Member> {
+	pub fn iter_field_ident(&self, trait_: Trait) -> impl '_ + Iterator<Item = &'_ Member> {
 		self.iter_fields(trait_).map(|field| &field.member)
 	}
 
 	/// Returns an [`Iterator`] over [`struct@Ident`]s used as temporary
 	/// variables for destructuring `self`.
 	pub fn iter_self_ident(
-		&'a self,
-		trait_: &'a Trait,
-	) -> impl Iterator<Item = &'a Ident> + DoubleEndedIterator {
+		&self,
+		trait_: Trait,
+	) -> impl Iterator<Item = &'_ Ident> + DoubleEndedIterator {
 		self.iter_fields(trait_).map(|field| &field.self_ident)
 	}
 
 	/// Returns an [`Iterator`] over [`struct@Ident`]s used as temporary
 	/// variables for destructuring `other`.
 	pub fn iter_other_ident(
-		&'a self,
-		trait_: &'a Trait,
-	) -> impl Iterator<Item = &'a Ident> + DoubleEndedIterator {
+		&self,
+		trait_: Trait,
+	) -> impl Iterator<Item = &'_ Ident> + DoubleEndedIterator {
 		self.iter_fields(trait_).map(|field| &field.other_ident)
 	}
 }

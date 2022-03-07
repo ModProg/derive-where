@@ -11,7 +11,7 @@ use syn::{
 	TraitBoundModifier, Type, TypeParamBound, TypePath, WhereClause, WherePredicate,
 };
 
-use crate::{util, Error, Item, Skip, Trait, TraitImpl, DERIVE_WHERE};
+use crate::{util, Error, Item, Skip, SkipGroup, Trait, TraitImpl, DERIVE_WHERE};
 
 /// Attributes on item.
 #[derive(Default)]
@@ -209,11 +209,11 @@ impl DeriveWhere {
 		})
 	}
 
-	/// Returns selected [`DeriveTrait`] if present.
-	pub fn trait_(&self, trait_: &Trait) -> Option<&DeriveTrait> {
+	/// Returns `true` if [`Trait`] is present.
+	pub fn contains(&self, trait_: Trait) -> bool {
 		self.traits
 			.iter()
-			.find(|derive_trait| derive_trait == trait_)
+			.any(|derive_trait| derive_trait == trait_)
 	}
 
 	/// Returns `true` if any [`CustomBound`](Generic::CustomBound) is present.
@@ -240,7 +240,9 @@ impl DeriveWhere {
 
 	/// Returns `true` if any [`Trait`] supports skipping.
 	pub fn any_skip(&self) -> bool {
-		self.traits.iter().any(|trait_| trait_.supports_skip())
+		self.traits
+			.iter()
+			.any(|trait_| SkipGroup::trait_supported(**trait_))
 	}
 
 	/// Create [`WhereClause`] for the given parameters.

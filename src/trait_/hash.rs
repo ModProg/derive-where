@@ -18,10 +18,6 @@ impl TraitImpl for Hash {
 		DeriveTrait::Hash
 	}
 
-	fn supports_skip(&self) -> bool {
-		true
-	}
-
 	fn build_signature(
 		&self,
 		_item: &Item,
@@ -56,7 +52,7 @@ impl TraitImpl for Hash {
 
 		match data.simple_type() {
 			SimpleType::Struct(_) | SimpleType::Tuple(_) => {
-				let self_ident = data.iter_self_ident(trait_);
+				let self_ident = data.iter_self_ident(**trait_);
 
 				quote! {
 					#self_pattern => {

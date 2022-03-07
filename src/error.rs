@@ -154,14 +154,6 @@ impl Error {
 		syn::Error::new(span, format!("duplicate `{}` constraint on `skip`", trait_))
 	}
 
-	/// Unsupported trait in `skip` constraint.
-	pub fn option_skip_support(span: Span, trait_: &str) -> syn::Error {
-		syn::Error::new(
-			span,
-			format!("unsupported `{}` constraint on `skip`", trait_),
-		)
-	}
-
 	/// No trait that can be skipped is being implemented.
 	pub fn option_skip_no_trait(span: Span) -> syn::Error {
 		syn::Error::new(span, "no trait that can be skipped is being implemented")
@@ -170,6 +162,17 @@ impl Error {
 	/// Trait to be skipped isn't being implemented
 	pub fn option_skip_trait(span: Span) -> syn::Error {
 		syn::Error::new(span, "trait to be skipped isn't being implemented")
+	}
+
+	/// Unsupported [`SkipGroup`](crate::SkipGroup).
+	pub fn skip_group(span: Span) -> syn::Error {
+		syn::Error::new(
+			span,
+			format!(
+				"unsupported skip group, expected one of {}",
+				Self::skip_group_list()
+			),
+		)
 	}
 
 	/// Invalid value for the `derive_where` or `Zeroize` `crate` option.
@@ -239,7 +242,7 @@ impl Error {
 		syn::Error::new(span, "multiple `default` options in enum")
 	}
 
-	/// List of available [`Trait`](crate::Trait).
+	/// List of available [`Trait`](crate::Trait)s.
 	fn trait_list() -> String {
 		[
 			"Clone",
@@ -255,6 +258,18 @@ impl Error {
 			"Zeroize",
 			#[cfg(feature = "zeroize")]
 			"ZeroizeOnDrop",
+		]
+		.join(", ")
+	}
+
+	/// List of available [`SkipGroup`](crate::SkipGroup)s.
+	fn skip_group_list() -> String {
+		[
+			"Debug",
+			"EqHashOrd",
+			"Hash",
+			#[cfg(feature = "zeroize")]
+			"Zeroize",
 		]
 		.join(", ")
 	}

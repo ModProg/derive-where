@@ -4,6 +4,7 @@ CHANGELOG
 destructure/G
 enum/S
 FQS
+invariants
 io
 MSRV
 std's

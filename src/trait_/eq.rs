@@ -17,10 +17,6 @@ impl TraitImpl for Eq {
 		DeriveTrait::Eq
 	}
 
-	fn supports_skip(&self) -> bool {
-		true
-	}
-
 	fn build_signature(
 		&self,
 		_item: &Item,
@@ -44,7 +40,7 @@ impl TraitImpl for Eq {
 		trait_: &DeriveTrait,
 		data: &Data,
 	) -> TokenStream {
-		let types = data.iter_fields(trait_).map(|field| field.type_);
+		let types = data.iter_fields(**trait_).map(|field| field.type_);
 
 		quote! {
 			#(let _: __AssertEq<#types>;)*

@@ -18,10 +18,6 @@ impl TraitImpl for Debug {
 		DeriveTrait::Debug
 	}
 
-	fn supports_skip(&self) -> bool {
-		true
-	}
-
 	fn build_signature(
 		&self,
 		_item: &Item,
@@ -49,8 +45,10 @@ impl TraitImpl for Debug {
 
 		match data.simple_type() {
 			SimpleType::Struct(_) => {
-				let self_ident = data.iter_self_ident(trait_);
-				let debug_fields = data.iter_field_ident(trait_).map(|field| field.to_string());
+				let self_ident = data.iter_self_ident(**trait_);
+				let debug_fields = data
+					.iter_field_ident(**trait_)
+					.map(|field| field.to_string());
 
 				quote! {
 					#self_pattern => {
@@ -61,7 +59,7 @@ impl TraitImpl for Debug {
 				}
 			}
 			SimpleType::Tuple(_) => {
-				let self_ident = data.iter_self_ident(trait_);
+				let self_ident = data.iter_self_ident(**trait_);
 
 				quote! {
 					#self_pattern => {

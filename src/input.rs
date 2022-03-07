@@ -67,7 +67,7 @@ impl<'a> Input<'a> {
 				if !found_default
 					&& derive_wheres
 						.iter()
-						.any(|derive_where| derive_where.trait_(&Trait::Default).is_some())
+						.any(|derive_where| derive_where.contains(Trait::Default))
 				{
 					return Err(Error::default_missing(span));
 				}
@@ -139,7 +139,7 @@ impl<'a> Input<'a> {
 				}
 
 				// Any field is skipped with a corresponding `Trait`.
-				if item.any_skip_trait(trait_) {
+				if item.any_skip_trait(**trait_) {
 					continue;
 				}
 

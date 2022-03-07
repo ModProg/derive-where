@@ -18,10 +18,6 @@ impl TraitImpl for PartialEq {
 		DeriveTrait::PartialEq
 	}
 
-	fn supports_skip(&self) -> bool {
-		true
-	}
-
 	fn build_signature(
 		&self,
 		item: &Item,
@@ -33,9 +29,9 @@ impl TraitImpl for PartialEq {
 			match item {
 				// If there is more than one variant and not all variants are empty, check for
 				// discriminant and match on variant data.
-				Item::Enum { variants, .. } if variants.len() > 1 && !item.is_empty(trait_) => {
+				Item::Enum { variants, .. } if variants.len() > 1 && !item.is_empty(**trait_) => {
 					// Return `true` in the rest pattern if there are any empty variants.
-					let rest = if variants.iter().any(|variant| variant.is_empty(trait_)) {
+					let rest = if variants.iter().any(|variant| variant.is_empty(**trait_)) {
 						quote! { true }
 					} else {
 						#[cfg(not(feature = "safe"))]
@@ -58,7 +54,7 @@ impl TraitImpl for PartialEq {
 				}
 				// If there is more than one variant and all are empty, check for discriminant and
 				// simply return `true`.
-				Item::Enum { variants, .. } if variants.len() > 1 && item.is_empty(trait_) => {
+				Item::Enum { variants, .. } if variants.len() > 1 && item.is_empty(**trait_) => {
 					quote! {
 						if ::core::mem::discriminant(self) == ::core::mem::discriminant(__other) {
 							true
@@ -69,7 +65,7 @@ impl TraitImpl for PartialEq {
 				}
 				// If there is only one variant and it's empty or if the struct is empty, simple
 				// return `true`.
-				item if item.is_empty(trait_) => {
+				item if item.is_empty(**trait_) => {
 					quote! { true }
 				}
 				_ => {
@@ -96,7 +92,7 @@ impl TraitImpl for PartialEq {
 		trait_: &DeriveTrait,
 		data: &Data,
 	) -> TokenStream {
-		if data.is_empty(trait_) {
+		if data.is_empty(**trait_) {
 			TokenStream::new()
 		} else {
 			match data.simple_type() {
@@ -104,8 +100,8 @@ impl TraitImpl for PartialEq {
 					let self_pattern = &fields.self_pattern;
 					let other_pattern = &fields.other_pattern;
 					let trait_path = trait_.path();
-					let self_ident = data.iter_self_ident(trait_);
-					let other_ident = data.iter_other_ident(trait_);
+					let self_ident = data.iter_self_ident(**trait_);
+					let other_ident = data.iter_other_ident(**trait_);
 
 					quote! {
 						(#self_pattern, #other_pattern) =>

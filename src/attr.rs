@@ -14,6 +14,6 @@ pub use self::{
 	default::Default,
 	field::FieldAttr,
 	item::{DeriveTrait, DeriveWhere, Generic, ItemAttr},
-	skip::Skip,
+	skip::{Skip, SkipGroup},
 	variant::VariantAttr,
 };

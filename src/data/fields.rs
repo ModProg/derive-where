@@ -179,12 +179,12 @@ impl<'a> Fields<'a> {
 	}
 
 	/// Returns `true` if any field is skipped with that [`Trait`].
-	pub fn any_skip_trait(&self, trait_: &Trait) -> bool {
+	pub fn any_skip_trait(&self, trait_: Trait) -> bool {
 		self.fields.iter().any(|field| field.skip(trait_))
 	}
 
 	/// Returns `true` if all fields are skipped with that [`Trait`].
-	pub fn skip(&self, trait_: &Trait) -> bool {
+	pub fn skip(&self, trait_: Trait) -> bool {
 		self.fields.iter().all(|field| field.skip(trait_))
 	}
 }

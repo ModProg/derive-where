@@ -20,12 +20,12 @@ pub fn build_ord_signature(item: &Item, trait_: &DeriveTrait, body: &TokenStream
 		// If there is more than one variant, check for the discriminant.
 		Item::Enum { variants, .. } if variants.len() > 1 => {
 			// If all variants are empty, return `Equal`.
-			let body = if item.is_empty(trait_) {
+			let body = if item.is_empty(**trait_) {
 				quote! { #equal }
 			}
 			// Compare variant data and return `Equal` in the rest pattern if there are any empty
 			// variants.
-			else if variants.iter().any(|variant| variant.is_empty(trait_)) {
+			else if variants.iter().any(|variant| variant.is_empty(**trait_)) {
 				quote! {
 					match (self, __other) {
 						#body
@@ -164,7 +164,7 @@ pub fn build_ord_signature(item: &Item, trait_: &DeriveTrait, body: &TokenStream
 		}
 		// If there is only one variant and it's empty or if the struct is empty, simple
 		// return `Equal`.
-		item if item.is_empty(trait_) => {
+		item if item.is_empty(**trait_) => {
 			quote! { #equal }
 		}
 		_ => {
@@ -202,9 +202,9 @@ pub fn build_ord_body(trait_: &DeriveTrait, data: &Data) -> TokenStream {
 	// afterwards. `rev` has to be called twice separately because it can't be
 	// called on `zip`
 	for (field_temp, field_other) in data
-		.iter_self_ident(trait_)
+		.iter_self_ident(**trait_)
 		.rev()
-		.zip(data.iter_other_ident(trait_).rev())
+		.zip(data.iter_other_ident(**trait_).rev())
 	{
 		body = quote! {
 			match #path::#method(#field_temp, #field_other) {
