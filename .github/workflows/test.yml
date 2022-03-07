@@ -92,3 +92,35 @@ jobs:
       - name: Build
         run:
           cargo build --target thumbv6m-none-eabi ${{ matrix.features }} -p ensure-no-std
+
+  minimal-versions:
+    name: Minimal Versions
+
+    strategy:
+      fail-fast: false
+      matrix:
+        rust:
+          - version: 1.57.0
+            features: safe,zeroize-on-drop
+          - version: stable
+            features: safe,zeroize-on-drop
+          - version: nightly
+            features: nightly,safe,zeroize-on-drop
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Update Rust
+        run: |
+          rustup toolchain install ${{ matrix.rust.version }} --profile minimal --allow-downgrade
+          rustup default ${{ matrix.rust.version }}
+      - name: Install nightly Rust
+        run:
+          rustup toolchain install nightly --profile minimal --allow-downgrade
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Build
+        working-directory: test-crates/minimal-versions
+        run: |
+          cargo +nightly update -Z minimal-versions
+          cargo build --features ${{ matrix.rust.features }}

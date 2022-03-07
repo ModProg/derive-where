@@ -1,6 +1,6 @@
 [workspace]
 default-members = [""]
-members = ["", "crate_", "ensure-no-std"]
+members = ["", "test-crates/crate_", "test-crates/ensure-no-std"]
 resolver = "2"
 
 [package]
@@ -29,7 +29,7 @@ zeroize-on-drop = ["zeroize"]
 [dependencies]
 proc-macro2 = { version = "1", default-features = false, features = ["proc-macro"] }
 quote = { version = "1", default-features = false }
-syn = { version = "1", default-features = false, features = [
+syn = { version = "1.0.56", default-features = false, features = [
 	"clone-impls",
 	"derive",
 	"extra-traits",
@@ -39,7 +39,7 @@ syn = { version = "1", default-features = false, features = [
 ] }
 
 [dev-dependencies]
-trybuild = { version = "1", default-features = false }
+trybuild = { version = "1.0.18", default-features = false }
 zeroize_ = { version = "1.5", package = "zeroize", default-features = false }
 
 [[test]]
