@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support [`ZeroizeOnDrop`](https://docs.rs/zeroize/1.5/zeroize/trait.ZeroizeOnDrop.html).
 
 ### Changed
-- **Breaking Change**: Changed to attribute instead of derive proc macro.
+- **Breaking Change**: Changed to attribute instead of derive proc-macro.
 
 ### Removed
 - **Breaking Change**: Remove support for `Zeroize(drop)`.
