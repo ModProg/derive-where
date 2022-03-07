@@ -43,7 +43,7 @@ impl TraitImpl for Default {
 
 			match data.simple_type() {
 				SimpleType::Struct(_) => {
-					let fields = data.iter_field_ident(trait_);
+					let fields = data.iter_field_ident(**trait_);
 					let trait_path = trait_.path();
 
 					quote! { #path { #(#fields: #trait_path::default()),* } }
@@ -51,7 +51,7 @@ impl TraitImpl for Default {
 				SimpleType::Tuple(_) => {
 					let trait_path = trait_.path();
 					let fields = data
-						.iter_fields(trait_)
+						.iter_fields(**trait_)
 						.map(|_| quote! { #trait_path::default() });
 
 					quote! { #path(#(#fields),*) }

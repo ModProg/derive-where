@@ -18,10 +18,6 @@ impl TraitImpl for Ord {
 		DeriveTrait::Ord
 	}
 
-	fn supports_skip(&self) -> bool {
-		true
-	}
-
 	fn build_signature(
 		&self,
 		item: &Item,
@@ -45,7 +41,7 @@ impl TraitImpl for Ord {
 		trait_: &DeriveTrait,
 		data: &Data,
 	) -> TokenStream {
-		if data.is_empty(trait_) {
+		if data.is_empty(**trait_) {
 			TokenStream::new()
 		} else {
 			match data.simple_type() {

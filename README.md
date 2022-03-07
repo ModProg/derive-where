@@ -138,7 +138,14 @@ assert_eq!(format!("{:?}", EnumExample::A(42)), "A");
 ```
 
 Selective skipping of fields for certain traits is also an option, both in
-`skip` and `skip_inner`:
+`skip` and `skip_inner`. To prevent breaking invariants defined for these
+traits, some of them can only be skipped in groups. The following groups are
+available:
+- [`Debug`]
+- `EqHashOrd`: Skips [`Eq`], [`Hash`], [`Ord`], [`PartialOrd`] and
+  [`PartialEq`].
+- [`Hash`]
+- `Zeroize`: Skips [`Zeroize`] and [`ZeroizeOnDrop`].
 
 ```rust
 #[derive_where(Debug, PartialEq)]

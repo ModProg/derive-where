@@ -36,7 +36,7 @@ fn hash() {
 #[test]
 fn ord() {
 	#[derive_where(Eq, Ord, PartialEq, PartialOrd)]
-	struct Test<T>(#[derive_where(skip(Ord))] Wrapper<T>);
+	struct Test<T>(#[derive_where(skip(EqHashOrd))] Wrapper<T>);
 
 	let test_1 = Test(42.into());
 	let test_2 = Test(42.into());
@@ -48,36 +48,11 @@ fn ord() {
 	assert_eq!(test_1.cmp(&test_2), Ordering::Equal);
 	assert_eq!(test_1.cmp(&test_le), Ordering::Equal);
 	assert_eq!(test_1.cmp(&test_ge), Ordering::Equal);
-}
-
-#[test]
-fn partial_eq() {
-	#[derive_where(PartialEq)]
-	struct Test<T>(
-		#[derive_where(skip(PartialEq))]
-		#[allow(dead_code)]
-		Wrapper<T>,
-	);
-
-	let test_1 = Test(42.into());
-	let test_2 = Test(42.into());
-	let test_ge = Test(43.into());
 
 	let _ = AssertPartialEq(&test_1);
 
 	assert!(test_1 == test_2);
 	assert!(test_1 == test_ge);
-}
-
-#[test]
-fn partial_ord() {
-	#[derive_where(PartialEq, PartialOrd)]
-	struct Test<T>(#[derive_where(skip(PartialOrd))] Wrapper<T>);
-
-	let test_1 = Test(42.into());
-	let test_2 = Test(42.into());
-	let test_le = Test(41.into());
-	let test_ge = Test(43.into());
 
 	let _ = AssertPartialOrd(&test_1);
 
@@ -89,7 +64,7 @@ fn partial_ord() {
 #[test]
 fn all() {
 	#[derive_where(Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-	struct Test<T>(#[derive_where(skip(Debug, Hash, Ord, PartialEq, PartialOrd))] Wrapper<T>);
+	struct Test<T>(#[derive_where(skip(Debug, EqHashOrd))] Wrapper<T>);
 
 	let test_1 = Test(42.into());
 	let test_2 = Test(42.into());

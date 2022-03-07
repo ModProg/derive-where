@@ -43,7 +43,7 @@ fn hash() {
 fn ord() {
 	#[derive_where(Eq, Ord, PartialEq, PartialOrd)]
 	enum Test<T> {
-		#[derive_where(skip_inner(Ord))]
+		#[derive_where(skip_inner(EqHashOrd))]
 		A(Wrapper<T>),
 	}
 
@@ -57,38 +57,11 @@ fn ord() {
 	assert_eq!(test_1.cmp(&test_2), Ordering::Equal);
 	assert_eq!(test_1.cmp(&test_le), Ordering::Equal);
 	assert_eq!(test_1.cmp(&test_ge), Ordering::Equal);
-}
-
-#[test]
-fn partial_eq() {
-	#[derive_where(PartialEq)]
-	enum Test<T> {
-		#[derive_where(skip_inner(PartialEq))]
-		A(Wrapper<T>),
-	}
-
-	let test_1 = Test::A(42.into());
-	let test_2 = Test::A(42.into());
-	let test_ge = Test::A(43.into());
 
 	let _ = AssertPartialEq(&test_1);
 
 	assert!(test_1 == test_2);
 	assert!(test_1 == test_ge);
-}
-
-#[test]
-fn partial_ord() {
-	#[derive_where(PartialEq, PartialOrd)]
-	enum Test<T> {
-		#[derive_where(skip_inner(PartialOrd))]
-		A(Wrapper<T>),
-	}
-
-	let test_1 = Test::A(42.into());
-	let test_2 = Test::A(42.into());
-	let test_le = Test::A(41.into());
-	let test_ge = Test::A(43.into());
 
 	let _ = AssertPartialOrd(&test_1);
 
@@ -101,7 +74,7 @@ fn partial_ord() {
 fn all() {
 	#[derive_where(Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 	enum Test<T> {
-		#[derive_where(skip_inner(Debug, Hash, Ord, PartialEq, PartialOrd))]
+		#[derive_where(skip_inner(Debug, EqHashOrd))]
 		A(Wrapper<T>),
 	}
 

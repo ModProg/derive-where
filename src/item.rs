@@ -36,7 +36,7 @@ impl Item<'_> {
 	}
 
 	/// Returns `true` if any field is skipped with that [`Trait`].
-	pub fn any_skip_trait(&self, trait_: &Trait) -> bool {
+	pub fn any_skip_trait(&self, trait_: Trait) -> bool {
 		match self {
 			Item::Item(data) => data.any_skip_trait(trait_),
 			Item::Enum { variants, .. } => variants.iter().any(|data| data.any_skip_trait(trait_)),
@@ -62,7 +62,7 @@ impl Item<'_> {
 
 	/// Returns `true` if all [`Fields`](crate::data::Fields) are empty for this
 	/// [`Trait`].
-	pub fn is_empty(&self, trait_: &Trait) -> bool {
+	pub fn is_empty(&self, trait_: Trait) -> bool {
 		match self {
 			Item::Enum { variants, .. } => variants.iter().all(|data| data.is_empty(trait_)),
 			Item::Item(data) => data.is_empty(trait_),

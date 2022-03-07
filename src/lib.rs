@@ -158,7 +158,14 @@
 //! ```
 //!
 //! Selective skipping of fields for certain traits is also an option, both in
-//! `skip` and `skip_inner`:
+//! `skip` and `skip_inner`. To prevent breaking invariants defined for these
+//! traits, some of them can only be skipped in groups. The following groups are
+//! available:
+//! - [`Debug`]
+//! - `EqHashOrd`: Skips [`Eq`], [`Hash`], [`Ord`], [`PartialOrd`] and
+//!   [`PartialEq`].
+//! - [`Hash`]
+//! - `Zeroize`: Skips [`Zeroize`] and [`ZeroizeOnDrop`].
 //!
 //! ```
 //! # use std::marker::PhantomData;
@@ -346,7 +353,7 @@ use syn::{
 #[cfg(feature = "zeroize")]
 use self::attr::ZeroizeFqs;
 use self::{
-	attr::{Default, DeriveTrait, DeriveWhere, FieldAttr, ItemAttr, Skip, VariantAttr},
+	attr::{Default, DeriveTrait, DeriveWhere, FieldAttr, ItemAttr, Skip, SkipGroup, VariantAttr},
 	data::{Data, DataType, Field, SimpleType},
 	error::Error,
 	input::Input,
@@ -371,19 +378,19 @@ const DERIVE_WHERE_VISITED: &str = "derive_where_visited";
 ///     trait.
 ///   - `#[derive_where(ZeroizeOnDrop(crate = "path"))]`: Specify path to
 ///     [`ZeroizeOnDrop`] trait.
-/// - `#[derive_where(skip_inner(Clone, ..))]`: Skip all fields in the item.
-///   Optionally specify traits to constrain skipping fields. Only works for
-///   structs, for enums use this on the variant-level.
+/// - `#[derive_where(skip_inner(EqHashOrd, ..))]`: Skip all fields in the item.
+///   Optionally specify trait groups to constrain skipping fields. Only works
+///   for structs, for enums use this on the variant-level.
 ///
 /// Variant-level options:
 /// - `#[derive_where(default)]`: Uses this variant as the default for the
 ///   [`Default`](core::default::Default) implementation.
-/// - `#[derive_where(skip_inner(Clone, ..))]`: Skip all fields in this variant.
-///   Optionally specify traits to constrain skipping fields.
+/// - `#[derive_where(skip_inner(EqHashOrd, ..))]`: Skip all fields in this
+///   variant. Optionally specify trait groups to constrain skipping fields.
 ///
 /// Field-level options:
-/// - `#[derive_where(skip(Clone, ...))]`: Skip field. Optionally specify traits
-///   to constrain skipping field.
+/// - `#[derive_where(skip(EqHashOrd, ...))]`: Skip field. Optionally specify
+///   trait groups to constrain skipping field.
 /// - `#[derive_where(Zeroize(fqs))]`: Use fully-qualified-syntax when
 ///   implementing [`Zeroize`].
 ///

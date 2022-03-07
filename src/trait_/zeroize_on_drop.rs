@@ -66,10 +66,6 @@ impl TraitImpl for ZeroizeOnDrop {
 		Ok(DeriveTrait::ZeroizeOnDrop { crate_ })
 	}
 
-	fn supports_skip(&self) -> bool {
-		true
-	}
-
 	#[allow(unused_variables)]
 	fn additional_impl(&self, trait_: &DeriveTrait) -> Option<(Path, TokenStream)> {
 		#[cfg(feature = "zeroize-on-drop")]
@@ -90,7 +86,7 @@ impl TraitImpl for ZeroizeOnDrop {
 		body: &TokenStream,
 	) -> TokenStream {
 		match item {
-			Item::Item(data) if data.is_empty(trait_) => quote! {
+			Item::Item(data) if data.is_empty(**trait_) => quote! {
 				fn drop(&mut self) { }
 			},
 			_ => {
@@ -136,7 +132,7 @@ impl TraitImpl for ZeroizeOnDrop {
 		trait_: &DeriveTrait,
 		data: &Data,
 	) -> TokenStream {
-		if data.is_empty(trait_) {
+		if data.is_empty(**trait_) {
 			TokenStream::new()
 		} else {
 			match data.simple_type() {
@@ -144,7 +140,7 @@ impl TraitImpl for ZeroizeOnDrop {
 					#[cfg(feature = "zeroize-on-drop")]
 					{
 						let self_pattern = fields.self_pattern_mut();
-						let self_ident = data.iter_self_ident(trait_);
+						let self_ident = data.iter_self_ident(**trait_);
 
 						quote! {
 							#self_pattern => {

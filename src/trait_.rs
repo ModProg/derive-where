@@ -21,7 +21,7 @@ use syn::{spanned::Spanned, MetaList, Path, Result, TypeParamBound};
 use crate::{Data, DeriveTrait, Error, Item};
 
 /// Type implementing [`TraitImpl`] for every trait.
-#[derive(Eq, PartialEq)]
+#[derive(Clone, Copy, Eq, PartialEq)]
 #[cfg_attr(test, derive(Debug))]
 pub enum Trait {
 	/// [`Clone`].
@@ -115,10 +115,6 @@ impl TraitImpl for Trait {
 		self.implementation().supports_union()
 	}
 
-	fn supports_skip(&self) -> bool {
-		self.implementation().supports_skip()
-	}
-
 	fn additional_where_bounds(&self, data: &Item) -> Option<TypeParamBound> {
 		self.implementation().additional_where_bounds(data)
 	}
@@ -164,11 +160,6 @@ pub trait TraitImpl {
 
 	/// Returns `true` if [`Trait`] supports unions.
 	fn supports_union(&self) -> bool {
-		false
-	}
-
-	/// Returns `true` if [`Trait`] supports skipping fields.
-	fn supports_skip(&self) -> bool {
 		false
 	}
 

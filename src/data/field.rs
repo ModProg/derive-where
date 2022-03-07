@@ -131,7 +131,7 @@ impl<'a> Field<'a> {
 	}
 
 	/// Returns `true` if this field is skipped with the given [`Trait`].
-	pub fn skip(&self, trait_: &Trait) -> bool {
-		self.attr.skip.skip(trait_)
+	pub fn skip(&self, trait_: Trait) -> bool {
+		self.attr.skip.trait_skipped(trait_)
 	}
 }

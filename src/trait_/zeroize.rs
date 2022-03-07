@@ -70,10 +70,6 @@ impl TraitImpl for Zeroize {
 		Ok(DeriveTrait::Zeroize { crate_ })
 	}
 
-	fn supports_skip(&self) -> bool {
-		true
-	}
-
 	fn build_signature(
 		&self,
 		item: &Item,
@@ -82,7 +78,7 @@ impl TraitImpl for Zeroize {
 		body: &TokenStream,
 	) -> TokenStream {
 		match item {
-			Item::Item(data) if data.is_empty(trait_) => quote! {
+			Item::Item(data) if data.is_empty(**trait_) => quote! {
 				fn zeroize(&mut self) { }
 			},
 			_ => {
@@ -106,7 +102,7 @@ impl TraitImpl for Zeroize {
 		trait_: &DeriveTrait,
 		data: &Data,
 	) -> TokenStream {
-		if data.is_empty(trait_) {
+		if data.is_empty(**trait_) {
 			TokenStream::new()
 		} else {
 			match data.simple_type() {
@@ -115,8 +111,8 @@ impl TraitImpl for Zeroize {
 					let self_pattern = fields.self_pattern_mut();
 
 					let body = data
-						.iter_fields(trait_)
-						.zip(data.iter_self_ident(trait_))
+						.iter_fields(**trait_)
+						.zip(data.iter_self_ident(**trait_))
 						.map(|(field, self_ident)| {
 							if field.attr.zeroize_fqs.0 {
 								quote! { #trait_path::zeroize(#self_ident); }

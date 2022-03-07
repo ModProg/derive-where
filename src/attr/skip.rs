@@ -2,9 +2,9 @@
 
 use std::default::Default;
 
-use syn::{spanned::Spanned, Meta, NestedMeta, Result};
+use syn::{spanned::Spanned, Meta, NestedMeta, Path, Result};
 
-use crate::{DeriveWhere, Error, Trait, TraitImpl};
+use crate::{DeriveWhere, Error, Trait};
 
 /// Stores what [`Trait`]s to skip this field or variant for.
 #[cfg_attr(test, derive(Debug))]
@@ -14,7 +14,7 @@ pub enum Skip {
 	/// Field skipped for all [`Trait`]s that support it.
 	All,
 	/// Field skipped for the [`Trait`]s listed.
-	Traits(Vec<Trait>),
+	Traits(Vec<SkipGroup>),
 }
 
 impl Default for Skip {
@@ -102,37 +102,34 @@ impl Skip {
 
 				for nested_meta in &list.nested {
 					if let NestedMeta::Meta(Meta::Path(path)) = nested_meta {
-						let trait_ = Trait::from_path(path)?;
+						let skip_group = SkipGroup::from_path(path)?;
 
-						// Don't allow unsupported traits to be skipped.
-						if trait_.supports_skip() {
-							// Don't allow to skip the same trait twice.
-							if traits.contains(&trait_) {
-								return Err(Error::option_skip_duplicate(
-									path.span(),
-									trait_.as_str(),
-								));
-							} else {
-								// Don't allow to skip a trait already set to be skipped in the
-								// parent.
-								match skip_inner {
-									Some(skip_inner) if skip_inner.skip(&trait_) => {
-										return Err(Error::option_skip_inner(path.span()))
-									}
-									_ => {
-										// Don't allow to skip trait that isn't being implemented.
-										if derive_wheres.iter().any(|derive_where| {
-											derive_where.trait_(&trait_).is_some()
-										}) {
-											traits.push(trait_)
-										} else {
-											return Err(Error::option_skip_trait(path.span()));
-										}
+						// Don't allow to skip the same trait twice.
+						if traits.contains(&skip_group) {
+							return Err(Error::option_skip_duplicate(
+								path.span(),
+								skip_group.as_str(),
+							));
+						} else {
+							// Don't allow to skip a trait already set to be skipped in the
+							// parent.
+							match skip_inner {
+								Some(skip_inner) if skip_inner.group_skipped(skip_group) => {
+									return Err(Error::option_skip_inner(path.span()))
+								}
+								_ => {
+									// Don't allow to skip trait that isn't being implemented.
+									if derive_wheres.iter().any(|derive_where| {
+										skip_group
+											.traits()
+											.any(|trait_| derive_where.contains(trait_))
+									}) {
+										traits.push(skip_group)
+									} else {
+										return Err(Error::option_skip_trait(path.span()));
 									}
 								}
 							}
-						} else {
-							return Err(Error::option_skip_support(path.span(), trait_.as_str()));
 						}
 					} else {
 						return Err(Error::option_syntax(nested_meta.span()));
@@ -147,15 +144,118 @@ impl Skip {
 
 	/// Returns `true` if this item, variant or field is skipped with the given
 	/// [`Trait`].
-	pub fn skip(&self, trait_: &Trait) -> bool {
+	pub fn trait_skipped(&self, trait_: Trait) -> bool {
 		match self {
 			Skip::None => false,
-			Skip::All => trait_.supports_skip(),
-			Skip::Traits(traits) => {
-				let skip = traits.contains(trait_);
-				debug_assert!(!skip || trait_.supports_skip());
-				skip
+			Skip::All => SkipGroup::trait_supported(trait_),
+			Skip::Traits(skip_groups) => skip_groups
+				.iter()
+				.any(|skip_group| skip_group.traits().any(|this_trait| this_trait == trait_)),
+		}
+	}
+
+	/// Returns `true` if this item, variant or field is skipped with the given
+	/// [`SkipGroup`].
+	pub fn group_skipped(&self, group: SkipGroup) -> bool {
+		match self {
+			Skip::None => false,
+			Skip::All => true,
+			Skip::Traits(groups) => groups.iter().any(|this_group| *this_group == group),
+		}
+	}
+}
+
+/// Available groups of [`Trait`]s to skip.
+#[derive(Clone, Copy, Eq, PartialEq)]
+#[cfg_attr(test, derive(Debug))]
+pub enum SkipGroup {
+	/// [`Debug`].
+	Debug,
+	/// [`Eq`], [`Hash`], [`Ord`], [`PartialEq`] and [`PartialOrd`].
+	EqHashOrd,
+	/// [`Hash`].
+	Hash,
+	/// [`Zeroize`](https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html) and
+	/// [`ZeroizeOnDrop`](https://docs.rs/zeroize/latest/zeroize/trait.ZeroizeOnDrop.html).
+	#[cfg(feature = "zeroize")]
+	Zeroize,
+}
+
+impl SkipGroup {
+	/// Create [`SkipGroup`] from [`Path`].
+	fn from_path(path: &Path) -> Result<Self> {
+		if let Some(ident) = path.get_ident() {
+			use SkipGroup::*;
+
+			match ident.to_string().as_str() {
+				"Debug" => Ok(Debug),
+				"EqHashOrd" => Ok(EqHashOrd),
+				"Hash" => Ok(Hash),
+				#[cfg(feature = "zeroize")]
+				"Zeroize" => Ok(Zeroize),
+				_ => Err(Error::skip_group(path.span())),
 			}
+		} else {
+			Err(Error::skip_group(path.span()))
+		}
+	}
+
+	/// [`str`] representation of this [`Trait`].
+	/// Used to compare against [`Ident`](struct@syn::Ident)s and create error
+	/// messages.
+	const fn as_str(self) -> &'static str {
+		match self {
+			Self::Debug => "Debug",
+			Self::EqHashOrd => "EqHashOrd",
+			Self::Hash => "Hash",
+			#[cfg(feature = "zeroize")]
+			Self::Zeroize => "Zeroize",
+		}
+	}
+
+	/// [`Trait`]s supported by this group.
+	fn traits(self) -> impl Iterator<Item = Trait> {
+		match self {
+			Self::Debug => [Some(Trait::Debug), None, None, None, None]
+				.into_iter()
+				.flatten(),
+			Self::EqHashOrd => [
+				Some(Trait::Eq),
+				Some(Trait::Hash),
+				Some(Trait::Ord),
+				Some(Trait::PartialEq),
+				Some(Trait::PartialOrd),
+			]
+			.into_iter()
+			.flatten(),
+			Self::Hash => [Some(Trait::Hash), None, None, None, None]
+				.into_iter()
+				.flatten(),
+			#[cfg(feature = "zeroize")]
+			Self::Zeroize => [
+				Some(Trait::Zeroize),
+				Some(Trait::ZeroizeOnDrop),
+				None,
+				None,
+				None,
+			]
+			.into_iter()
+			.flatten(),
+		}
+	}
+
+	/// Returns `true` if [`Trait`] is supported by any group.
+	pub fn trait_supported(trait_: Trait) -> bool {
+		match trait_ {
+			Trait::Clone | Trait::Copy | Trait::Default => false,
+			Trait::Debug
+			| Trait::Eq
+			| Trait::Hash
+			| Trait::Ord
+			| Trait::PartialEq
+			| Trait::PartialOrd => true,
+			#[cfg(feature = "zeroize")]
+			Trait::Zeroize | Trait::ZeroizeOnDrop => true,
 		}
 	}
 }
