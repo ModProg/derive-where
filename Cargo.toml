@@ -46,3 +46,7 @@ zeroize_ = { version = "1.5", package = "zeroize", default-features = false }
 name = "util"
 path = "tests/util.rs"
 test = false
+
+[package.metadata.docs.rs]
+all-features = true
+targets = []
