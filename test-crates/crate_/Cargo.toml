@@ -11,7 +11,7 @@ zeroize = ["derive-where_/zeroize", "zeroize_"]
 zeroize-on-drop = ["derive-where_/zeroize-on-drop", "zeroize"]
 
 [dependencies]
-derive-where_ = { path = "..", package = "derive-where" }
+derive-where_ = { path = "../..", package = "derive-where" }
 zeroize_ = { version = "1.5", package = "zeroize", default-features = false, optional = true }
 
 [lib]

@@ -1,0 +1,19 @@
+[package]
+edition = "2021"
+name = "ensure-no-std"
+publish = false
+version = "0.0.0"
+
+[features]
+nightly = ["derive-where/nightly"]
+safe = ["derive-where/safe"]
+zeroize = ["derive-where/zeroize", "zeroize_"]
+zeroize-on-drop = ["derive-where/zeroize-on-drop", "zeroize"]
+
+[dependencies]
+derive-where = { path = "../.." }
+zeroize_ = { version = "1.5", package = "zeroize", default-features = false, optional = true }
+
+[lib]
+doctest = false
+test = false
