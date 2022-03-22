@@ -26,7 +26,7 @@ jobs:
 
     steps:
       - name: Cache Taplo
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.cargo/.crates.toml
