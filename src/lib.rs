@@ -201,7 +201,7 @@
 //!
 //! impl Example {
 //! 	// If we didn't specify the `fqs` option, this would lead to a compile
-//! 	//error because of method ambiguity.
+//! 	// error because of method ambiguity.
 //! 	fn zeroize(&mut self) {
 //! 		self.0 = 1;
 //! 	}
