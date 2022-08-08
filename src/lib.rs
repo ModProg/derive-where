@@ -295,10 +295,11 @@
 //!
 //! # Alternatives
 //!
-//! [derivative](https://crates.io/crates/derivative)
-//! ([![Crates.io](https://img.shields.io/crates/v/derivative.svg)](https://crates.io/crates/derivative))
-//! is a great alternative with many options. Notably it doesn't support
-//! `no_std` and requires an extra `#[derive(Derivative)]` to use.
+//! - [derivative](https://crates.io/crates/derivative) [![Crates.io](https://img.shields.io/crates/v/derivative.svg)](https://crates.io/crates/derivative)
+//!   is a great alternative with many options. Notably it doesn't support
+//!   `no_std` and requires an extra `#[derive(Derivative)]` to use.
+//! - [derive_bounded](https://crates.io/crates/derive_bounded) [![Crates.io](https://img.shields.io/crates/v/derive_bounded.svg)](https://crates.io/crates/derive_bounded)
+//!   is a new alternative still in development.
 //!
 //! # Changelog
 //!
