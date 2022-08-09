@@ -27,8 +27,8 @@ Multiple `derive_where` attributes can be added to an item, but only the
 first one must use any path qualifications.
 
 ```rust
-#[derive_where::derive_where(Clone)]
-#[derive_where(Debug)]
+#[derive_where::derive_where(Clone, Debug)]
+#[derive_where(Eq, PartialEq)]
 struct Example1<T>(PhantomData<T>);
 ```
 
@@ -49,7 +49,7 @@ specified. This example will restrict the implementation for `Example` to
 `T: Clone`:
 
 ```rust
-#[derive_where(Clone; T)]
+#[derive_where(Clone, Debug; T)]
 struct Example<T, U>(T, PhantomData<U>);
 ```
 
@@ -57,15 +57,15 @@ It is also possible to specify the bounds to be applied. This will
 bind implementation for `Example` to `T: Super`:
 
 ```rust
-trait Super: Clone {}
+trait Super: Clone + Debug {}
 
-#[derive_where(Clone; T: Super)]
+#[derive_where(Clone, Debug; T: Super)]
 struct Example<T>(PhantomData<T>);
 ```
 
 But more complex trait bounds are possible as well.
-The example below will restrict the implementation for `Example` to
-`T::Type: Clone`:
+The example below will restrict the [`Clone`] implementation for `Example`
+to `T::Type: Clone`:
 
 ```rust
 trait Trait {
@@ -78,7 +78,7 @@ impl Trait for Impl {
 	type Type = i32;
 }
 
-#[derive_where(Clone; T::Type)]
+#[derive_where(Clone, Debug; T::Type)]
 struct Example<T: Trait>(T::Type);
 ```
 
@@ -87,8 +87,8 @@ specific constrain. It is also possible to use multiple separate
 constrain specifications when required:
 
 ```rust
-#[derive_where(Clone; T)]
-#[derive_where(Debug; U)]
+#[derive_where(Clone, Debug; T)]
+#[derive_where(Eq, PartialEq; U)]
 struct Example<T, U>(PhantomData<T>, PhantomData<U>);
 ```
 
@@ -99,7 +99,7 @@ Since Rust 1.62 deriving [`Default`] on an enum is possible with the
 `#[derive_where(default)]` attribute:
 
 ```rust
-#[derive_where(Default)]
+#[derive_where(Clone, Default)]
 enum Example<T> {
 	#[derive_where(default)]
 	A(PhantomData<T>),
@@ -123,19 +123,21 @@ assert_eq!(Example(42), Example(0));
 It is also possible to skip all fields in an item or variant if desired:
 
 ```rust
-#[derive_where(Debug)]
+#[derive_where(Debug, PartialEq)]
 #[derive_where(skip_inner)]
 struct StructExample<T>(T);
 
 assert_eq!(format!("{:?}", StructExample(42)), "StructExample");
+assert_eq!(StructExample(42), StructExample(0));
 
-#[derive_where(Debug)]
+#[derive_where(Debug, PartialEq)]
 enum EnumExample<T> {
 	#[derive_where(skip_inner)]
 	A(T),
 }
 
 assert_eq!(format!("{:?}", EnumExample::A(42)), "A");
+assert_eq!(EnumExample::A(42), EnumExample::A(0));
 ```
 
 Selective skipping of fields for certain traits is also an option, both in
