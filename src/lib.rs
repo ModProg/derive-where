@@ -30,8 +30,8 @@
 //!
 //! ```
 //! # use std::marker::PhantomData;
-//! #[derive_where::derive_where(Clone)]
-//! #[derive_where(Debug)]
+//! #[derive_where::derive_where(Clone, Debug)]
+//! #[derive_where(Eq, PartialEq)]
 //! struct Example1<T>(PhantomData<T>);
 //! ```
 //!
@@ -57,7 +57,7 @@
 //! ```
 //! # use std::marker::PhantomData;
 //! # use derive_where::derive_where;
-//! #[derive_where(Clone; T)]
+//! #[derive_where(Clone, Debug; T)]
 //! struct Example<T, U>(T, PhantomData<U>);
 //! ```
 //!
@@ -65,17 +65,18 @@
 //! bind implementation for `Example` to `T: Super`:
 //!
 //! ```
+//! # use std::fmt::Debug;
 //! # use std::marker::PhantomData;
 //! # use derive_where::derive_where;
-//! trait Super: Clone {}
+//! trait Super: Clone + Debug {}
 //!
-//! #[derive_where(Clone; T: Super)]
+//! #[derive_where(Clone, Debug; T: Super)]
 //! struct Example<T>(PhantomData<T>);
 //! ```
 //!
 //! But more complex trait bounds are possible as well.
-//! The example below will restrict the implementation for `Example` to
-//! `T::Type: Clone`:
+//! The example below will restrict the [`Clone`] implementation for `Example`
+//! to `T::Type: Clone`:
 //!
 //! ```
 //! # use std::marker::PhantomData;
@@ -90,7 +91,7 @@
 //! 	type Type = i32;
 //! }
 //!
-//! #[derive_where(Clone; T::Type)]
+//! #[derive_where(Clone, Debug; T::Type)]
 //! struct Example<T: Trait>(T::Type);
 //! ```
 //!
@@ -101,8 +102,8 @@
 //! ```
 //! # use std::marker::PhantomData;
 //! # use derive_where::derive_where;
-//! #[derive_where(Clone; T)]
-//! #[derive_where(Debug; U)]
+//! #[derive_where(Clone, Debug; T)]
+//! #[derive_where(Eq, PartialEq; U)]
 //! struct Example<T, U>(PhantomData<T>, PhantomData<U>);
 //! ```
 //!
@@ -115,7 +116,7 @@
 //! ```
 //! # use std::marker::PhantomData;
 //! # use derive_where::derive_where;
-//! #[derive_where(Default)]
+//! #[derive_where(Clone, Default)]
 //! enum Example<T> {
 //! 	#[derive_where(default)]
 //! 	A(PhantomData<T>),
@@ -143,19 +144,21 @@
 //! ```
 //! # use std::marker::PhantomData;
 //! # use derive_where::derive_where;
-//! #[derive_where(Debug)]
+//! #[derive_where(Debug, PartialEq)]
 //! #[derive_where(skip_inner)]
 //! struct StructExample<T>(T);
 //!
 //! assert_eq!(format!("{:?}", StructExample(42)), "StructExample");
+//! assert_eq!(StructExample(42), StructExample(0));
 //!
-//! #[derive_where(Debug)]
+//! #[derive_where(Debug, PartialEq)]
 //! enum EnumExample<T> {
 //! 	#[derive_where(skip_inner)]
 //! 	A(T),
 //! }
 //!
 //! assert_eq!(format!("{:?}", EnumExample::A(42)), "A");
+//! assert_eq!(EnumExample::A(42), EnumExample::A(0));
 //! ```
 //!
 //! Selective skipping of fields for certain traits is also an option, both in
