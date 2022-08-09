@@ -6,12 +6,12 @@
 
 ## Description
 
-Derive macro to simplify deriving standard and other traits with custom
-generic type bounds.
+Attribute proc-macro to simplify deriving standard and other traits with
+custom generic type bounds.
 
 ## Usage
 
-The `derive_where` macro can be used just like std's `#[derive(...)]`
+The `derive_where` attribute can be used just like std's `#[derive(...)]`
 statements:
 
 ```rust
