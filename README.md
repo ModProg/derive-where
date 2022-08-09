@@ -94,8 +94,9 @@ struct Example<T, U>(PhantomData<T>, PhantomData<U>);
 
 ### Enum default
 
-Deriving [`Default`] on an enum is not possible in Rust at the moment.
-Derive-where allows this with a `default` attribute:
+Since Rust 1.62 deriving [`Default`] on an enum is possible with the
+`#[default]` attribute. Derive-where allows this with a
+`#[derive_where(default)]` attribute:
 
 ```rust
 #[derive_where(Default)]
