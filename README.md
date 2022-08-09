@@ -11,8 +11,8 @@ custom generic type bounds.
 
 ## Usage
 
-The `derive_where` attribute can be used just like std's `#[derive(...)]`
-statements:
+The [`derive_where`] attribute can be used just like
+std's `#[derive(...)]` statements:
 
 ```rust
 #[derive_where(Clone, Debug)]
@@ -23,8 +23,8 @@ This will generate trait implementations for `Example` for any `T`,
 as opposed to std's derives, which would only implement these traits with
 `T: Trait` bound to the corresponding trait.
 
-Multiple `derive_where` attributes can be added to an item, but only the
-first one must use any path qualifications.
+Multiple [`derive_where`] attributes can be added to an
+item, but only the first one must use any path qualifications.
 
 ```rust
 #[derive_where::derive_where(Clone, Debug)]
@@ -109,8 +109,8 @@ enum Example<T> {
 ### Skipping fields
 
 With a `skip` or `skip_inner` attribute fields can be skipped for traits
-that allow it, which are: [`Debug`], [`Hash`], [`Ord`](https://doc.rust-lang.org/core/cmp/trait.Ord.html), [`PartialOrd`](https://doc.rust-lang.org/core/cmp/trait.PartialOrd.html),
-[`PartialEq`](https://doc.rust-lang.org/core/cmp/trait.PartialEq.html), [`Zeroize`] and [`ZeroizeOnDrop`].
+that allow it, which are: [`Debug`], [`Hash`], [`Ord`], [`PartialOrd`],
+[`PartialEq`], [`Zeroize`] and [`ZeroizeOnDrop`].
 
 ```rust
 #[derive_where(Debug, PartialEq; T)]
@@ -164,12 +164,12 @@ assert_ne!(
 
 ### `Zeroize` options
 
-[`Zeroize`] has two options:
-- `crate`: an item-level option which specifies a path to the `zeroize`
+`Zeroize` has two options:
+- `crate`: an item-level option which specifies a path to the [`zeroize`]
   crate in case of a re-export or rename.
-- `fqs`: a field -level option which will use fully-qualified-syntax instead
-  of calling the [`zeroize`][`method@zeroize`] method on `self` directly.
-  This is to avoid ambiguity between another method also called `zeroize`.
+- `fqs`: a field-level option which will use fully-qualified-syntax instead
+  of calling the [`zeroize`][method@zeroize] method on `self` directly. This
+  is to avoid ambiguity between another method also called `zeroize`.
 
 ```rust
 #[derive_where(Zeroize(crate = "zeroize_"))]
@@ -198,10 +198,10 @@ assert_eq!(test.0, 0);
 
 If the `zeroize-on-drop` feature is enabled, it implements [`ZeroizeOnDrop`]
 and can be implemented without [`Zeroize`], otherwise it only implements
-[`Drop`](https://doc.rust-lang.org/core/ops/trait.Drop.html) and requires [`Zeroize`] to be implemented.
+[`Drop`] and requires [`Zeroize`] to be implemented.
 
 [`ZeroizeOnDrop`] has one option:
-- `crate`: an item-level option which specifies a path to the `zeroize`
+- `crate`: an item-level option which specifies a path to the [`zeroize`]
   crate in case of a re-export or rename.
 
 ```rust
@@ -214,19 +214,19 @@ assert!(core::mem::needs_drop::<Example>());
 ### Supported traits
 
 The following traits can be derived with derive-where:
-- [`Clone`](https://doc.rust-lang.org/core/clone/trait.Clone.html)
-- [`Copy`](https://doc.rust-lang.org/core/marker/trait.Copy.html)
+- [`Clone`]
+- [`Copy`]
 - [`Debug`]
 - [`Default`]
-- [`Eq`](https://doc.rust-lang.org/core/cmp/trait.Eq.html)
+- [`Eq`]
 - [`Hash`]
-- [`Ord`](https://doc.rust-lang.org/core/cmp/trait.Ord.html)
-- [`PartialEq`](https://doc.rust-lang.org/core/cmp/trait.PartialEq.html)
-- [`PartialOrd`](https://doc.rust-lang.org/core/cmp/trait.PartialOrd.html)
+- [`Ord`]
+- [`PartialEq`]
+- [`PartialOrd`]
 - [`Zeroize`]: Only available with the `zeroize` crate feature.
 - [`ZeroizeOnDrop`]: Only available with the `zeroize` crate feature. If the
   `zeroize-on-drop` feature is enabled, it implements [`ZeroizeOnDrop`],
-  otherwise it only implements [`Drop`](https://doc.rust-lang.org/core/ops/trait.Drop.html).
+  otherwise it only implements [`Drop`].
 
 ### Supported items
 
@@ -235,7 +235,7 @@ it's best to discourage usage that could be covered by std's `derive`. For
 example unit structs and enums only containing unit variants aren't
 supported.
 
-Unions only support [`Clone`](https://doc.rust-lang.org/core/clone/trait.Clone.html) and [`Copy`](https://doc.rust-lang.org/core/marker/trait.Copy.html).
+Unions only support [`Clone`] and [`Copy`].
 
 ### `no_std` support
 
@@ -243,19 +243,20 @@ Unions only support [`Clone`](https://doc.rust-lang.org/core/clone/trait.Clone.h
 
 ## Crate features
 
-- `nightly`: Implements [`Ord`](https://doc.rust-lang.org/core/cmp/trait.Ord.html) and [`PartialOrd`](https://doc.rust-lang.org/core/cmp/trait.PartialOrd.html) with the help of
-  [`core::intrinsics::discriminant_value`](https://doc.rust-lang.org/core/intrinsics/fn.discriminant_value.html), which is what Rust does by
-  default too. Without this feature [`transmute`](https://doc.rust-lang.org/core/mem/fn.transmute.html) is
-  used to convert [`Discriminant`](https://doc.rust-lang.org/core/mem/struct.Discriminant.html) to a [`i32`](https://doc.rust-lang.org/core/primitive.i32.html),
+- `nightly`: Implements [`Ord`] and [`PartialOrd`] with the help of
+  [`core::intrinsics::discriminant_value`], which is what Rust does by
+  default too. Without this feature [`transmute`] is
+  used to convert [`Discriminant`] to a [`i32`],
   which is the underlying type.
-- `safe`: Implements [`Ord`](https://doc.rust-lang.org/core/cmp/trait.Ord.html) and [`PartialOrd`](https://doc.rust-lang.org/core/cmp/trait.PartialOrd.html) manually. This is much
+- `safe`: Implements [`Ord`] and [`PartialOrd`] manually. This is much
   slower, but might be preferred if you don't trust derive-where. It also
-  replaces all cases of [`core::hint::unreachable_unchecked`](https://doc.rust-lang.org/core/hint/fn.unreachable_unchecked.html) in [`Ord`](https://doc.rust-lang.org/core/hint/fn.unreachable_unchecked.html),
-  [`PartialEq`](https://doc.rust-lang.org/core/cmp/trait.PartialEq.html) and [`PartialOrd`](https://doc.rust-lang.org/core/cmp/trait.PartialOrd.html), which is what std uses, with
-  [`unreachable`](https://doc.rust-lang.org/core/macro.unreachable.html).
-- `zeroize`: Allows deriving [`Zeroize`] and [`method@zeroize`] on [`Drop`](https://doc.rust-lang.org/core/ops/trait.Drop.html).
+  replaces all cases of [`core::hint::unreachable_unchecked`] in [`Ord`],
+  [`PartialEq`] and [`PartialOrd`], which is what std uses, with
+  [`unreachable`].
+- `zeroize`: Allows deriving [`Zeroize`] and [`zeroize`][method@zeroize] on
+  [`Drop`].
 - `zeroize-on-drop`: Allows deriving [`Zeroize`] and [`ZeroizeOnDrop`] and
-  requires [zeroize] v1.5.
+  requires [`zeroize`] v1.5.
 
 ## MSRV
 
@@ -294,10 +295,25 @@ conditions.
 [CHANGELOG]: https://github.com/ModProg/derive-where/blob/main/CHANGELOG.md
 [LICENSE-MIT]: https://github.com/ModProg/derive-where/blob/main/LICENSE-MIT
 [LICENSE-APACHE]: https://github.com/ModProg/derive-where/blob/main/LICENSE-APACHE
-[zeroize]: https://crates.io/crates/zeroize/1.5.2
 [`Debug`]: https://doc.rust-lang.org/core/fmt/trait.Debug.html
 [`Default`]: https://doc.rust-lang.org/core/default/trait.Default.html
 [`Hash`]: https://doc.rust-lang.org/core/hash/trait.Hash.html
+[`zeroize`]: https://docs.rs/zeroize
 [`Zeroize`]: https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html
-[`ZeroizeOnDrop`]: https://docs.rs/zeroize/1.5/zeroize/trait.ZeroizeOnDrop.html
-[`method@zeroize`]: https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html#tymethod.zeroize
+[`ZeroizeOnDrop`]: https://docs.rs/zeroize/latest/zeroize/trait.ZeroizeOnDrop.html
+[method@zeroize]: https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html#tymethod.zeroize
+
+[`Clone`]: https://doc.rust-lang.org/core/clone/trait.Clone.html
+[`Copy`]: https://doc.rust-lang.org/core/marker/trait.Copy.html
+[`core::hint::unreachable_unchecked`]: https://doc.rust-lang.org/core/hint/fn.unreachable_unchecked.html
+[`core::intrinsics::discriminant_value`]: https://doc.rust-lang.org/core/intrinsics/fn.discriminant_value.html
+[`derive_where`]: https://docs.rs/derive-where/latest/derive_where/attr.derive_where.html
+[`Discriminant`]: https://doc.rust-lang.org/core/mem/struct.Discriminant.html
+[`Drop`]: https://doc.rust-lang.org/core/ops/trait.Drop.html
+[`Eq`]: https://doc.rust-lang.org/core/cmp/trait.Eq.html
+[`i32`]: https://doc.rust-lang.org/core/primitive.i32.html
+[`Ord`]: https://doc.rust-lang.org/core/cmp/trait.Ord.html
+[`PartialEq`]: https://doc.rust-lang.org/core/cmp/trait.PartialEq.html
+[`PartialOrd`]: https://doc.rust-lang.org/core/cmp/trait.PartialOrd.html
+[`transmute`]: https://doc.rust-lang.org/core/mem/fn.transmute.html
+[`unreachable`]: https://doc.rust-lang.org/core/macro.unreachable.html

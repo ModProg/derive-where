@@ -11,8 +11,8 @@
 //!
 //! # Usage
 //!
-//! The `derive_where` attribute can be used just like std's `#[derive(...)]`
-//! statements:
+//! The [`derive_where`](macro@derive_where) attribute can be used just like
+//! std's `#[derive(...)]` statements:
 //!
 //! ```
 //! # use std::marker::PhantomData;
@@ -25,8 +25,8 @@
 //! as opposed to std's derives, which would only implement these traits with
 //! `T: Trait` bound to the corresponding trait.
 //!
-//! Multiple `derive_where` attributes can be added to an item, but only the
-//! first one must use any path qualifications.
+//! Multiple [`derive_where`](macro@derive_where) attributes can be added to an
+//! item, but only the first one must use any path qualifications.
 //!
 //! ```
 //! # use std::marker::PhantomData;
@@ -187,12 +187,12 @@
 //!
 //! ## `Zeroize` options
 //!
-//! [`Zeroize`] has two options:
-//! - `crate`: an item-level option which specifies a path to the `zeroize`
+//! `Zeroize` has two options:
+//! - `crate`: an item-level option which specifies a path to the [`zeroize`]
 //!   crate in case of a re-export or rename.
-//! - `fqs`: a field -level option which will use fully-qualified-syntax instead
-//!   of calling the [`zeroize`][`method@zeroize`] method on `self` directly.
-//!   This is to avoid ambiguity between another method also called `zeroize`.
+//! - `fqs`: a field-level option which will use fully-qualified-syntax instead
+//!   of calling the [`zeroize`][method@zeroize] method on `self` directly. This
+//!   is to avoid ambiguity between another method also called `zeroize`.
 //!
 //! ```
 //! # #[cfg(feature = "zeroize")]
@@ -230,7 +230,7 @@
 //! [`Drop`] and requires [`Zeroize`] to be implemented.
 //!
 //! [`ZeroizeOnDrop`] has one option:
-//! - `crate`: an item-level option which specifies a path to the `zeroize`
+//! - `crate`: an item-level option which specifies a path to the [`zeroize`]
 //!   crate in case of a re-export or rename.
 //!
 //! ```
@@ -287,9 +287,10 @@
 //!   replaces all cases of [`core::hint::unreachable_unchecked`] in [`Ord`],
 //!   [`PartialEq`] and [`PartialOrd`], which is what std uses, with
 //!   [`unreachable`].
-//! - `zeroize`: Allows deriving [`Zeroize`] and [`method@zeroize`] on [`Drop`].
+//! - `zeroize`: Allows deriving [`Zeroize`] and [`zeroize`][method@zeroize] on
+//!   [`Drop`].
 //! - `zeroize-on-drop`: Allows deriving [`Zeroize`] and [`ZeroizeOnDrop`] and
-//!   requires [zeroize] v1.5.
+//!   requires [`zeroize`] v1.5.
 //!
 //! # MSRV
 //!
@@ -328,13 +329,13 @@
 //! [CHANGELOG]: https://github.com/ModProg/derive-where/blob/main/CHANGELOG.md
 //! [LICENSE-MIT]: https://github.com/ModProg/derive-where/blob/main/LICENSE-MIT
 //! [LICENSE-APACHE]: https://github.com/ModProg/derive-where/blob/main/LICENSE-APACHE
-//! [zeroize]: https://crates.io/crates/zeroize/1.5.2
 //! [`Debug`]: core::fmt::Debug
 //! [`Default`]: core::default::Default
 //! [`Hash`]: core::hash::Hash
+//! [`zeroize`]: https://docs.rs/zeroize
 //! [`Zeroize`]: https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html
-//! [`ZeroizeOnDrop`]: https://docs.rs/zeroize/1.5/zeroize/trait.ZeroizeOnDrop.html
-//! [`method@zeroize`]: https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html#tymethod.zeroize
+//! [`ZeroizeOnDrop`]: https://docs.rs/zeroize/latest/zeroize/trait.ZeroizeOnDrop.html
+//! [method@zeroize]: https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html#tymethod.zeroize
 
 mod attr;
 mod data;
