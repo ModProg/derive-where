@@ -17,6 +17,8 @@ jobs:
             ~/.cargo/.crates2.json
             ~/.cargo/bin/cargo-spellcheck
           key: cargo-spellcheck
+      - name: Install libclang-dev
+        run: sudo apt-get install libclang-dev
       - name: Install cargo-spellcheck
         run: cargo install cargo-spellcheck --locked
       - name: Checkout
