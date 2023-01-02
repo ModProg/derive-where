@@ -1,7 +1,7 @@
 # derive-where
 
 [![Crates.io Version](https://img.shields.io/crates/v/derive-where.svg)](https://crates.io/crates/derive-where)
-[![Live Build Status](https://img.shields.io/github/workflow/status/ModProg/derive-where/Test/main)](https://github.com/ModProg/derive-where/actions/workflows/test.yml)
+[![Live Build Status](https://img.shields.io/github/actions/workflow/status/ModProg/derive-where/test.yml?branch=main)](https://github.com/ModProg/derive-where/actions/workflows/test.yml)
 [![Docs.rs Documentation](https://img.shields.io/docsrs/derive-where)](https://docs.rs/crate/derive-where)
 
 ## Description
