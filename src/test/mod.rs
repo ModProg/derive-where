@@ -1,6 +1,8 @@
 mod basic;
 mod bound;
 mod enum_;
+#[cfg(not(any(feature = "nightly", feature = "safe")))]
+mod incomparable;
 mod misc;
 mod skip;
 mod use_case;
@@ -9,6 +11,7 @@ mod zeroize;
 
 use std::iter;
 
+use pretty_assertions::assert_eq;
 use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{spanned::Spanned, DeriveInput, Result};

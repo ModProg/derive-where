@@ -42,7 +42,7 @@ impl TraitImpl for PartialOrd {
 		trait_: &DeriveTrait,
 		data: &Data,
 	) -> TokenStream {
-		if data.is_empty(**trait_) {
+		if data.is_empty(**trait_) || data.is_incomparable() {
 			TokenStream::new()
 		} else {
 			match data.simple_type() {

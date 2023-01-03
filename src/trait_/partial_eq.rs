@@ -3,6 +3,7 @@
 use proc_macro2::TokenStream;
 use quote::quote;
 
+use super::common_ord::build_incomparable_pattern;
 use crate::{Data, DeriveTrait, Item, SimpleType, TraitImpl};
 
 /// Dummy-struct implement [`Trait`](crate::Trait) for
@@ -27,11 +28,19 @@ impl TraitImpl for PartialEq {
 	) -> TokenStream {
 		let body = {
 			match item {
+				// If the whole item is incomparable return false
+				item if item.is_incomparable() => {
+					quote! { false }
+				}
 				// If there is more than one variant and not all variants are empty, check for
 				// discriminant and match on variant data.
 				Item::Enum { variants, .. } if variants.len() > 1 && !item.is_empty(**trait_) => {
-					// Return `true` in the rest pattern if there are any empty variants.
-					let rest = if variants.iter().any(|variant| variant.is_empty(**trait_)) {
+					// Return `true` in the rest pattern if there are any empty variants
+					// that are not incomparable.
+					let rest = if variants
+						.iter()
+						.any(|variant| variant.is_empty(**trait_) && !variant.is_incomparable())
+					{
 						quote! { true }
 					} else {
 						#[cfg(not(feature = "safe"))]
@@ -41,10 +50,14 @@ impl TraitImpl for PartialEq {
 						quote! { ::core::unreachable!("comparing variants yielded unexpected results") }
 					};
 
+					// Return `false` for all incomparable variants
+					let incomparable = build_incomparable_pattern(variants).into_iter();
+
 					quote! {
 						if ::core::mem::discriminant(self) == ::core::mem::discriminant(__other) {
 							match (self, __other) {
 								#body
+								#((#incomparable, ..) => false,)*
 								_ => #rest,
 							}
 						} else {
@@ -52,11 +65,15 @@ impl TraitImpl for PartialEq {
 						}
 					}
 				}
-				// If there is more than one variant and all are empty, check for discriminant and
-				// simply return `true`.
+				// If there is more than one variant and all are empty, check for
+				// discriminant and simply return `true` if it is not incomparable.
 				Item::Enum { variants, .. } if variants.len() > 1 && item.is_empty(**trait_) => {
+					let incomparable = build_incomparable_pattern(variants).into_iter();
 					quote! {
 						if ::core::mem::discriminant(self) == ::core::mem::discriminant(__other) {
+							#(if ::core::matches!(self, #incomparable) {
+								return false;
+							})*
 							true
 						} else {
 							false
@@ -92,7 +109,7 @@ impl TraitImpl for PartialEq {
 		trait_: &DeriveTrait,
 		data: &Data,
 	) -> TokenStream {
-		if data.is_empty(**trait_) {
+		if data.is_empty(**trait_) || data.is_incomparable() {
 			TokenStream::new()
 		} else {
 			match data.simple_type() {

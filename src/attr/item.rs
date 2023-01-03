@@ -11,13 +11,16 @@ use syn::{
 	TraitBoundModifier, Type, TypeParamBound, TypePath, WhereClause, WherePredicate,
 };
 
-use crate::{util, Error, Item, Skip, SkipGroup, Trait, TraitImpl, DERIVE_WHERE};
+use crate::{util, Error, Incomparable, Item, Skip, SkipGroup, Trait, TraitImpl, DERIVE_WHERE};
 
 /// Attributes on item.
 #[derive(Default)]
 pub struct ItemAttr {
 	/// [`Trait`]s to skip all fields for.
 	pub skip_inner: Skip,
+	/// Comparing item will yield `false` for [`PartialEq`] and [`None`] for
+	/// [`PartialOrd`].
+	pub incomparable: Incomparable,
 	/// [`DeriveWhere`]s on this item.
 	pub derive_wheres: Vec<DeriveWhere>,
 }
@@ -27,6 +30,7 @@ impl ItemAttr {
 	pub fn from_attrs(span: Span, data: &Data, attrs: &[Attribute]) -> Result<Self> {
 		let mut self_ = ItemAttr::default();
 		let mut skip_inners = Vec::new();
+		let mut incomparables = Vec::new();
 
 		for attr in attrs {
 			if attr.path.is_ident(DERIVE_WHERE) {
@@ -52,6 +56,9 @@ impl ItemAttr {
 										// Don't parse `Skip` yet, because it needs access to all
 										// `DeriveWhere`s.
 										skip_inners.push(meta);
+									} else if meta.path().is_ident(Incomparable::INCOMPARABLE) {
+										// Needs to be parsed after all traits are known.
+										incomparables.push(meta)
 									} else if meta.path().is_ident("crate") {
 										// Do nothing, we checked this before
 										// already.
@@ -119,12 +126,18 @@ impl ItemAttr {
 			}
 		}
 
-		// Delayed parsing of `skip_inner` to get access to all traits to be
-		// implemented.
+		// Delayed parsing of `skip_inner` and `incomparable` to get access to all
+		// traits to be implemented.
 		for meta in skip_inners {
 			self_
 				.skip_inner
 				.add_attribute(&self_.derive_wheres, None, &meta)?;
+		}
+
+		for meta in incomparables {
+			self_
+				.incomparable
+				.add_attribute(&meta, &self_.derive_wheres)?;
 		}
 
 		Ok(self_)

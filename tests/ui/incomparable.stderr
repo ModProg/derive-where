@@ -1,0 +1,20 @@
+error: `incomparable` cannot be specified on both item and variant
+ --> tests/ui/incomparable.rs:4:16
+  |
+4 |   #[derive_where(incomparable)]
+  |  ________________^
+5 | | enum IncomparableOnVariantAndEnum {
+6 | |     #[derive_where(incomparable)]
+  | |_______________________________^
+
+error: `incomparable` is only supported if `PartialEq` or `PartialOrd` is being implemented
+  --> tests/ui/incomparable.rs:11:16
+   |
+11 | #[derive_where(incomparable)]
+   |                ^^^^^^^^^^^^
+
+error: `incomparable` is not supported if `Eq` or `Ord` is being implemented
+  --> tests/ui/incomparable.rs:17:16
+   |
+17 | #[derive_where(incomparable)]
+   |                ^^^^^^^^^^^^

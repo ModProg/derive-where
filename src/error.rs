@@ -51,8 +51,8 @@ impl Error {
 	pub fn use_case(span: Span) -> syn::Error {
 		syn::Error::new(
 			span,
-			"this can be handled by standard `#[derive(..)]`, use a `skip` attribute, implement \
-			 `Default` on an enum, of different generic type parameters",
+			"this can be handled by standard `#[derive(..)]`, use a `skip` or `incomparable` \
+			 attribute, implement `Default` on an enum, or different generic type parameters",
 		)
 	}
 
@@ -240,6 +240,32 @@ impl Error {
 	/// Duplicate `default` option on a variant.
 	pub fn default_duplicate(span: Span) -> syn::Error {
 		syn::Error::new(span, "multiple `default` options in enum")
+	}
+
+	/// Unsupported `incomparable` option if [`PartialEq`] or [`PartialOrd`]
+	/// isn't implemented.
+	pub fn incomparable(span: Span) -> syn::Error {
+		syn::Error::new(
+			span,
+			"`incomparable` is only supported if `PartialEq` or `PartialOrd` is being implemented",
+		)
+	}
+
+	/// Unsupported `incomparable` option if [`Eq`] or [`Ord`] is implemented.
+	pub fn non_partial_incomparable(span: Span) -> syn::Error {
+		syn::Error::new(
+			span,
+			"`incomparable` is not supported if `Eq` or `Ord` is being implemented",
+		)
+	}
+
+	/// Unsupported `incomparable` option on both enum and variant.
+	pub fn incomparable_on_item_and_variant(item: Span, variant: Span) -> syn::Error {
+		syn::Error::new(
+			// This will only produce joint spans on nightly.
+			item.join(variant).unwrap_or(item),
+			"`incomparable` cannot be specified on both item and variant",
+		)
 	}
 
 	/// List of available [`Trait`](crate::Trait)s.

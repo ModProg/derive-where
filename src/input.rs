@@ -33,14 +33,23 @@ impl<'a> Input<'a> {
 		let ItemAttr {
 			skip_inner,
 			derive_wheres,
+			incomparable,
 		} = ItemAttr::from_attrs(span, data, attrs)?;
+
+		// Find if `incomparable` is specified on any item/variant.
+		let mut found_incomparable = incomparable.0.is_some();
 
 		// Extract fields and variants of this item.
 		let item = match &data {
-			syn::Data::Struct(data) => {
-				Data::from_struct(span, &derive_wheres, skip_inner, ident, &data.fields)
-					.map(Item::Item)?
-			}
+			syn::Data::Struct(data) => Data::from_struct(
+				span,
+				&derive_wheres,
+				skip_inner,
+				incomparable,
+				ident,
+				&data.fields,
+			)
+			.map(Item::Item)?,
 			syn::Data::Enum(data) => {
 				let variants = data
 					.variants
@@ -60,6 +69,10 @@ impl<'a> Input<'a> {
 							found_default = true;
 						}
 					}
+					if let (Some(item), Some(variant)) = (incomparable.0, variant.incomparable.0) {
+						return Err(Error::incomparable_on_item_and_variant(item, variant));
+					}
+					found_incomparable |= variant.is_incomparable();
 				}
 
 				// Make sure a variant has the `option` attribute if `Default` is being
@@ -72,8 +85,10 @@ impl<'a> Input<'a> {
 					return Err(Error::default_missing(span));
 				}
 
-				// Empty enums aren't allowed unless they implement `Default`.
+				// Empty enums aren't allowed unless they implement `Default` or are
+				// incomparable.
 				if !found_default
+					&& !found_incomparable
 					&& variants.iter().all(|variant| match variant.fields() {
 						Either::Left(fields) => fields.fields.is_empty(),
 						Either::Right(_) => true,
@@ -81,12 +96,21 @@ impl<'a> Input<'a> {
 					return Err(Error::item_empty(span));
 				}
 
-				Item::Enum { ident, variants }
+				Item::Enum {
+					ident,
+					variants,
+					incomparable,
+				}
 			}
-			syn::Data::Union(data) => {
-				Data::from_union(span, &derive_wheres, skip_inner, ident, &data.fields)
-					.map(Item::Item)?
-			}
+			syn::Data::Union(data) => Data::from_union(
+				span,
+				&derive_wheres,
+				skip_inner,
+				incomparable,
+				ident,
+				&data.fields,
+			)
+			.map(Item::Item)?,
 		};
 
 		// Don't allow generic constraints be the same as generics on item unless there
@@ -140,6 +164,11 @@ impl<'a> Input<'a> {
 
 				// Any field is skipped with a corresponding `Trait`.
 				if item.any_skip_trait(**trait_) {
+					continue;
+				}
+
+				// Any variant is marked as incomparable.
+				if found_incomparable {
 					continue;
 				}
 
