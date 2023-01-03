@@ -63,7 +63,7 @@ impl TraitImpl for PartialEq {
 						}
 					}
 				}
-				// If there is only one variant and it's empty or if the struct is empty, simple
+				// If there is only one variant and it's empty or if the struct is empty, simply
 				// return `true`.
 				item if item.is_empty(**trait_) => {
 					quote! { true }
