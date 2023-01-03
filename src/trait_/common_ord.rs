@@ -162,7 +162,7 @@ pub fn build_ord_signature(item: &Item, trait_: &DeriveTrait, body: &TokenStream
 				}
 			}
 		}
-		// If there is only one variant and it's empty or if the struct is empty, simple
+		// If there is only one variant and it's empty or if the struct is empty, simply
 		// return `Equal`.
 		item if item.is_empty(**trait_) => {
 			quote! { #equal }
