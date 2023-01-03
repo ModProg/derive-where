@@ -185,6 +185,43 @@
 //! );
 //! ```
 //!
+//! ## Incomparable variants/items
+//!
+//! Similar to the `skip` attribute, `incomparable` can be used to skip variants
+//! or items in [`PartialEq`] and [`PartialOrd`] trait implementations, meaning
+//! they will always yield `false` for `eq` and `None` for `partial_cmp`. This
+//! results in all comparisons but `!=`, i.e. `==`, `<`, `<=`, `>=` and `>`,
+//! with the marked variant or struct evaluating to `false`.
+//!
+//! ```
+//! # use derive_where::derive_where;
+//! #[derive(Debug)]
+//! #[derive_where(PartialEq, PartialOrd)]
+//! enum EnumExample {
+//! 	#[derive_where(incomparable)]
+//! 	Incomparable,
+//! 	Comparable,
+//! }
+//! assert_eq!(EnumExample::Comparable, EnumExample::Comparable);
+//! assert_ne!(EnumExample::Incomparable, EnumExample::Incomparable);
+//! assert!(!(EnumExample::Comparable >= EnumExample::Incomparable));
+//! assert!(!(EnumExample::Comparable <= EnumExample::Incomparable));
+//! assert!(!(EnumExample::Incomparable >= EnumExample::Incomparable));
+//! assert!(!(EnumExample::Incomparable <= EnumExample::Incomparable));
+//!
+//! #[derive(Debug)]
+//! #[derive_where(PartialEq, PartialOrd)]
+//! #[derive_where(incomparable)]
+//! struct StructExample;
+//!
+//! assert_ne!(StructExample, StructExample);
+//! assert!(!(StructExample >= StructExample));
+//! assert!(!(StructExample <= StructExample));
+//! ```
+//!
+//! Note that it is not possible to use `incomparable` with [`Eq`] or [`Ord`] as
+//! that would break their invariants.
+//!
 //! ## `Zeroize` options
 //!
 //! `Zeroize` has two options:
@@ -331,7 +368,11 @@
 //! [LICENSE-APACHE]: https://github.com/ModProg/derive-where/blob/main/LICENSE-APACHE
 //! [`Debug`]: core::fmt::Debug
 //! [`Default`]: core::default::Default
+//! [`Eq`]: core::cmp::Eq
 //! [`Hash`]: core::hash::Hash
+//! [`Ord`]: core::cmp::Ord
+//! [`PartialEq`]: core::cmp::PartialEq
+//! [`PartialOrd`]: core::cmp::PartialOrd
 //! [`zeroize`]: https://docs.rs/zeroize
 //! [`Zeroize`]: https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html
 //! [`ZeroizeOnDrop`]: https://docs.rs/zeroize/latest/zeroize/trait.ZeroizeOnDrop.html
@@ -359,7 +400,10 @@ use syn::{
 #[cfg(feature = "zeroize")]
 use self::attr::ZeroizeFqs;
 use self::{
-	attr::{Default, DeriveTrait, DeriveWhere, FieldAttr, ItemAttr, Skip, SkipGroup, VariantAttr},
+	attr::{
+		Default, DeriveTrait, DeriveWhere, FieldAttr, Incomparable, ItemAttr, Skip, SkipGroup,
+		VariantAttr,
+	},
 	data::{Data, DataType, Field, SimpleType},
 	error::Error,
 	input::Input,

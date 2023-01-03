@@ -15,7 +15,7 @@ impl Default {
 	/// Token used for the `default` option.
 	pub const DEFAULT: &'static str = "default";
 
-	/// Adds a [`Meta`] to this [`Default`](self).
+	/// Adds a [`Meta`] to this [`Default`](Self).
 	pub fn add_attribute(&mut self, meta: &Meta, derive_wheres: &[DeriveWhere]) -> Result<()> {
 		debug_assert!(meta.path().is_ident(Self::DEFAULT));
 

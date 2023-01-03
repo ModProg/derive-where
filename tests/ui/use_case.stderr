@@ -22,31 +22,31 @@ error: derive-where doesn't support empty items, as this can already be handled 
 13 | struct UnionEmpty {}
    | ^^^^^^^^^^^^^^^^^^^^
 
-error: this can be handled by standard `#[derive(..)]`, use a `skip` attribute, implement `Default` on an enum, of different generic type parameters
+error: this can be handled by standard `#[derive(..)]`, use a `skip` or `incomparable` attribute, implement `Default` on an enum, or different generic type parameters
   --> tests/ui/use_case.rs:15:16
    |
 15 | #[derive_where(Clone)]
    |                ^^^^^
 
-error: this can be handled by standard `#[derive(..)]`, use a `skip` attribute, implement `Default` on an enum, of different generic type parameters
+error: this can be handled by standard `#[derive(..)]`, use a `skip` or `incomparable` attribute, implement `Default` on an enum, or different generic type parameters
   --> tests/ui/use_case.rs:18:16
    |
 18 | #[derive_where(Clone)]
    |                ^^^^^
 
-error: this can be handled by standard `#[derive(..)]`, use a `skip` attribute, implement `Default` on an enum, of different generic type parameters
+error: this can be handled by standard `#[derive(..)]`, use a `skip` or `incomparable` attribute, implement `Default` on an enum, or different generic type parameters
   --> tests/ui/use_case.rs:23:16
    |
 23 | #[derive_where(Clone; T)]
    |                ^^^^^
 
-error: this can be handled by standard `#[derive(..)]`, use a `skip` attribute, implement `Default` on an enum, of different generic type parameters
+error: this can be handled by standard `#[derive(..)]`, use a `skip` or `incomparable` attribute, implement `Default` on an enum, or different generic type parameters
   --> tests/ui/use_case.rs:26:16
    |
 26 | #[derive_where(Clone, Debug; T)]
    |                ^^^^^
 
-error: this can be handled by standard `#[derive(..)]`, use a `skip` attribute, implement `Default` on an enum, of different generic type parameters
+error: this can be handled by standard `#[derive(..)]`, use a `skip` or `incomparable` attribute, implement `Default` on an enum, or different generic type parameters
   --> tests/ui/use_case.rs:30:16
    |
 30 | #[derive_where(Clone, Default; T)]

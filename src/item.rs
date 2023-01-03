@@ -2,15 +2,18 @@
 
 use syn::Ident;
 
-use crate::{Data, Trait};
+use crate::{attr::Incomparable, Data, Trait};
 
 /// Fields or variants of an item.
+#[cfg_attr(test, derive(Debug))]
 #[allow(clippy::large_enum_variant)]
 pub enum Item<'a> {
 	/// Enum.
 	Enum {
 		/// [`struct@Ident`] of this enum.
 		ident: &'a Ident,
+		/// [`Incomparable`] attribute of this enum.
+		incomparable: Incomparable,
 		/// Variants of this enum.
 		variants: Vec<Data<'a>>,
 	},
@@ -66,6 +69,22 @@ impl Item<'_> {
 		match self {
 			Item::Enum { variants, .. } => variants.iter().all(|data| data.is_empty(trait_)),
 			Item::Item(data) => data.is_empty(trait_),
+		}
+	}
+
+	/// Returns `true` if the item is incomparable or all (≥1) variants are
+	/// incomparable.
+	pub fn is_incomparable(&self) -> bool {
+		match self {
+			Item::Enum {
+				variants,
+				incomparable,
+				..
+			} => {
+				incomparable.0.is_some()
+					|| !variants.is_empty() && variants.iter().all(Data::is_incomparable)
+			}
+			Item::Item(data) => data.is_incomparable(),
 		}
 	}
 }

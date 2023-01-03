@@ -10,13 +10,15 @@ pub use self::{
 	field::{Field, Member},
 	fields::Fields,
 };
-use crate::{util, Default, DeriveWhere, Either, Error, Skip, Trait, VariantAttr};
+use crate::{util, Default, DeriveWhere, Either, Error, Incomparable, Skip, Trait, VariantAttr};
 
 /// Holds all relevant data of a struct, union or variant.
 #[cfg_attr(test, derive(Debug))]
 pub struct Data<'a> {
 	/// [`Skip`] attribute of this struct, union or variant.
 	skip_inner: Skip,
+	/// [`Incomparable`] attribute of this struct, union or variant.
+	pub incomparable: Incomparable,
 	/// [`struct@Ident`] of this struct, union or variant, used for implementing
 	/// [`Debug`](std::fmt::Debug).
 	pub ident: &'a Ident,
@@ -43,6 +45,8 @@ pub enum DataType<'a> {
 		/// [Type](VariantType) of this variant.
 		type_: VariantType<'a>,
 	},
+	/// Unit.
+	Unit(Pat),
 }
 
 /// Type of [`Data`].
@@ -74,6 +78,7 @@ impl<'a> Data<'a> {
 		span: Span,
 		derive_wheres: &[DeriveWhere],
 		skip_inner: Skip,
+		incomparable: Incomparable,
 		ident: &'a Ident,
 		fields: &'a syn::Fields,
 	) -> Result<Self> {
@@ -81,7 +86,7 @@ impl<'a> Data<'a> {
 
 		match fields {
 			syn::Fields::Named(fields) => {
-				if fields.named.is_empty() {
+				if fields.named.is_empty() && incomparable.0.is_none() {
 					Err(Error::item_empty(span))
 				} else {
 					let fields =
@@ -89,6 +94,7 @@ impl<'a> Data<'a> {
 
 					Ok(Self {
 						skip_inner,
+						incomparable,
 						ident,
 						path,
 						type_: DataType::Struct(fields),
@@ -96,7 +102,7 @@ impl<'a> Data<'a> {
 				}
 			}
 			syn::Fields::Unnamed(fields) => {
-				if fields.unnamed.is_empty() {
+				if fields.unnamed.is_empty() && incomparable.0.is_none() {
 					Err(Error::item_empty(span))
 				} else {
 					let fields =
@@ -104,12 +110,24 @@ impl<'a> Data<'a> {
 
 					Ok(Self {
 						skip_inner,
+						incomparable,
 						ident,
 						path,
 						type_: DataType::Tuple(fields),
 					})
 				}
 			}
+			syn::Fields::Unit if incomparable.0.is_some() => Ok(Self {
+				skip_inner,
+				incomparable,
+				ident,
+				path: path.clone(),
+				type_: DataType::Unit(Pat::Path(PatPath {
+					attrs: Vec::new(),
+					qself: None,
+					path,
+				})),
+			}),
 			syn::Fields::Unit => Err(Error::item_empty(span)),
 		}
 	}
@@ -119,10 +137,11 @@ impl<'a> Data<'a> {
 		span: Span,
 		derive_wheres: &[DeriveWhere],
 		skip_inner: Skip,
+		incomparable: Incomparable,
 		ident: &'a Ident,
 		fields: &'a FieldsNamed,
 	) -> Result<Self> {
-		if fields.named.is_empty() {
+		if fields.named.is_empty() && incomparable.0.is_none() {
 			Err(Error::item_empty(span))
 		} else {
 			let path = util::path_from_idents(&[ident]);
@@ -130,6 +149,7 @@ impl<'a> Data<'a> {
 
 			Ok(Self {
 				skip_inner,
+				incomparable,
 				ident,
 				path,
 				type_: DataType::Union(fields),
@@ -147,6 +167,7 @@ impl<'a> Data<'a> {
 		let VariantAttr {
 			default,
 			skip_inner,
+			incomparable,
 		} = VariantAttr::from_attrs(&variant.attrs, derive_wheres, variant)?;
 
 		let path = util::path_from_idents(&[item_ident, &variant.ident]);
@@ -157,6 +178,7 @@ impl<'a> Data<'a> {
 
 				Ok(Self {
 					skip_inner,
+					incomparable,
 					ident: &variant.ident,
 					path,
 					type_: DataType::Variant {
@@ -171,6 +193,7 @@ impl<'a> Data<'a> {
 
 				Ok(Self {
 					skip_inner,
+					incomparable,
 					ident: &variant.ident,
 					path,
 					type_: DataType::Variant {
@@ -188,6 +211,7 @@ impl<'a> Data<'a> {
 
 				Ok(Self {
 					skip_inner,
+					incomparable,
 					ident: &variant.ident,
 					path,
 					type_: DataType::Variant {
@@ -200,7 +224,7 @@ impl<'a> Data<'a> {
 	}
 
 	/// Returns the [`Fields`] of this [`Data`]. If [`Data`] is a unit variant
-	/// returns [`Pat`] instead.
+	/// or struct returns [`Pat`] instead.
 	pub fn fields(&self) -> Either<&Fields, &Pat> {
 		match &self.type_ {
 			DataType::Struct(fields)
@@ -214,7 +238,8 @@ impl<'a> Data<'a> {
 				type_: VariantType::Tuple(fields),
 				..
 			} => Either::Left(fields),
-			DataType::Variant {
+			DataType::Unit(pattern)
+			| DataType::Variant {
 				type_: VariantType::Unit(pattern),
 				..
 			} => Either::Right(pattern),
@@ -245,6 +270,11 @@ impl<'a> Data<'a> {
 			DataType::Variant { default, .. } => default.0.is_some(),
 			_ => true,
 		}
+	}
+
+	/// Returns `true` if this item or variant is marked as [`Incomparable`].
+	pub fn is_incomparable(&self) -> bool {
+		self.incomparable.0.is_some()
 	}
 
 	/// Returns [`Some`] if this variant has a [`struct@Default`]. If
@@ -292,7 +322,8 @@ impl<'a> Data<'a> {
 				type_: VariantType::Tuple(fields),
 				..
 			} => SimpleType::Tuple(fields),
-			DataType::Variant {
+			DataType::Unit(pattern)
+			| DataType::Variant {
 				type_: VariantType::Unit(pattern),
 				..
 			} => SimpleType::Unit(pattern),

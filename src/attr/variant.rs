@@ -2,7 +2,7 @@
 
 use syn::{spanned::Spanned, Attribute, Fields, Meta, NestedMeta, Result, Variant};
 
-use crate::{Default, DeriveWhere, Error, Skip, DERIVE_WHERE};
+use crate::{Default, DeriveWhere, Error, Incomparable, Skip, DERIVE_WHERE};
 
 /// Attributes on variant.
 #[derive(Default)]
@@ -11,6 +11,9 @@ pub struct VariantAttr {
 	pub default: Default,
 	/// [`Trait`](crate::Trait)s to skip all fields for.
 	pub skip_inner: Skip,
+	/// Comparing variant will yield `false` for [`PartialEq`] and [`None`] for
+	/// [`PartialOrd`].
+	pub incomparable: Incomparable,
 }
 
 impl VariantAttr {
@@ -67,6 +70,8 @@ impl VariantAttr {
 							}
 						} else if meta.path().is_ident(Default::DEFAULT) {
 							self.default.add_attribute(meta, derive_wheres)?;
+						} else if meta.path().is_ident(Incomparable::INCOMPARABLE) {
+							self.incomparable.add_attribute(meta, derive_wheres)?;
 						} else {
 							return Err(Error::option(meta.path().span()));
 						}

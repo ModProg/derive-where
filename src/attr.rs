@@ -2,6 +2,7 @@
 
 mod default;
 mod field;
+mod incomparable;
 mod item;
 mod skip;
 mod variant;
@@ -13,6 +14,7 @@ pub use self::zeroize_fqs::ZeroizeFqs;
 pub use self::{
 	default::Default,
 	field::FieldAttr,
+	incomparable::Incomparable,
 	item::{DeriveTrait, DeriveWhere, Generic, ItemAttr},
 	skip::{Skip, SkipGroup},
 	variant::VariantAttr,
