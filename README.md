@@ -35,7 +35,7 @@ struct Example1<T>(PhantomData<T>);
 If using a different package name, you must specify this:
 
 ```rust
-#[derive_where(crate = "derive_where_")]
+#[derive_where(crate = derive_where_)]
 #[derive_where(Clone, Debug)]
 struct Example<T>(PhantomData<T>);
 ```
@@ -209,7 +209,7 @@ that would break their invariants.
   is to avoid ambiguity between another method also called `zeroize`.
 
 ```rust
-#[derive_where(Zeroize(crate = "zeroize_"))]
+#[derive_where(Zeroize(crate = zeroize_))]
 struct Example(#[derive_where(Zeroize(fqs))] i32);
 
 impl Example {
@@ -242,7 +242,7 @@ and can be implemented without [`Zeroize`], otherwise it only implements
   crate in case of a re-export or rename.
 
 ```rust
-#[derive_where(ZeroizeOnDrop(crate = "zeroize_"))]
+#[derive_where(ZeroizeOnDrop(crate = zeroize_))]
 struct Example(i32);
 
 assert!(core::mem::needs_drop::<Example>());

@@ -3,7 +3,8 @@
 use proc_macro2::{Span, TokenStream};
 use quote::quote;
 use syn::{
-	punctuated::Punctuated, spanned::Spanned, Expr, ExprLit, Lit, Meta, Path, Result, Token,
+	punctuated::Punctuated, spanned::Spanned, Expr, ExprLit, ExprPath, Lit, Meta, Path, Result,
+	Token,
 };
 
 use crate::{util, Data, DeriveTrait, Error, Item, SimpleType, TraitImpl};
@@ -37,27 +38,23 @@ impl TraitImpl for ZeroizeOnDrop {
 					if name_value.path.is_ident("crate") {
 						// Check for duplicate `crate` option.
 						if crate_.is_none() {
-							if let Expr::Lit(ExprLit {
-								lit: Lit::Str(lit_str),
-								..
-							}) = &name_value.value
-							{
-								match lit_str.parse::<Path>() {
-									Ok(path) => {
-										if path == util::path_from_strs(&["zeroize"]) {
-											return Err(Error::path_unnecessary(
-												path.span(),
-												"::zeroize",
-											));
-										}
-
-										crate_ = Some(path);
-									}
+							let path = match &name_value.value {
+								Expr::Lit(ExprLit {
+									lit: Lit::Str(lit_str),
+									..
+								}) => match lit_str.parse::<Path>() {
+									Ok(path) => path,
 									Err(error) => return Err(Error::path(lit_str.span(), error)),
-								}
-							} else {
-								return Err(Error::option_syntax(name_value.value.span()));
+								},
+								Expr::Path(ExprPath { path, .. }) => path.clone(),
+								_ => return Err(Error::option_syntax(name_value.value.span())),
+							};
+
+							if path == util::path_from_strs(&["zeroize"]) {
+								return Err(Error::path_unnecessary(path.span(), "::zeroize"));
 							}
+
+							crate_ = Some(path);
 						} else {
 							return Err(Error::option_duplicate(name_value.span(), "crate"));
 						}

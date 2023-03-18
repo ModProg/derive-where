@@ -2,6 +2,9 @@ use std::marker::PhantomData;
 
 use derive_where::derive_where;
 
+#[derive_where(crate = struct Test)]
+struct InvalidPath<T>(PhantomData<T>);
+
 #[derive_where(skip_inner, Clone)]
 struct SkipInnerWithTrait<T>(PhantomData<T>);
 
