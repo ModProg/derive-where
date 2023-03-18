@@ -2,9 +2,6 @@ use std::marker::PhantomData;
 
 use derive_where::derive_where;
 
-#[derive_where = "invalid"]
-struct WrongAttributeSyntax<T>(PhantomData<T>);
-
 #[derive_where()]
 struct EmptyAttribute<T>(PhantomData<T>);
 

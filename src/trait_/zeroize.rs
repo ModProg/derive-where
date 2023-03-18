@@ -1,8 +1,10 @@
 //! [`Zeroize`](https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html) implementation.
 
-use proc_macro2::TokenStream;
+use proc_macro2::{Span, TokenStream};
 use quote::quote;
-use syn::{spanned::Spanned, Lit, Meta, MetaList, NestedMeta, Path, Result};
+use syn::{
+	punctuated::Punctuated, spanned::Spanned, Expr, ExprLit, Lit, Meta, Path, Result, Token,
+};
 
 use crate::{util, Data, DeriveTrait, Error, Item, SimpleType, TraitImpl};
 
@@ -18,26 +20,34 @@ impl TraitImpl for Zeroize {
 		DeriveTrait::Zeroize { crate_: None }
 	}
 
-	fn parse_derive_trait(&self, list: MetaList) -> Result<DeriveTrait> {
+	fn parse_derive_trait(
+		&self,
+		_span: Span,
+		list: Punctuated<Meta, Token![,]>,
+	) -> Result<DeriveTrait> {
 		// This is already checked in `DeriveTrait::from_stream`.
-		debug_assert!(!list.nested.is_empty());
+		debug_assert!(!list.is_empty());
 
 		let mut crate_ = None;
 
-		for nested_meta in list.nested {
-			match &nested_meta {
-				NestedMeta::Meta(Meta::Path(path)) => {
+		for meta in list {
+			match &meta {
+				Meta::Path(path) => {
 					if path.is_ident("drop") {
 						return Err(Error::deprecated_zeroize_drop(path.span()));
 					} else {
 						return Err(Error::option_trait(path.span(), self.as_str()));
 					}
 				}
-				NestedMeta::Meta(Meta::NameValue(name_value)) => {
+				Meta::NameValue(name_value) => {
 					if name_value.path.is_ident("crate") {
 						// Check for duplicate `crate` option.
 						if crate_.is_none() {
-							if let Lit::Str(lit_str) = &name_value.lit {
+							if let Expr::Lit(ExprLit {
+								lit: Lit::Str(lit_str),
+								..
+							}) = &name_value.value
+							{
 								match lit_str.parse::<Path>() {
 									Ok(path) => {
 										if path == util::path_from_strs(&["zeroize"]) {
@@ -52,7 +62,7 @@ impl TraitImpl for Zeroize {
 									Err(error) => return Err(Error::path(lit_str.span(), error)),
 								}
 							} else {
-								return Err(Error::option_syntax(name_value.lit.span()));
+								return Err(Error::option_syntax(name_value.value.span()));
 							}
 						} else {
 							return Err(Error::option_duplicate(name_value.span(), "crate"));
@@ -62,7 +72,7 @@ impl TraitImpl for Zeroize {
 					}
 				}
 				_ => {
-					return Err(Error::option_syntax(nested_meta.span()));
+					return Err(Error::option_syntax(meta.span()));
 				}
 			}
 		}

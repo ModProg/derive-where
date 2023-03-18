@@ -15,8 +15,8 @@ mod zeroize;
 #[cfg(feature = "zeroize")]
 mod zeroize_on_drop;
 
-use proc_macro2::TokenStream;
-use syn::{spanned::Spanned, MetaList, Path, Result, TypeParamBound};
+use proc_macro2::{Span, TokenStream};
+use syn::{punctuated::Punctuated, spanned::Spanned, Meta, Path, Result, Token, TypeParamBound};
 
 use crate::{Data, DeriveTrait, Error, Item};
 
@@ -107,8 +107,12 @@ impl TraitImpl for Trait {
 		self.implementation().default_derive_trait()
 	}
 
-	fn parse_derive_trait(&self, list: MetaList) -> Result<DeriveTrait> {
-		self.implementation().parse_derive_trait(list)
+	fn parse_derive_trait(
+		&self,
+		span: Span,
+		list: Punctuated<Meta, Token![,]>,
+	) -> Result<DeriveTrait> {
+		self.implementation().parse_derive_trait(span, list)
 	}
 
 	fn supports_union(&self) -> bool {
@@ -154,8 +158,12 @@ pub trait TraitImpl {
 	fn default_derive_trait(&self) -> DeriveTrait;
 
 	/// Parse a `derive_where` trait with it's options.
-	fn parse_derive_trait(&self, list: MetaList) -> Result<DeriveTrait> {
-		Err(Error::options(list.span(), self.as_str()))
+	fn parse_derive_trait(
+		&self,
+		span: Span,
+		_list: Punctuated<Meta, Token![,]>,
+	) -> Result<DeriveTrait> {
+		Err(Error::options(span, self.as_str()))
 	}
 
 	/// Returns `true` if [`Trait`] supports unions.

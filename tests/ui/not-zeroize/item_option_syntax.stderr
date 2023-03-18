@@ -1,0 +1,17 @@
+error: key-value macro attributes are not supported
+ --> tests/ui/not-zeroize/item_option_syntax.rs:5:1
+  |
+5 | #[derive_where = "invalid"]
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: unsupported trait syntax, expected one of Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd
+ --> tests/ui/not-zeroize/item_option_syntax.rs:5:18
+  |
+5 | #[derive_where = "invalid"]
+  |                  ^^^^^^^^^
+
+error[E0601]: `main` function not found in crate `$CRATE`
+ --> tests/ui/not-zeroize/item_option_syntax.rs:6:48
+  |
+6 | struct WrongAttributeSyntax<T>(PhantomData<T>);
+  |                                                ^ consider adding a `main` function to `$DIR/tests/ui/not-zeroize/item_option_syntax.rs`

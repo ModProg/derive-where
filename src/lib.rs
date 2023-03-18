@@ -393,8 +393,9 @@ use std::{borrow::Cow, iter};
 use proc_macro2::TokenStream;
 use quote::{quote, quote_spanned, ToTokens};
 use syn::{
-	spanned::Spanned, Attribute, DataEnum, DataStruct, DataUnion, DeriveInput, Fields, FieldsNamed,
-	FieldsUnnamed, Generics, Lit, Meta, NestedMeta, Path, Variant,
+	punctuated::Punctuated, spanned::Spanned, Attribute, DataEnum, DataStruct, DataUnion,
+	DeriveInput, Expr, ExprLit, Fields, FieldsNamed, FieldsUnnamed, Generics, Lit, Meta, Path,
+	Token, Variant,
 };
 
 #[cfg(feature = "zeroize")]
@@ -481,18 +482,21 @@ fn derive_where_internal(mut item: DeriveInput) -> Result<TokenStream, syn::Erro
 
 	// Search for `crate` option.
 	for attr in &item.attrs {
-		if attr.path.is_ident(DERIVE_WHERE) {
-			if let Ok(Meta::List(list)) = attr.parse_meta() {
-				if list.nested.len() == 1 {
-					if let NestedMeta::Meta(meta) = list
-						.nested
-						.into_iter()
-						.next()
-						.expect("unexpected empty list")
-					{
+		if attr.path().is_ident(DERIVE_WHERE) {
+			if let Meta::List(list) = &attr.meta {
+				if let Ok(nested) =
+					list.parse_args_with(Punctuated::<Meta, Token![,]>::parse_terminated)
+				{
+					if nested.len() == 1 {
+						let meta = nested.into_iter().next().expect("unexpected empty list");
+
 						if meta.path().is_ident("crate") {
 							if let Meta::NameValue(name_value) = meta {
-								if let Lit::Str(lit_str) = &name_value.lit {
+								if let Expr::Lit(ExprLit {
+									lit: Lit::Str(lit_str),
+									..
+								}) = &name_value.value
+								{
 									match lit_str.parse::<Path>() {
 										Ok(path) => {
 											if path == util::path_from_strs(&[DERIVE_WHERE]) {
@@ -517,7 +521,7 @@ fn derive_where_internal(mut item: DeriveInput) -> Result<TokenStream, syn::Erro
 										}
 									}
 								} else {
-									return Err(Error::option_syntax(name_value.lit.span()));
+									return Err(Error::option_syntax(name_value.value.span()));
 								}
 							} else {
 								return Err(Error::option_syntax(meta.span()));
@@ -538,7 +542,7 @@ fn derive_where_internal(mut item: DeriveInput) -> Result<TokenStream, syn::Erro
 
 	// Check if we already parsed this item before.
 	for attr in &item.attrs {
-		if attr.path == derive_where_visited {
+		if attr.path() == &derive_where_visited {
 			return Err(Error::visited(attr.span()));
 		}
 	}
@@ -678,7 +682,7 @@ fn input_without_derive_where_attributes(mut input: DeriveInput) -> DeriveInput 
 
 	/// Remove all `derive_where` attributes.
 	fn remove_derive_where(attrs: &mut Vec<Attribute>) {
-		attrs.retain(|attr| !attr.path.is_ident(DERIVE_WHERE))
+		attrs.retain(|attr| !attr.path().is_ident(DERIVE_WHERE))
 	}
 
 	/// Remove all `derive_where` attributes from [`FieldsNamed`].

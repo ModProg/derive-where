@@ -32,6 +32,9 @@ struct OnlyCrate<T>(PhantomData<T>);
 #[derive_where(crate = "::derive_where")]
 struct DefaultCrate<T>(PhantomData<T>);
 
+#[derive_where(Debug = invalid; T)]
+struct WrongOptionSyntax<T, U>(T, PhantomData<U>);
+
 #[derive_where(Clone; T;)]
 struct SemiColonAtTheEnd<T, U>(T, PhantomData<U>);
 
@@ -46,9 +49,6 @@ struct MissingCommaBetweenTraits<T>(PhantomData<T>);
 
 #[derive_where(Clone; T U)]
 struct MissingCommaBetweenGenerics<T, U, V>(T, PhantomData<(U, V)>);
-
-#[derive_where("Clone")]
-struct InvalidTrait<T>(PhantomData<T>);
 
 #[derive_where(Clone)]
 #[derive_where::derive_where(Copy)]

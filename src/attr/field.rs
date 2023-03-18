@@ -1,6 +1,6 @@
 //! Attribute parsing for fields.
 
-use syn::{spanned::Spanned, Attribute, Meta, NestedMeta, Result};
+use syn::{punctuated::Punctuated, spanned::Spanned, Attribute, Meta, Result, Token};
 
 use crate::{DeriveWhere, Error, Skip, DERIVE_WHERE};
 #[cfg(feature = "zeroize")]
@@ -27,11 +27,8 @@ impl FieldAttr {
 		let mut self_ = FieldAttr::default();
 
 		for attr in attrs {
-			if attr.path.is_ident(DERIVE_WHERE) {
-				match attr.parse_meta() {
-					Ok(meta) => self_.add_meta(derive_wheres, skip_inner, &meta)?,
-					Err(error) => return Err(Error::attribute_syntax(attr.span(), error)),
-				}
+			if attr.path().is_ident(DERIVE_WHERE) {
+				self_.add_meta(derive_wheres, skip_inner, &attr.meta)?
 			}
 		}
 
@@ -48,31 +45,28 @@ impl FieldAttr {
 		debug_assert!(meta.path().is_ident(DERIVE_WHERE));
 
 		if let Meta::List(list) = meta {
-			if list.nested.is_empty() {
+			let nested = list.parse_args_with(Punctuated::<Meta, Token![,]>::parse_terminated)?;
+
+			if nested.is_empty() {
 				return Err(Error::empty(list.span()));
 			}
 
-			for nested_meta in &list.nested {
-				match nested_meta {
-					NestedMeta::Meta(meta) => {
-						if meta.path().is_ident(Skip::SKIP) {
-							self.skip
-								.add_attribute(derive_wheres, Some(skip_inner), meta)?;
-							continue;
-						}
-
-						#[cfg(feature = "zeroize")]
-						{
-							if meta.path().is_ident(Trait::Zeroize.as_str()) {
-								self.zeroize_fqs.add_attribute(meta, derive_wheres)?;
-								continue;
-							}
-						}
-
-						return Err(Error::option(meta.path().span()));
-					}
-					_ => return Err(Error::option_syntax(nested_meta.span())),
+			for meta in &nested {
+				if meta.path().is_ident(Skip::SKIP) {
+					self.skip
+						.add_attribute(derive_wheres, Some(skip_inner), meta)?;
+					continue;
 				}
+
+				#[cfg(feature = "zeroize")]
+				{
+					if meta.path().is_ident(Trait::Zeroize.as_str()) {
+						self.zeroize_fqs.add_attribute(meta, derive_wheres)?;
+						continue;
+					}
+				}
+
+				return Err(Error::option(meta.path().span()));
 			}
 
 			Ok(())

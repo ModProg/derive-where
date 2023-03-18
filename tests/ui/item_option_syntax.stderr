@@ -1,37 +1,25 @@
-error: key-value macro attributes are not supported
+error: empty `derive_where` found
  --> tests/ui/item_option_syntax.rs:5:1
   |
-5 | #[derive_where = "invalid"]
-  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-error: unexpected option syntax
- --> tests/ui/item_option_syntax.rs:5:18
-  |
-5 | #[derive_where = "invalid"]
-  |                  ^^^^^^^^^
-
-error: empty `derive_where` found
- --> tests/ui/item_option_syntax.rs:8:1
-  |
-8 | #[derive_where()]
+5 | #[derive_where()]
   | ^^^^^^^^^^^^^^^^^
   |
   = note: this error originates in the attribute macro `derive_where` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: unexpected option syntax
-  --> tests/ui/item_option_syntax.rs:11:16
-   |
-11 | #[derive_where(Debug = "option")]
-   |                ^^^^^^^^^^^^^^^^
+ --> tests/ui/item_option_syntax.rs:8:16
+  |
+8 | #[derive_where(Debug = "option")]
+  |                ^^^^^^^^^^^^^^^^
 
 error: empty attribute option found
-  --> tests/ui/item_option_syntax.rs:14:16
+  --> tests/ui/item_option_syntax.rs:11:16
    |
-14 | #[derive_where(Debug())]
+11 | #[derive_where(Debug())]
    |                ^^^^^^^
 
 error: `Debug` doesn't support any options
-  --> tests/ui/item_option_syntax.rs:17:16
+  --> tests/ui/item_option_syntax.rs:14:16
    |
-17 | #[derive_where(Debug(option))]
+14 | #[derive_where(Debug(option))]
    |                ^^^^^^^^^^^^^
