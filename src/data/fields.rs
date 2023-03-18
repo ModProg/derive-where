@@ -2,8 +2,8 @@
 
 use syn::{
 	token::{Brace, Paren},
-	FieldPat, FieldsNamed, FieldsUnnamed, Ident, Pat, PatIdent, PatStruct, PatTuple,
-	PatTupleStruct, Path, Result, Token,
+	FieldPat, FieldsNamed, FieldsUnnamed, Ident, Pat, PatIdent, PatStruct, PatTupleStruct, Path,
+	Result, Token,
 };
 #[cfg(all(not(feature = "nightly"), feature = "safe"))]
 use {std::iter, syn::punctuated::Punctuated, syn::PatRest};
@@ -39,10 +39,14 @@ impl<'a> Fields<'a> {
 		#[cfg(all(not(feature = "nightly"), feature = "safe"))]
 		let other_pattern_skip = Pat::Struct(PatStruct {
 			attrs: Vec::new(),
+			qself: None,
 			path: path.clone(),
 			brace_token: Brace::default(),
 			fields: Punctuated::new(),
-			dot2_token: Some(<Token![..]>::default()),
+			rest: Some(PatRest {
+				attrs: Vec::new(),
+				dot2_token: <Token![..]>::default(),
+			}),
 		});
 		let other_pattern = Self::struct_pattern(path, &fields, |field| &field.other_ident);
 
@@ -68,16 +72,14 @@ impl<'a> Fields<'a> {
 		#[cfg(all(not(feature = "nightly"), feature = "safe"))]
 		let other_pattern_skip = Pat::TupleStruct(PatTupleStruct {
 			attrs: Vec::new(),
+			qself: None,
 			path: path.clone(),
-			pat: PatTuple {
+			paren_token: Paren::default(),
+			elems: iter::once(Pat::Rest(PatRest {
 				attrs: Vec::new(),
-				paren_token: Paren::default(),
-				elems: iter::once(Pat::Rest(PatRest {
-					attrs: Vec::new(),
-					dot2_token: <Token![..]>::default(),
-				}))
-				.collect(),
-			},
+				dot2_token: <Token![..]>::default(),
+			}))
+			.collect(),
 		});
 		let other_pattern = Self::tuple_pattern(path, &fields, |field| &field.other_ident);
 
@@ -98,6 +100,7 @@ impl<'a> Fields<'a> {
 	) -> Pat {
 		Pat::Struct(PatStruct {
 			attrs: Vec::new(),
+			qself: None,
 			path,
 			brace_token: Brace::default(),
 			fields: fields
@@ -115,7 +118,7 @@ impl<'a> Fields<'a> {
 					})),
 				})
 				.collect(),
-			dot2_token: None,
+			rest: None,
 		})
 	}
 
@@ -127,23 +130,21 @@ impl<'a> Fields<'a> {
 	) -> Pat {
 		Pat::TupleStruct(PatTupleStruct {
 			attrs: Vec::new(),
+			qself: None,
 			path,
-			pat: PatTuple {
-				attrs: Vec::new(),
-				paren_token: Paren::default(),
-				elems: fields
-					.iter()
-					.map(|field| {
-						Pat::Ident(PatIdent {
-							attrs: Vec::new(),
-							by_ref: Some(<Token![ref]>::default()),
-							mutability: None,
-							ident: field_ident(field).clone(),
-							subpat: None,
-						})
+			paren_token: Paren::default(),
+			elems: fields
+				.iter()
+				.map(|field| {
+					Pat::Ident(PatIdent {
+						attrs: Vec::new(),
+						by_ref: Some(<Token![ref]>::default()),
+						mutability: None,
+						ident: field_ident(field).clone(),
+						subpat: None,
 					})
-					.collect(),
-			},
+				})
+				.collect(),
 		})
 	}
 
@@ -164,7 +165,7 @@ impl<'a> Fields<'a> {
 				}
 			}
 			Pat::TupleStruct(pattern) => {
-				for field in &mut pattern.pat.elems {
+				for field in &mut pattern.elems {
 					if let Pat::Ident(pattern) = &mut *field {
 						pattern.mutability = Some(<Token![mut]>::default());
 					} else {

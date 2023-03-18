@@ -73,14 +73,6 @@ impl Error {
 		)
 	}
 
-	/// Invalid syntax for attribute.
-	pub fn attribute_syntax(span: Span, parse_error: syn::Error) -> syn::Error {
-		syn::Error::new(
-			span,
-			format!("unexpected attribute syntax, {}", parse_error),
-		)
-	}
-
 	/// Unsupported option in attribute.
 	#[cfg(feature = "zeroize")]
 	pub fn option_trait(span: Span, attribute: &str) -> syn::Error {

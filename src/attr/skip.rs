@@ -2,7 +2,7 @@
 
 use std::default::Default;
 
-use syn::{spanned::Spanned, Meta, NestedMeta, Path, Result};
+use syn::{punctuated::Punctuated, spanned::Spanned, Meta, Path, Result, Token};
 
 use crate::{DeriveWhere, Error, Trait};
 
@@ -78,8 +78,11 @@ impl Skip {
 				}
 			}
 			Meta::List(list) => {
+				let nested =
+					list.parse_args_with(Punctuated::<Meta, Token![,]>::parse_terminated)?;
+
 				// Don't allow an empty list.
-				if list.nested.is_empty() {
+				if nested.is_empty() {
 					return Err(Error::option_empty(list.span()));
 				}
 
@@ -100,8 +103,8 @@ impl Skip {
 					Skip::Traits(traits) => traits,
 				};
 
-				for nested_meta in &list.nested {
-					if let NestedMeta::Meta(Meta::Path(path)) = nested_meta {
+				for nested_meta in &nested {
+					if let Meta::Path(path) = nested_meta {
 						let skip_group = SkipGroup::from_path(path)?;
 
 						// Don't allow to skip the same trait twice.

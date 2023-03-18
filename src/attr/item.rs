@@ -7,7 +7,7 @@ use syn::{
 	parse::{discouraged::Speculative, Parse, ParseStream},
 	punctuated::Punctuated,
 	spanned::Spanned,
-	Attribute, Data, Ident, Meta, NestedMeta, Path, PredicateType, Result, Token, TraitBound,
+	Attribute, Data, Ident, Meta, Path, PredicateType, Result, Token, TraitBound,
 	TraitBoundModifier, Type, TypeParamBound, TypePath, WhereClause, WherePredicate,
 };
 
@@ -33,61 +33,57 @@ impl ItemAttr {
 		let mut incomparables = Vec::new();
 
 		for attr in attrs {
-			if attr.path.is_ident(DERIVE_WHERE) {
-				if let Ok(meta) = attr.parse_meta() {
-					if let Meta::List(list) = meta {
-						match list.nested.len() {
+			if attr.path().is_ident(DERIVE_WHERE) {
+				if let Meta::List(list) = &attr.meta {
+					if let Ok(nested) =
+						list.parse_args_with(Punctuated::<Meta, Token![,]>::parse_terminated)
+					{
+						match nested.len() {
 							// Don't allow an empty list.
 							0 => return Err(Error::empty(list.span())),
 							// Check for `skip_inner` if list only has one item.
-							1 => match list
-								.nested
-								.into_iter()
-								.next()
-								.expect("unexpected empty list")
-							{
-								NestedMeta::Meta(meta) => {
-									if meta.path().is_ident(Skip::SKIP_INNER) {
-										// Don't allow `skip_inner` on the item level for enums.
-										if let Data::Enum(_) = data {
-											return Err(Error::option_enum_skip_inner(meta.span()));
-										}
+							1 => {
+								let meta =
+									nested.into_iter().next().expect("unexpected empty list");
 
-										// Don't parse `Skip` yet, because it needs access to all
-										// `DeriveWhere`s.
-										skip_inners.push(meta);
-									} else if meta.path().is_ident(Incomparable::INCOMPARABLE) {
-										// Needs to be parsed after all traits are known.
-										incomparables.push(meta)
-									} else if meta.path().is_ident("crate") {
-										// Do nothing, we checked this before
-										// already.
+								if meta.path().is_ident(Skip::SKIP_INNER) {
+									// Don't allow `skip_inner` on the item level for enums.
+									if let Data::Enum(_) = data {
+										return Err(Error::option_enum_skip_inner(meta.span()));
 									}
-									// The list can have one item but still not be the `skip_inner`
-									// attribute, continue with parsing `DeriveWhere`.
-									else {
-										self_
-											.derive_wheres
-											.push(DeriveWhere::from_attr(span, data, attr)?);
-									}
+
+									// Don't parse `Skip` yet, because it needs access to all
+									// `DeriveWhere`s.
+									skip_inners.push(meta);
+								} else if meta.path().is_ident(Incomparable::INCOMPARABLE) {
+									// Needs to be parsed after all traits are known.
+									incomparables.push(meta)
+								} else if meta.path().is_ident("crate") {
+									// Do nothing, we checked this before
+									// already.
 								}
-								nested_meta => {
-									return Err(Error::option_syntax(nested_meta.span()))
+								// The list can have one item but still not be the `skip_inner`
+								// attribute, continue with parsing `DeriveWhere`.
+								else {
+									self_
+										.derive_wheres
+										.push(DeriveWhere::from_attr(span, data, attr)?);
 								}
-							},
+							}
 							_ => self_
 								.derive_wheres
 								.push(DeriveWhere::from_attr(span, data, attr)?),
 						}
-					} else {
-						return Err(Error::option_syntax(meta.span()));
 					}
-				}
-				// Anything that can't be parsed by `Meta`, is because `A, B; C` isn't valid syntax.
-				else {
-					self_
-						.derive_wheres
-						.push(DeriveWhere::from_attr(span, data, attr)?)
+					// Anything list that isn't using `,` as seperator, is because we expect
+					// `A, B; C`.
+					else {
+						self_
+							.derive_wheres
+							.push(DeriveWhere::from_attr(span, data, attr)?)
+					}
+				} else {
+					return Err(Error::option_syntax(attr.meta.span()));
 				}
 			}
 		}
@@ -479,15 +475,18 @@ impl DeriveTrait {
 					}
 				}
 
-				match meta {
+				match &meta {
 					Meta::Path(path) => Ok((path.span(), trait_.default_derive_trait())),
 					Meta::List(list) => {
-						if list.nested.is_empty() {
+						let nested =
+							list.parse_args_with(Punctuated::<Meta, Token![,]>::parse_terminated)?;
+
+						if nested.is_empty() {
 							return Err(Error::option_empty(list.span()));
 						}
 
 						// This will return an error if no options are supported.
-						Ok((list.span(), trait_.parse_derive_trait(list)?))
+						Ok((list.span(), trait_.parse_derive_trait(meta.span(), nested)?))
 					}
 					Meta::NameValue(name_value) => Err(Error::option_syntax(name_value.span())),
 				}

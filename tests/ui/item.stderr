@@ -50,41 +50,41 @@ error: unnecessary path qualification, `::derive_where` is used by default
 32 | #[derive_where(crate = "::derive_where")]
    |                        ^^^^^^^^^^^^^^^^
 
-error: expected `,`
-  --> tests/ui/item.rs:35:24
+error: unexpected option syntax
+  --> tests/ui/item.rs:35:16
    |
-35 | #[derive_where(Clone; T;)]
+35 | #[derive_where(Debug = invalid; T)]
+   |                ^^^^^^^^^^^^^^^
+
+error: expected `,`
+  --> tests/ui/item.rs:38:24
+   |
+38 | #[derive_where(Clone; T;)]
    |                        ^
 
-error: expected type to bind to, expected one of: `for`, parentheses, `fn`, `unsafe`, `extern`, identifier, `::`, `<`, square brackets, `*`, `&`, `!`, `impl`, `_`, lifetime
-  --> tests/ui/item.rs:38:25
+error: expected type to bind to, expected one of: `for`, parentheses, `fn`, `unsafe`, `extern`, identifier, `::`, `<`, `dyn`, square brackets, `*`, `&`, `!`, `impl`, `_`, lifetime
+  --> tests/ui/item.rs:41:25
    |
-38 | #[derive_where(Clone; T,,)]
+41 | #[derive_where(Clone; T,,)]
    |                         ^
 
-error: expected type to bind to, expected one of: `for`, parentheses, `fn`, `unsafe`, `extern`, identifier, `::`, `<`, square brackets, `*`, `&`, `!`, `impl`, `_`, lifetime
-  --> tests/ui/item.rs:41:23
+error: expected type to bind to, expected one of: `for`, parentheses, `fn`, `unsafe`, `extern`, identifier, `::`, `<`, `dyn`, square brackets, `*`, `&`, `!`, `impl`, `_`, lifetime
+  --> tests/ui/item.rs:44:23
    |
-41 | #[derive_where(Clone; where)]
+44 | #[derive_where(Clone; where)]
    |                       ^^^^^
 
 error: expected `;` or `,
-  --> tests/ui/item.rs:44:22
+  --> tests/ui/item.rs:47:22
    |
-44 | #[derive_where(Clone Debug)]
+47 | #[derive_where(Clone Debug)]
    |                      ^^^^^
 
 error: expected `,`
-  --> tests/ui/item.rs:47:25
+  --> tests/ui/item.rs:50:25
    |
-47 | #[derive_where(Clone; T U)]
+50 | #[derive_where(Clone; T U)]
    |                         ^
-
-error: unexpected option syntax
-  --> tests/ui/item.rs:50:16
-   |
-50 | #[derive_where("Clone")]
-   |                ^^^^^^^
 
 error: `#[derive_where(..)` was already applied to this item before, this occurs when using a qualified path for any `#[derive_where(..)`s except the first
   --> tests/ui/item.rs:53:1

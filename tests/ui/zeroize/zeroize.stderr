@@ -10,7 +10,7 @@ error: `Zeroize` doesn't support this option
 10 | #[derive_where(Zeroize(test = "test"))]
    |                        ^^^^
 
-error: unexpected option syntax
+error: expected path
   --> tests/ui/zeroize/zeroize.rs:13:24
    |
 13 | #[derive_where(Zeroize("option"))]

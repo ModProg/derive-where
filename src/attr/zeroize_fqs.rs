@@ -1,6 +1,6 @@
 //! Attribute parsing for the `Zeroize(fqs)` option.
 
-use syn::{spanned::Spanned, Meta, NestedMeta, Result};
+use syn::{punctuated::Punctuated, spanned::Spanned, Meta, Result, Token};
 
 use crate::{DeriveWhere, Error, Trait, TraitImpl};
 
@@ -26,24 +26,26 @@ impl ZeroizeFqs {
 
 		match meta {
 			Meta::List(list) => {
-				if list.nested.is_empty() {
+				let nested =
+					list.parse_args_with(Punctuated::<Meta, Token![,]>::parse_terminated)?;
+
+				if nested.is_empty() {
 					return Err(Error::option_empty(list.span()));
 				}
 
-				for nested_meta in &list.nested {
-					match nested_meta {
-						NestedMeta::Meta(Meta::Path(path)) => {
-							if path.is_ident(Self::FQS) {
-								if self.0 {
-									return Err(Error::option_duplicate(path.span(), Self::FQS));
-								} else {
-									self.0 = true
-								}
+				for meta in &nested {
+					if let Meta::Path(path) = meta {
+						if path.is_ident(Self::FQS) {
+							if self.0 {
+								return Err(Error::option_duplicate(path.span(), Self::FQS));
 							} else {
-								return Err(Error::option(path.span()));
+								self.0 = true
 							}
+						} else {
+							return Err(Error::option(path.span()));
 						}
-						_ => return Err(Error::option_syntax(nested_meta.span())),
+					} else {
+						return Err(Error::option_syntax(meta.span()));
 					}
 				}
 
