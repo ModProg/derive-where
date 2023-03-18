@@ -24,4 +24,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Run Spellcheck
+        run: cargo spellcheck check -m 1 2>/dev/null
+      - name: Run Spellcheck on CHANGELOG.md
         run: cargo spellcheck check -m 1 CHANGELOG.md 2>/dev/null
