@@ -14,22 +14,22 @@ struct EmptyAttribute<T>(PhantomData<T>);
 struct WrongCrateSyntax<T>(PhantomData<T>);
 
 #[derive_where(crate = "struct Test")]
-struct InvalidPath<T>(PhantomData<T>);
+struct InvalidPathDeprecated<T>(PhantomData<T>);
 
-// The error message here shows that `crate = ".."` should be in it's own
+// The error message here shows that `crate = ..` should be in it's own
 // attribute instead of an error pointing out this is duplicate. This is not
 // ideal but much less complicated to implement.
-#[derive_where(crate = "derive_where_", crate = "derive_where_")]
+#[derive_where(crate = derive_where_, crate = derive_where_)]
 struct DuplicateCrate1<T>(PhantomData<T>);
 
-#[derive_where(crate = "derive_where_")]
-#[derive_where(crate = "derive_where_")]
+#[derive_where(crate = derive_where_)]
+#[derive_where(crate = derive_where_)]
 struct DuplicateCrate2<T>(PhantomData<T>);
 
-#[derive_where(crate = "derive_where_")]
+#[derive_where(crate = derive_where_)]
 struct OnlyCrate<T>(PhantomData<T>);
 
-#[derive_where(crate = "::derive_where")]
+#[derive_where(crate = ::derive_where)]
 struct DefaultCrate<T>(PhantomData<T>);
 
 #[derive_where(Debug = invalid; T)]

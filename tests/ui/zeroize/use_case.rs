@@ -2,7 +2,7 @@ extern crate zeroize_ as zeroize;
 
 use derive_where::derive_where;
 
-#[derive_where(Clone, Zeroize(crate = "zeroize_"); T)]
+#[derive_where(Clone, Zeroize(crate = zeroize_); T)]
 struct ZeroizeCrate<T>(T);
 
 #[derive_where(Clone, Zeroize; T)]

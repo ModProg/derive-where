@@ -41,7 +41,7 @@
 //! # extern crate derive_where as derive_where_;
 //! # use std::marker::PhantomData;
 //! # use derive_where::derive_where;
-//! #[derive_where(crate = "derive_where_")]
+//! #[derive_where(crate = derive_where_)]
 //! #[derive_where(Clone, Debug)]
 //! struct Example<T>(PhantomData<T>);
 //! ```
@@ -237,7 +237,7 @@
 //! # use std::marker::PhantomData;
 //! # use derive_where::derive_where;
 //! # use zeroize_::Zeroize;
-//! #[derive_where(Zeroize(crate = "zeroize_"))]
+//! #[derive_where(Zeroize(crate = zeroize_))]
 //! struct Example(#[derive_where(Zeroize(fqs))] i32);
 //!
 //! impl Example {
@@ -275,7 +275,7 @@
 //! # {
 //! # use std::marker::PhantomData;
 //! # use derive_where::derive_where;
-//! #[derive_where(ZeroizeOnDrop(crate = "zeroize_"))]
+//! #[derive_where(ZeroizeOnDrop(crate = zeroize_))]
 //! struct Example(i32);
 //!
 //! assert!(core::mem::needs_drop::<Example>());
@@ -394,8 +394,8 @@ use proc_macro2::TokenStream;
 use quote::{quote, quote_spanned, ToTokens};
 use syn::{
 	punctuated::Punctuated, spanned::Spanned, Attribute, DataEnum, DataStruct, DataUnion,
-	DeriveInput, Expr, ExprLit, Fields, FieldsNamed, FieldsUnnamed, Generics, Lit, Meta, Path,
-	Token, Variant,
+	DeriveInput, Expr, ExprLit, ExprPath, Fields, FieldsNamed, FieldsUnnamed, Generics, Lit, Meta,
+	Path, Token, Variant,
 };
 
 #[cfg(feature = "zeroize")]
@@ -421,13 +421,12 @@ const DERIVE_WHERE_FORWARD: &str = "DeriveWhere";
 const DERIVE_WHERE_VISITED: &str = "derive_where_visited";
 
 /// Item-level options:
-/// - `#[derive_where(crate = "path")]`: Specify path to the `derive_where`
-///   crate.
+/// - `#[derive_where(crate = path)]`: Specify path to the `derive_where` crate.
 /// - `#[derive_where(Clone, ..; T, ..)]`: Specify traits to implement and
 ///   optionally bounds.
-///   - `#[derive_where(Zeroize(crate = "path"))]`: Specify path to [`Zeroize`]
+///   - `#[derive_where(Zeroize(crate = path))]`: Specify path to [`Zeroize`]
 ///     trait.
-///   - `#[derive_where(ZeroizeOnDrop(crate = "path"))]`: Specify path to
+///   - `#[derive_where(ZeroizeOnDrop(crate = path))]`: Specify path to
 ///     [`ZeroizeOnDrop`] trait.
 /// - `#[derive_where(skip_inner(EqHashOrd, ..))]`: Skip all fields in the item.
 ///   Optionally specify trait groups to constrain skipping fields. Only works
@@ -492,36 +491,35 @@ fn derive_where_internal(mut item: DeriveInput) -> Result<TokenStream, syn::Erro
 
 						if meta.path().is_ident("crate") {
 							if let Meta::NameValue(name_value) = meta {
-								if let Expr::Lit(ExprLit {
-									lit: Lit::Str(lit_str),
-									..
-								}) = &name_value.value
-								{
-									match lit_str.parse::<Path>() {
-										Ok(path) => {
-											if path == util::path_from_strs(&[DERIVE_WHERE]) {
-												return Err(Error::path_unnecessary(
-													path.span(),
-													&format!("::{}", DERIVE_WHERE),
-												));
-											}
-
-											match crate_ {
-												Some(_) => {
-													return Err(Error::option_duplicate(
-														name_value.span(),
-														"crate",
-													))
-												}
-												None => crate_ = Some(path),
-											}
-										}
+								let path = match &name_value.value {
+									Expr::Lit(ExprLit {
+										lit: Lit::Str(lit_str),
+										..
+									}) => match lit_str.parse::<Path>() {
+										Ok(path) => path,
 										Err(error) => {
 											return Err(Error::path(lit_str.span(), error))
 										}
+									},
+									Expr::Path(ExprPath { path, .. }) => path.clone(),
+									_ => return Err(Error::option_syntax(name_value.value.span())),
+								};
+
+								if path == util::path_from_strs(&[DERIVE_WHERE]) {
+									return Err(Error::path_unnecessary(
+										path.span(),
+										&format!("::{}", DERIVE_WHERE),
+									));
+								}
+
+								match crate_ {
+									Some(_) => {
+										return Err(Error::option_duplicate(
+											name_value.span(),
+											"crate",
+										))
 									}
-								} else {
-									return Err(Error::option_syntax(name_value.value.span()));
+									None => crate_ = Some(path),
 								}
 							} else {
 								return Err(Error::option_syntax(meta.span()));

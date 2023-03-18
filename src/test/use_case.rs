@@ -131,7 +131,7 @@ fn default() -> Result<()> {
 #[cfg(feature = "zeroize")]
 fn zeroize_crate() -> Result<()> {
 	compiles(quote! {
-		#[derive_where(Zeroize(crate = "zeroize_"))]
+		#[derive_where(Zeroize(crate = zeroize_))]
 		struct Test(u8);
 	})
 }

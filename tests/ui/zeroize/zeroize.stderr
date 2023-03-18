@@ -22,20 +22,26 @@ error: unexpected option syntax
 16 | #[derive_where(Zeroize(crate(zeroize_)))]
    |                        ^^^^^^^^^^^^^^^
 
-error: expected path, expected identifier
+error: expected expression
   --> tests/ui/zeroize/zeroize.rs:19:32
    |
-19 | #[derive_where(Zeroize(crate = "struct Test"))]
+19 | #[derive_where(Zeroize(crate = struct Test))]
+   |                                ^^^^^^
+
+error: expected path, expected identifier
+  --> tests/ui/zeroize/zeroize.rs:22:32
+   |
+22 | #[derive_where(Zeroize(crate = "struct Test"))]
    |                                ^^^^^^^^^^^^^
 
 error: duplicate `crate` option
-  --> tests/ui/zeroize/zeroize.rs:22:44
+  --> tests/ui/zeroize/zeroize.rs:25:42
    |
-22 | #[derive_where(Zeroize(crate = "zeroize_", crate = "zeroize_"))]
-   |                                            ^^^^^^^^^^^^^^^^^^
+25 | #[derive_where(Zeroize(crate = zeroize_, crate = zeroize_))]
+   |                                          ^^^^^^^^^^^^^^^^
 
 error: unnecessary path qualification, `::zeroize` is used by default
-  --> tests/ui/zeroize/zeroize.rs:25:32
+  --> tests/ui/zeroize/zeroize.rs:28:32
    |
-25 | #[derive_where(Zeroize(crate = "::zeroize"))]
-   |                                ^^^^^^^^^^^
+28 | #[derive_where(Zeroize(crate = ::zeroize))]
+   |                                ^^^^^^^^^

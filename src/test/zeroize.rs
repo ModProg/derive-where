@@ -133,7 +133,7 @@ fn both() -> Result<()> {
 fn crate_() -> Result<()> {
 	test_derive(
 		quote! {
-			#[derive_where(Zeroize(crate = "zeroize_"); T)]
+			#[derive_where(Zeroize(crate = zeroize_); T)]
 			struct Test<T>(T);
 		},
 		quote! {
@@ -158,7 +158,7 @@ fn crate_() -> Result<()> {
 fn crate_drop() -> Result<()> {
 	test_derive(
 		quote! {
-			#[derive_where(ZeroizeOnDrop(crate = "zeroize_"); T)]
+			#[derive_where(ZeroizeOnDrop(crate = zeroize_); T)]
 			struct Test<T>(T);
 		},
 		#[cfg(not(feature = "zeroize-on-drop"))]

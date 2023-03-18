@@ -1,35 +1,41 @@
-error: unsupported trait, expected one of Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd, Zeroize, ZeroizeOnDrop
- --> tests/ui/zeroize/item.rs:5:16
-  |
-5 | #[derive_where(skip_inner, Clone)]
-  |                ^^^^^^^^^^
-
 error: unsupported trait syntax, expected one of Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd, Zeroize, ZeroizeOnDrop
+ --> tests/ui/zeroize/item.rs:5:24
+  |
+5 | #[derive_where(crate = struct Test)]
+  |                        ^^^^^^
+
+error: unsupported trait, expected one of Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd, Zeroize, ZeroizeOnDrop
  --> tests/ui/zeroize/item.rs:8:16
   |
-8 | #[derive_where(,)]
-  |                ^
+8 | #[derive_where(skip_inner, Clone)]
+  |                ^^^^^^^^^^
 
 error: unsupported trait syntax, expected one of Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd, Zeroize, ZeroizeOnDrop
   --> tests/ui/zeroize/item.rs:11:16
    |
-11 | #[derive_where(,Clone)]
+11 | #[derive_where(,)]
    |                ^
 
 error: unsupported trait syntax, expected one of Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd, Zeroize, ZeroizeOnDrop
-  --> tests/ui/zeroize/item.rs:14:22
+  --> tests/ui/zeroize/item.rs:14:16
    |
-14 | #[derive_where(Clone,,)]
+14 | #[derive_where(,Clone)]
+   |                ^
+
+error: unsupported trait syntax, expected one of Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd, Zeroize, ZeroizeOnDrop
+  --> tests/ui/zeroize/item.rs:17:22
+   |
+17 | #[derive_where(Clone,,)]
    |                      ^
 
 error: unsupported trait syntax, expected one of Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd, Zeroize, ZeroizeOnDrop
-  --> tests/ui/zeroize/item.rs:17:16
+  --> tests/ui/zeroize/item.rs:20:16
    |
-17 | #[derive_where("Clone")]
+20 | #[derive_where("Clone")]
    |                ^^^^^^^
 
 error: unsupported trait, expected one of Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd, Zeroize, ZeroizeOnDrop
-  --> tests/ui/zeroize/item.rs:20:16
+  --> tests/ui/zeroize/item.rs:23:16
    |
-20 | #[derive_where(T)]
+23 | #[derive_where(T)]
    |                ^

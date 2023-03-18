@@ -1,7 +1,7 @@
 error: this can be handled by standard `#[derive(..)]`, use a `skip` or `incomparable` attribute, implement `Default` on an enum, or different generic type parameters
  --> tests/ui/zeroize/use_case.rs:5:16
   |
-5 | #[derive_where(Clone, Zeroize(crate = "zeroize_"); T)]
+5 | #[derive_where(Clone, Zeroize(crate = zeroize_); T)]
   |                ^^^^^
 
 error: this can be handled by standard `#[derive(..)]`, use a `skip` or `incomparable` attribute, implement `Default` on an enum, or different generic type parameters

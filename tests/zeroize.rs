@@ -35,7 +35,7 @@ fn basic() {
 
 #[test]
 fn crate_() {
-	#[derive_where(Zeroize(crate = "zeroize_"))]
+	#[derive_where(Zeroize(crate = zeroize_))]
 	struct Test<T>(Wrapper<T>);
 
 	let mut test = Test(42.into());

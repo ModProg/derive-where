@@ -174,7 +174,7 @@ impl<'a> Input<'a> {
 
 				#[cfg(feature = "zeroize")]
 				{
-					// `Zeroize(crate = "..")` or `ZeroizeOnDrop(crate = "..")` is used.
+					// `Zeroize(crate = ..)` or `ZeroizeOnDrop(crate = ..)` is used.
 					if let DeriveTrait::Zeroize { crate_: Some(_) }
 					| DeriveTrait::ZeroizeOnDrop { crate_: Some(_) } = *trait_
 					{
