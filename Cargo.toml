@@ -43,11 +43,6 @@ pretty_assertions = "1"
 trybuild = { version = "1.0.18", default-features = false }
 zeroize_ = { version = "1.5", package = "zeroize", default-features = false }
 
-[[test]]
-name = "util"
-path = "tests/util.rs"
-test = false
-
 [package.metadata.docs.rs]
 all-features = true
 targets = []

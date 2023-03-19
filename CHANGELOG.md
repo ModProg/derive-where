@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Updated `syn` to v2.
+- `Debug` output of structs that skip fields appears `non_exhaustive` now.
 
 ### Deprecated
 - The `crate` attribute now takes a path instead of a path inside a string
