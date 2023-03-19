@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Debug` output of structs that skip fields appears `non_exhaustive` now.
 
 ### Deprecated
-- The `crate` attribute now takes a path instead of a path inside a string
+- The `crate` attribute now takes a bare path instead of a path inside a string
   literal.
 
 ## [1.1.0] - 2022-02-06
