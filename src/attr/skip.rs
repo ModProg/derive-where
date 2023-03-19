@@ -2,9 +2,9 @@
 
 use std::default::Default;
 
-use syn::{punctuated::Punctuated, spanned::Spanned, Meta, Path, Result, Token};
+use syn::{spanned::Spanned, Meta, Path, Result};
 
-use crate::{DeriveWhere, Error, Trait};
+use crate::{util::MetaListExt, DeriveWhere, Error, Trait};
 
 /// Stores what [`Trait`]s to skip this field or variant for.
 #[cfg_attr(test, derive(Debug))]
@@ -78,13 +78,7 @@ impl Skip {
 				}
 			}
 			Meta::List(list) => {
-				let nested =
-					list.parse_args_with(Punctuated::<Meta, Token![,]>::parse_terminated)?;
-
-				// Don't allow an empty list.
-				if nested.is_empty() {
-					return Err(Error::option_empty(list.span()));
-				}
+				let nested = list.parse_non_empty_nested_metas()?;
 
 				// Get traits already set to be skipped.
 				let traits = match self {

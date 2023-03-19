@@ -1,7 +1,12 @@
 //! Utility functions.
 
 use proc_macro2::Span;
-use syn::{punctuated::Punctuated, Ident, Path, PathArguments, PathSegment, Token};
+use syn::{
+	punctuated::Punctuated, spanned::Spanned, Ident, Meta, MetaList, Path, PathArguments,
+	PathSegment, Result, Token,
+};
+
+use crate::error::Error;
 
 /// Convenience type to return two possible values.
 pub enum Either<L, R> {
@@ -47,5 +52,23 @@ pub fn path_from_root_and_strs(root: Path, segments: &[&str]) -> Path {
 			.into_iter()
 			.chain(segments.iter().map(|segment| path_segment(segment)))
 			.collect(),
+	}
+}
+
+/// Extension for [`MetaList`].
+pub trait MetaListExt {
+	/// Shorthand for parsing a [`MetaList`] into a list of [`Meta`]s.
+	fn parse_non_empty_nested_metas(&self) -> Result<Punctuated<Meta, Token![,]>>;
+}
+
+impl MetaListExt for MetaList {
+	fn parse_non_empty_nested_metas(&self) -> Result<Punctuated<Meta, Token![,]>> {
+		let list = self.parse_args_with(Punctuated::<Meta, Token![,]>::parse_terminated)?;
+
+		if list.is_empty() {
+			return Err(Error::option_empty(self.span()));
+		}
+
+		Ok(list)
 	}
 }

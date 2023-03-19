@@ -1,8 +1,8 @@
 //! Attribute parsing for fields.
 
-use syn::{punctuated::Punctuated, spanned::Spanned, Attribute, Meta, Result, Token};
+use syn::{spanned::Spanned, Attribute, Meta, Result};
 
-use crate::{DeriveWhere, Error, Skip, DERIVE_WHERE};
+use crate::{util::MetaListExt, DeriveWhere, Error, Skip, DERIVE_WHERE};
 #[cfg(feature = "zeroize")]
 use crate::{Trait, TraitImpl, ZeroizeFqs};
 
@@ -45,11 +45,7 @@ impl FieldAttr {
 		debug_assert!(meta.path().is_ident(DERIVE_WHERE));
 
 		if let Meta::List(list) = meta {
-			let nested = list.parse_args_with(Punctuated::<Meta, Token![,]>::parse_terminated)?;
-
-			if nested.is_empty() {
-				return Err(Error::empty(list.span()));
-			}
+			let nested = list.parse_non_empty_nested_metas()?;
 
 			for meta in &nested {
 				if meta.path().is_ident(Skip::SKIP) {

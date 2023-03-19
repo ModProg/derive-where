@@ -1,8 +1,8 @@
 //! Attribute parsing for the `Zeroize(fqs)` option.
 
-use syn::{punctuated::Punctuated, spanned::Spanned, Meta, Result, Token};
+use syn::{spanned::Spanned, Meta, Result};
 
-use crate::{DeriveWhere, Error, Trait, TraitImpl};
+use crate::{util::MetaListExt, DeriveWhere, Error, Trait, TraitImpl};
 
 /// Stores if this field should use FQS to call [`Zeroize::zeroize`](https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html#tymethod.zeroize).
 #[derive(Default)]
@@ -26,12 +26,7 @@ impl ZeroizeFqs {
 
 		match meta {
 			Meta::List(list) => {
-				let nested =
-					list.parse_args_with(Punctuated::<Meta, Token![,]>::parse_terminated)?;
-
-				if nested.is_empty() {
-					return Err(Error::option_empty(list.span()));
-				}
+				let nested = list.parse_non_empty_nested_metas()?;
 
 				for meta in &nested {
 					if let Meta::Path(path) = meta {
