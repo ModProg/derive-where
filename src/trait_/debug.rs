@@ -50,11 +50,17 @@ impl TraitImpl for Debug {
 					.iter_field_ident(**trait_)
 					.map(|field| field.to_string());
 
+				let finish = if data.any_skip_trait(**trait_) {
+					quote! { finish_non_exhaustive }
+				} else {
+					quote! { finish }
+				};
+
 				quote! {
 					#self_pattern => {
 						let mut __builder = ::core::fmt::Formatter::debug_struct(__f, #debug_name);
 						#(::core::fmt::DebugStruct::field(&mut __builder, #debug_fields, #self_ident);)*
-						::core::fmt::DebugStruct::finish(&mut __builder)
+						::core::fmt::DebugStruct::#finish(&mut __builder)
 					}
 				}
 			}

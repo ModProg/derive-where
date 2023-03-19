@@ -1,9 +1,9 @@
 #![allow(clippy::clone_on_copy)]
 
-// Necessary for rustfmt.
-#[path = "util.rs"]
 #[macro_use]
 mod util;
+#[path = "skip/debug.rs"]
+mod debug;
 #[path = "skip/field.rs"]
 mod field;
 #[path = "skip/field_trait.rs"]
