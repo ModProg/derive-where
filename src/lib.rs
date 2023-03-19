@@ -393,10 +393,10 @@ use std::{borrow::Cow, iter};
 use proc_macro2::TokenStream;
 use quote::{quote, quote_spanned, ToTokens};
 use syn::{
-	punctuated::Punctuated, spanned::Spanned, Attribute, DataEnum, DataStruct, DataUnion,
-	DeriveInput, Expr, ExprLit, ExprPath, Fields, FieldsNamed, FieldsUnnamed, Generics, Lit, Meta,
-	Path, Token, Variant,
+	spanned::Spanned, Attribute, DataEnum, DataStruct, DataUnion, DeriveInput, Expr, ExprLit,
+	ExprPath, Fields, FieldsNamed, FieldsUnnamed, Generics, Lit, Meta, Path, Result, Variant,
 };
+use util::MetaListExt;
 
 #[cfg(feature = "zeroize")]
 use self::attr::ZeroizeFqs;
@@ -476,16 +476,14 @@ pub fn derive_where(
 }
 
 /// Convenient way to deal with [`Result`] for [`derive_where()`].
-fn derive_where_internal(mut item: DeriveInput) -> Result<TokenStream, syn::Error> {
+fn derive_where_internal(mut item: DeriveInput) -> Result<TokenStream> {
 	let mut crate_ = None;
 
 	// Search for `crate` option.
 	for attr in &item.attrs {
 		if attr.path().is_ident(DERIVE_WHERE) {
 			if let Meta::List(list) = &attr.meta {
-				if let Ok(nested) =
-					list.parse_args_with(Punctuated::<Meta, Token![,]>::parse_terminated)
-				{
+				if let Ok(nested) = list.parse_non_empty_nested_metas() {
 					if nested.len() == 1 {
 						let meta = nested.into_iter().next().expect("unexpected empty list");
 

@@ -1,10 +1,8 @@
 //! Attribute parsing for variants.
 
-use syn::{
-	punctuated::Punctuated, spanned::Spanned, Attribute, Fields, Meta, Result, Token, Variant,
-};
+use syn::{spanned::Spanned, Attribute, Fields, Meta, Result, Variant};
 
-use crate::{Default, DeriveWhere, Error, Incomparable, Skip, DERIVE_WHERE};
+use crate::{util::MetaListExt, Default, DeriveWhere, Error, Incomparable, Skip, DERIVE_WHERE};
 
 /// Attributes on variant.
 #[derive(Default)]
@@ -46,7 +44,7 @@ impl VariantAttr {
 		debug_assert!(meta.path().is_ident(DERIVE_WHERE));
 
 		if let Meta::List(list) = meta {
-			let nested = list.parse_args_with(Punctuated::<Meta, Token![,]>::parse_terminated)?;
+			let nested = list.parse_non_empty_nested_metas()?;
 
 			if nested.is_empty() {
 				return Err(Error::empty(list.span()));

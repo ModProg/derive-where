@@ -9,9 +9,3 @@ error: unsupported trait syntax, expected one of Clone, Copy, Debug, Default, Eq
   |
 5 | #[derive_where = "invalid"]
   |                  ^^^^^^^^^
-
-error[E0601]: `main` function not found in crate `$CRATE`
- --> tests/ui/zeroize/item_option_syntax.rs:6:48
-  |
-6 | struct WrongAttributeSyntax<T>(PhantomData<T>);
-  |                                                ^ consider adding a `main` function to `$DIR/tests/ui/zeroize/item_option_syntax.rs`

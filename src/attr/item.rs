@@ -11,7 +11,10 @@ use syn::{
 	TraitBoundModifier, Type, TypeParamBound, TypePath, WhereClause, WherePredicate,
 };
 
-use crate::{util, Error, Incomparable, Item, Skip, SkipGroup, Trait, TraitImpl, DERIVE_WHERE};
+use crate::{
+	util::{self, MetaListExt},
+	Error, Incomparable, Item, Skip, SkipGroup, Trait, TraitImpl, DERIVE_WHERE,
+};
 
 /// Attributes on item.
 #[derive(Default)]
@@ -163,6 +166,8 @@ impl DeriveWhere {
 			let mut generics = Vec::new();
 
 			// Check for an empty list is already done in `ItemAttr::from_attrs`.
+			assert!(!input.is_empty());
+
 			while !input.is_empty() {
 				// Start with parsing a trait.
 				// Not checking for duplicates here, we do that after merging `derive_where`s
@@ -478,12 +483,7 @@ impl DeriveTrait {
 				match &meta {
 					Meta::Path(path) => Ok((path.span(), trait_.default_derive_trait())),
 					Meta::List(list) => {
-						let nested =
-							list.parse_args_with(Punctuated::<Meta, Token![,]>::parse_terminated)?;
-
-						if nested.is_empty() {
-							return Err(Error::option_empty(list.span()));
-						}
+						let nested = list.parse_non_empty_nested_metas()?;
 
 						// This will return an error if no options are supported.
 						Ok((list.span(), trait_.parse_derive_trait(meta.span(), nested)?))
