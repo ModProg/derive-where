@@ -3,7 +3,7 @@
 use std::fmt::{self, Display, Formatter};
 
 use proc_macro2::{Span, TokenStream};
-use quote::{format_ident, IdentFragment, ToTokens, TokenStreamExt};
+use quote::{format_ident, IdentFragment, ToTokens};
 use syn::{ext::IdentExt, Attribute, FieldsNamed, FieldsUnnamed, Ident, Index, Result, Type};
 
 use crate::{DeriveWhere, FieldAttr, Skip, Trait};
@@ -41,8 +41,8 @@ impl IdentFragment for Member<'_> {
 impl ToTokens for Member<'_> {
 	fn to_tokens(&self, tokens: &mut TokenStream) {
 		match self {
-			Member::Named(ident) => tokens.append_all(Some(ident)),
-			Member::Unnamed(index) => tokens.append_all(Some(index)),
+			Member::Named(ident) => ident.to_tokens(tokens),
+			Member::Unnamed(index) => index.to_tokens(tokens),
 		}
 	}
 }
