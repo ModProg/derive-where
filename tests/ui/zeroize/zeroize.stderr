@@ -10,7 +10,7 @@ error: `Zeroize` doesn't support this option
 10 | #[derive_where(Zeroize(test = "test"))]
    |                        ^^^^
 
-error: expected path
+error: expected identifier
   --> tests/ui/zeroize/zeroize.rs:13:24
    |
 13 | #[derive_where(Zeroize("option"))]
@@ -28,7 +28,7 @@ error: expected expression
 19 | #[derive_where(Zeroize(crate = struct Test))]
    |                                ^^^^^^
 
-error: expected path, expected identifier
+error: expected path, expected identifier, found keyword `struct`
   --> tests/ui/zeroize/zeroize.rs:22:32
    |
 22 | #[derive_where(Zeroize(crate = "struct Test"))]
