@@ -20,7 +20,7 @@ error: unexpected option syntax
 13 | #[derive_where(crate(derive_where_))]
    |                ^^^^^^^^^^^^^^^^^^^^
 
-error: expected path, expected identifier
+error: expected path, expected identifier, found keyword `struct`
   --> tests/ui/item.rs:16:24
    |
 16 | #[derive_where(crate = "struct Test")]
