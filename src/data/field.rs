@@ -4,7 +4,7 @@ use std::fmt::{self, Display, Formatter};
 
 use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, IdentFragment, ToTokens, TokenStreamExt};
-use syn::{Attribute, FieldsNamed, FieldsUnnamed, Ident, Index, Result, Type};
+use syn::{ext::IdentExt, Attribute, FieldsNamed, FieldsUnnamed, Ident, Index, Result, Type};
 
 use crate::{DeriveWhere, FieldAttr, Skip, Trait};
 
@@ -50,7 +50,7 @@ impl ToTokens for Member<'_> {
 impl Display for Member<'_> {
 	fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
 		match self {
-			Member::Named(ident) => write!(f, "{}", ident),
+			Member::Named(ident) => write!(f, "{}", ident.unraw()),
 			Member::Unnamed(index) => write!(f, "{}", index.index),
 		}
 	}
