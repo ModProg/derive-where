@@ -16,8 +16,8 @@ fn basic() -> Result<()> {
 					use ::zeroize::Zeroize;
 
 					match self {
-						Test(ref mut __0) => {
-							__0.zeroize();
+						Test(ref mut __field_0) => {
+							__field_0.zeroize();
 						}
 					}
 				}
@@ -53,9 +53,9 @@ fn drop() -> Result<()> {
 					use ::zeroize::__internal::AssertZeroizeOnDrop;
 
 					match self {
-						Test(ref mut __0, ref mut __1) => {
-							__0.zeroize_or_on_drop();
-							__1.zeroize_or_on_drop();
+						Test(ref mut __field_0, ref mut __field_1) => {
+							__field_0.zeroize_or_on_drop();
+							__field_1.zeroize_or_on_drop();
 						}
 					}
 				}
@@ -90,9 +90,9 @@ fn both() -> Result<()> {
 				use ::zeroize::__internal::AssertZeroizeOnDrop;
 
 				match self {
-					Test(ref mut __0, ref mut __1) => {
-						__0.zeroize_or_on_drop();
-						__1.zeroize_or_on_drop();
+					Test(ref mut __field_0, ref mut __field_1) => {
+						__field_0.zeroize_or_on_drop();
+						__field_1.zeroize_or_on_drop();
 					}
 				}
 			}
@@ -116,9 +116,9 @@ fn both() -> Result<()> {
 					use ::zeroize::Zeroize;
 
 					match self {
-						Test(ref mut __0, ref mut __1) => {
-							__0.zeroize();
-							__1.zeroize();
+						Test(ref mut __field_0, ref mut __field_1) => {
+							__field_0.zeroize();
+							__field_1.zeroize();
 						}
 					}
 				}
@@ -144,8 +144,8 @@ fn crate_() -> Result<()> {
 					use zeroize_::Zeroize;
 
 					match self {
-						Test(ref mut __0) => {
-							__0.zeroize();
+						Test(ref mut __field_0) => {
+							__field_0.zeroize();
 						}
 					}
 				}
@@ -181,8 +181,8 @@ fn crate_drop() -> Result<()> {
 					use zeroize_::__internal::AssertZeroizeOnDrop;
 
 					match self {
-						Test(ref mut __0) => {
-							__0.zeroize_or_on_drop();
+						Test(ref mut __field_0) => {
+							__field_0.zeroize_or_on_drop();
 						}
 					}
 				}
@@ -208,8 +208,8 @@ fn fqs() -> Result<()> {
 					use ::zeroize::Zeroize;
 
 					match self {
-						Test(ref mut __0) => {
-							::zeroize::Zeroize::zeroize(__0);
+						Test(ref mut __field_0) => {
+							::zeroize::Zeroize::zeroize(__field_0);
 						}
 					}
 				}

@@ -15,8 +15,8 @@ fn struct_() -> Result<()> {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
 					match (self, __other) {
-						(Test { field: ref __field }, Test { field: ref __other_field }) =>
-							match ::core::cmp::PartialOrd::partial_cmp(__field, __other_field) {
+						(Test { field: ref __field_field }, Test { field: ref __other_field_field }) =>
+							match ::core::cmp::PartialOrd::partial_cmp(__field_field, __other_field_field) {
 								::core::option::Option::Some(::core::cmp::Ordering::Equal) => ::core::option::Option::Some(::core::cmp::Ordering::Equal),
 								__cmp => __cmp,
 							},
@@ -39,8 +39,8 @@ fn tuple() -> Result<()> {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
 					match (self, __other) {
-						(Test(ref __0), Test(ref __other_0)) =>
-							match ::core::cmp::PartialOrd::partial_cmp(__0, __other_0) {
+						(Test(ref __field_0), Test(ref __other_field_0)) =>
+							match ::core::cmp::PartialOrd::partial_cmp(__field_0, __other_field_0) {
 								::core::option::Option::Some(::core::cmp::Ordering::Equal) => ::core::option::Option::Some(::core::cmp::Ordering::Equal),
 								__cmp => __cmp,
 							},
@@ -77,13 +77,13 @@ fn enum_() -> Result<()> {
 	#[cfg(all(not(feature = "nightly"), feature = "safe"))]
 	let partial_ord = quote! {
 		match self {
-			Test::A { field: ref __field } => ::core::option::Option::Some(::core::cmp::Ordering::Less),
+			Test::A { field: ref __field_field } => ::core::option::Option::Some(::core::cmp::Ordering::Less),
 			Test::B { } =>
 				match __other {
 					Test::A { .. } => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
 					_ => ::core::option::Option::Some(::core::cmp::Ordering::Less),
 				},
-			Test::C(ref __0) =>
+			Test::C(ref __field_0) =>
 				match __other {
 					Test::A { .. } | Test::B { .. } => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
 					_ => ::core::option::Option::Some(::core::cmp::Ordering::Less),
@@ -116,13 +116,13 @@ fn enum_() -> Result<()> {
 
 					if __self_disc == __other_disc {
 						match (self, __other) {
-							(Test::A { field: ref __field }, Test::A { field: ref __other_field }) =>
-								match ::core::cmp::PartialOrd::partial_cmp(__field, __other_field) {
+							(Test::A { field: ref __field_field }, Test::A { field: ref __other_field_field }) =>
+								match ::core::cmp::PartialOrd::partial_cmp(__field_field, __other_field_field) {
 									::core::option::Option::Some(::core::cmp::Ordering::Equal) => ::core::option::Option::Some(::core::cmp::Ordering::Equal),
 									__cmp => __cmp,
 								},
-							(Test::C(ref __0), Test::C(ref __other_0)) =>
-								match ::core::cmp::PartialOrd::partial_cmp(__0, __other_0) {
+							(Test::C(ref __field_0), Test::C(ref __other_field_0)) =>
+								match ::core::cmp::PartialOrd::partial_cmp(__field_0, __other_field_0) {
 									::core::option::Option::Some(::core::cmp::Ordering::Equal) => ::core::option::Option::Some(::core::cmp::Ordering::Equal),
 									__cmp => __cmp,
 								},
@@ -176,9 +176,9 @@ fn bound() -> Result<()> {
 				#[inline]
 				fn cmp(&self, __other: &Self) -> ::core::cmp::Ordering {
 					match (self, __other) {
-						(Test(ref __0, ref __1), Test(ref __other_0, ref __other_1)) =>
-							match ::core::cmp::Ord::cmp(__0, __other_0) {
-								::core::cmp::Ordering::Equal => match ::core::cmp::Ord::cmp(__1, __other_1) {
+						(Test(ref __field_0, ref __field_1), Test(ref __other_field_0, ref __other_field_1)) =>
+							match ::core::cmp::Ord::cmp(__field_0, __other_field_0) {
+								::core::cmp::Ordering::Equal => match ::core::cmp::Ord::cmp(__field_1, __other_field_1) {
 									::core::cmp::Ordering::Equal => ::core::cmp::Ordering::Equal,
 									__cmp => __cmp,
 								},
@@ -192,9 +192,9 @@ fn bound() -> Result<()> {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
 					match (self, __other) {
-						(Test(ref __0, ref __1), Test(ref __other_0, ref __other_1)) =>
-							match ::core::cmp::PartialOrd::partial_cmp(__0, __other_0) {
-								::core::option::Option::Some(::core::cmp::Ordering::Equal) => match ::core::cmp::PartialOrd::partial_cmp(__1, __other_1) {
+						(Test(ref __field_0, ref __field_1), Test(ref __other_field_0, ref __other_field_1)) =>
+							match ::core::cmp::PartialOrd::partial_cmp(__field_0, __other_field_0) {
+								::core::option::Option::Some(::core::cmp::Ordering::Equal) => match ::core::cmp::PartialOrd::partial_cmp(__field_1, __other_field_1) {
 									::core::option::Option::Some(::core::cmp::Ordering::Equal) => ::core::option::Option::Some(::core::cmp::Ordering::Equal),
 									__cmp => __cmp,
 								},

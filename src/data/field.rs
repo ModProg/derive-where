@@ -110,8 +110,8 @@ impl<'a> Field<'a> {
 		type_: &'a Type,
 	) -> Result<Self> {
 		let attr = FieldAttr::from_attrs(derive_wheres, skip_inner, attrs)?;
-		let self_ident = format_ident!("__{}", member);
-		let other_ident = format_ident!("__other_{}", member);
+		let self_ident = format_ident!("__field_{}", member);
+		let other_ident = format_ident!("__other_field_{}", member);
 
 		Ok(Self {
 			attr,

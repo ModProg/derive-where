@@ -17,7 +17,7 @@ fn bound() -> Result<()> {
 				#[inline]
 				fn clone(&self) -> Self {
 					match self {
-						Test(ref __0, ref __1) => Test(::core::clone::Clone::clone(__0), ::core::clone::Clone::clone(__1)),
+						Test(ref __field_0, ref __field_1) => Test(::core::clone::Clone::clone(__field_0), ::core::clone::Clone::clone(__field_1)),
 					}
 				}
 			}
@@ -41,7 +41,7 @@ fn bound_multiple() -> Result<()> {
 				#[inline]
 				fn clone(&self) -> Self {
 					match self {
-						Test(ref __0, ref __1) => Test(::core::clone::Clone::clone(__0), ::core::clone::Clone::clone(__1)),
+						Test(ref __field_0, ref __field_1) => Test(::core::clone::Clone::clone(__field_0), ::core::clone::Clone::clone(__field_1)),
 					}
 				}
 			}
@@ -63,7 +63,7 @@ fn custom_bound() -> Result<()> {
 				#[inline]
 				fn clone(&self) -> Self {
 					match self {
-						Test(ref __0) => Test(::core::clone::Clone::clone(__0)),
+						Test(ref __field_0) => Test(::core::clone::Clone::clone(__field_0)),
 					}
 				}
 			}
@@ -87,7 +87,7 @@ fn where_() -> Result<()> {
 				#[inline]
 				fn clone(&self) -> Self {
 					match self {
-						Test(ref __0, ref __1) => Test(::core::clone::Clone::clone(__0), ::core::clone::Clone::clone(__1)),
+						Test(ref __field_0, ref __field_1) => Test(::core::clone::Clone::clone(__field_0), ::core::clone::Clone::clone(__field_1)),
 					}
 				}
 			}
@@ -109,7 +109,7 @@ fn associated_type() -> Result<()> {
 				#[inline]
 				fn clone(&self) -> Self {
 					match self {
-						Test(ref __0) => Test(::core::clone::Clone::clone(__0)),
+						Test(ref __field_0) => Test(::core::clone::Clone::clone(__field_0)),
 					}
 				}
 			}
@@ -131,7 +131,7 @@ fn associated_type_custom_bound() -> Result<()> {
 				#[inline]
 				fn clone(&self) -> Self {
 					match self {
-						Test(ref __0) => Test(::core::clone::Clone::clone(__0)),
+						Test(ref __field_0) => Test(::core::clone::Clone::clone(__field_0)),
 					}
 				}
 			}
@@ -165,10 +165,10 @@ fn check_trait_bounds() -> Result<()> {
 			{
 				fn fmt(&self, __f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
 					match self {
-						Test(ref __0, ref __1) => {
+						Test(ref __field_0, ref __field_1) => {
 							let mut __builder = ::core::fmt::Formatter::debug_tuple(__f, "Test");
-							::core::fmt::DebugTuple::field(&mut __builder, __0);
-							::core::fmt::DebugTuple::field(&mut __builder, __1);
+							::core::fmt::DebugTuple::field(&mut __builder, __field_0);
+							::core::fmt::DebugTuple::field(&mut __builder, __field_1);
 							::core::fmt::DebugTuple::finish(&mut __builder)
 						}
 					}
@@ -201,9 +201,9 @@ fn check_trait_bounds() -> Result<()> {
 			{
 				fn hash<__H: ::core::hash::Hasher>(&self, __state: &mut __H) {
 					match self {
-						Test(ref __0, ref __1) => {
-							::core::hash::Hash::hash(__0, __state);
-							::core::hash::Hash::hash(__1, __state);
+						Test(ref __field_0, ref __field_1) => {
+							::core::hash::Hash::hash(__field_0, __state);
+							::core::hash::Hash::hash(__field_1, __state);
 						}
 					}
 				}
@@ -215,9 +215,9 @@ fn check_trait_bounds() -> Result<()> {
 				#[inline]
 				fn cmp(&self, __other: &Self) -> ::core::cmp::Ordering {
 					match (self, __other) {
-						(Test(ref __0, ref __1), Test(ref __other_0, ref __other_1)) =>
-							match ::core::cmp::Ord::cmp(__0, __other_0) {
-								::core::cmp::Ordering::Equal => match ::core::cmp::Ord::cmp(__1, __other_1) {
+						(Test(ref __field_0, ref __field_1), Test(ref __other_field_0, ref __other_field_1)) =>
+							match ::core::cmp::Ord::cmp(__field_0, __other_field_0) {
+								::core::cmp::Ordering::Equal => match ::core::cmp::Ord::cmp(__field_1, __other_field_1) {
 									::core::cmp::Ordering::Equal => ::core::cmp::Ordering::Equal,
 									__cmp => __cmp,
 								},
@@ -233,10 +233,10 @@ fn check_trait_bounds() -> Result<()> {
 				#[inline]
 				fn eq(&self, __other: &Self) -> bool {
 					match (self, __other) {
-						(Test(ref __0, ref __1), Test(ref __other_0, ref __other_1)) =>
+						(Test(ref __field_0, ref __field_1), Test(ref __other_field_0, ref __other_field_1)) =>
 							true
-							&& ::core::cmp::PartialEq::eq(__0, __other_0)
-							&& ::core::cmp::PartialEq::eq(__1, __other_1),
+							&& ::core::cmp::PartialEq::eq(__field_0, __other_field_0)
+							&& ::core::cmp::PartialEq::eq(__field_1, __other_field_1),
 					}
 				}
 			}
@@ -285,10 +285,10 @@ fn check_multiple_trait_bounds() -> Result<()> {
 			{
 				fn fmt(&self, __f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
 					match self {
-						Test(ref __0, ref __1) => {
+						Test(ref __field_0, ref __field_1) => {
 							let mut __builder = ::core::fmt::Formatter::debug_tuple(__f, "Test");
-							::core::fmt::DebugTuple::field(&mut __builder, __0);
-							::core::fmt::DebugTuple::field(&mut __builder, __1);
+							::core::fmt::DebugTuple::field(&mut __builder, __field_0);
+							::core::fmt::DebugTuple::field(&mut __builder, __field_1);
 							::core::fmt::DebugTuple::finish(&mut __builder)
 						}
 					}
@@ -327,9 +327,9 @@ fn check_multiple_trait_bounds() -> Result<()> {
 			{
 				fn hash<__H: ::core::hash::Hasher>(&self, __state: &mut __H) {
 					match self {
-						Test(ref __0, ref __1) => {
-							::core::hash::Hash::hash(__0, __state);
-							::core::hash::Hash::hash(__1, __state);
+						Test(ref __field_0, ref __field_1) => {
+							::core::hash::Hash::hash(__field_0, __state);
+							::core::hash::Hash::hash(__field_1, __state);
 						}
 					}
 				}
@@ -343,9 +343,9 @@ fn check_multiple_trait_bounds() -> Result<()> {
 				#[inline]
 				fn cmp(&self, __other: &Self) -> ::core::cmp::Ordering {
 					match (self, __other) {
-						(Test(ref __0, ref __1), Test(ref __other_0, ref __other_1)) =>
-							match ::core::cmp::Ord::cmp(__0, __other_0) {
-								::core::cmp::Ordering::Equal => match ::core::cmp::Ord::cmp(__1, __other_1) {
+						(Test(ref __field_0, ref __field_1), Test(ref __other_field_0, ref __other_field_1)) =>
+							match ::core::cmp::Ord::cmp(__field_0, __other_field_0) {
+								::core::cmp::Ordering::Equal => match ::core::cmp::Ord::cmp(__field_1, __other_field_1) {
 									::core::cmp::Ordering::Equal => ::core::cmp::Ordering::Equal,
 									__cmp => __cmp,
 								},
@@ -363,10 +363,10 @@ fn check_multiple_trait_bounds() -> Result<()> {
 				#[inline]
 				fn eq(&self, __other: &Self) -> bool {
 					match (self, __other) {
-						(Test(ref __0, ref __1), Test(ref __other_0, ref __other_1)) =>
+						(Test(ref __field_0, ref __field_1), Test(ref __other_field_0, ref __other_field_1)) =>
 							true
-							&& ::core::cmp::PartialEq::eq(__0, __other_0)
-							&& ::core::cmp::PartialEq::eq(__1, __other_1),
+							&& ::core::cmp::PartialEq::eq(__field_0, __other_field_0)
+							&& ::core::cmp::PartialEq::eq(__field_1, __other_field_1),
 					}
 				}
 			}

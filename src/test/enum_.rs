@@ -82,8 +82,8 @@ fn one_data() -> Result<()> {
 				#[inline]
 				fn eq(&self, __other: &Self) -> bool {
 					match (self, __other) {
-						(Test::A(ref __0), Test::A(ref __other_0)) =>
-							true && ::core::cmp::PartialEq::eq(__0, __other_0),
+						(Test::A(ref __field_0), Test::A(ref __other_field_0)) =>
+							true && ::core::cmp::PartialEq::eq(__field_0, __other_field_0),
 					}
 				}
 			}
@@ -92,8 +92,8 @@ fn one_data() -> Result<()> {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
 					match (self, __other) {
-						(Test::A(ref __0), Test::A(ref __other_0)) =>
-							match ::core::cmp::PartialOrd::partial_cmp(__0, __other_0) {
+						(Test::A(ref __field_0), Test::A(ref __other_field_0)) =>
+							match ::core::cmp::PartialOrd::partial_cmp(__field_0, __other_field_0) {
 								::core::option::Option::Some(::core::cmp::Ordering::Equal) => ::core::option::Option::Some(::core::cmp::Ordering::Equal),
 								__cmp => __cmp,
 							},
@@ -134,8 +134,8 @@ fn two_data() -> Result<()> {
 	#[cfg(all(not(feature = "nightly"), feature = "safe"))]
 	let partial_ord = quote! {
 		match self {
-			Test::A(ref __0) => ::core::option::Option::Some(::core::cmp::Ordering::Less),
-			Test::B(ref __0) => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
+			Test::A(ref __field_0) => ::core::option::Option::Some(::core::cmp::Ordering::Less),
+			Test::B(ref __field_0) => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
 		}
 	};
 
@@ -150,10 +150,10 @@ fn two_data() -> Result<()> {
 				fn eq(&self, __other: &Self) -> bool {
 					if ::core::mem::discriminant(self) == ::core::mem::discriminant(__other) {
 						match (self, __other) {
-							(Test::A(ref __0), Test::A(ref __other_0)) =>
-								true && ::core::cmp::PartialEq::eq(__0, __other_0),
-							(Test::B(ref __0), Test::B(ref __other_0)) =>
-								true && ::core::cmp::PartialEq::eq(__0, __other_0),
+							(Test::A(ref __field_0), Test::A(ref __other_field_0)) =>
+								true && ::core::cmp::PartialEq::eq(__field_0, __other_field_0),
+							(Test::B(ref __field_0), Test::B(ref __other_field_0)) =>
+								true && ::core::cmp::PartialEq::eq(__field_0, __other_field_0),
 							_ => #unreachable,
 						}
 					} else {
@@ -169,13 +169,13 @@ fn two_data() -> Result<()> {
 
 					if __self_disc == __other_disc {
 						match (self, __other) {
-							(Test::A(ref __0), Test::A(ref __other_0)) =>
-								match ::core::cmp::PartialOrd::partial_cmp(__0, __other_0) {
+							(Test::A(ref __field_0), Test::A(ref __other_field_0)) =>
+								match ::core::cmp::PartialOrd::partial_cmp(__field_0, __other_field_0) {
 									::core::option::Option::Some(::core::cmp::Ordering::Equal) => ::core::option::Option::Some(::core::cmp::Ordering::Equal),
 									__cmp => __cmp,
 								},
-							(Test::B(ref __0), Test::B(ref __other_0)) =>
-								match ::core::cmp::PartialOrd::partial_cmp(__0, __other_0) {
+							(Test::B(ref __field_0), Test::B(ref __other_field_0)) =>
+								match ::core::cmp::PartialOrd::partial_cmp(__field_0, __other_field_0) {
 									::core::option::Option::Some(::core::cmp::Ordering::Equal) => ::core::option::Option::Some(::core::cmp::Ordering::Equal),
 									__cmp => __cmp,
 								},
@@ -216,7 +216,7 @@ fn unit() -> Result<()> {
 	#[cfg(all(not(feature = "nightly"), feature = "safe"))]
 	let partial_ord = quote! {
 		match self {
-			Test::A(ref __0) => ::core::option::Option::Some(::core::cmp::Ordering::Less),
+			Test::A(ref __field_0) => ::core::option::Option::Some(::core::cmp::Ordering::Less),
 			Test::B => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
 		}
 	};
@@ -232,8 +232,8 @@ fn unit() -> Result<()> {
 				fn eq(&self, __other: &Self) -> bool {
 					if ::core::mem::discriminant(self) == ::core::mem::discriminant(__other) {
 						match (self, __other) {
-							(Test::A(ref __0), Test::A(ref __other_0)) =>
-								true && ::core::cmp::PartialEq::eq(__0, __other_0),
+							(Test::A(ref __field_0), Test::A(ref __other_field_0)) =>
+								true && ::core::cmp::PartialEq::eq(__field_0, __other_field_0),
 							_ => true,
 						}
 					} else {
@@ -249,8 +249,8 @@ fn unit() -> Result<()> {
 
 					if __self_disc == __other_disc {
 						match (self, __other) {
-							(Test::A(ref __0), Test::A(ref __other_0)) =>
-								match ::core::cmp::PartialOrd::partial_cmp(__0, __other_0) {
+							(Test::A(ref __field_0), Test::A(ref __other_field_0)) =>
+								match ::core::cmp::PartialOrd::partial_cmp(__field_0, __other_field_0) {
 									::core::option::Option::Some(::core::cmp::Ordering::Equal) => ::core::option::Option::Some(::core::cmp::Ordering::Equal),
 									__cmp => __cmp,
 								},
@@ -291,7 +291,7 @@ fn struct_unit() -> Result<()> {
 	#[cfg(all(not(feature = "nightly"), feature = "safe"))]
 	let partial_ord = quote! {
 		match self {
-			Test::A(ref __0) => ::core::option::Option::Some(::core::cmp::Ordering::Less),
+			Test::A(ref __field_0) => ::core::option::Option::Some(::core::cmp::Ordering::Less),
 			Test::B { } => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
 		}
 	};
@@ -307,8 +307,8 @@ fn struct_unit() -> Result<()> {
 				fn eq(&self, __other: &Self) -> bool {
 					if ::core::mem::discriminant(self) == ::core::mem::discriminant(__other) {
 						match (self, __other) {
-							(Test::A(ref __0), Test::A(ref __other_0)) =>
-								true && ::core::cmp::PartialEq::eq(__0, __other_0),
+							(Test::A(ref __field_0), Test::A(ref __other_field_0)) =>
+								true && ::core::cmp::PartialEq::eq(__field_0, __other_field_0),
 							_ => true,
 						}
 					} else {
@@ -324,8 +324,8 @@ fn struct_unit() -> Result<()> {
 
 					if __self_disc == __other_disc {
 						match (self, __other) {
-							(Test::A(ref __0), Test::A(ref __other_0)) =>
-								match ::core::cmp::PartialOrd::partial_cmp(__0, __other_0) {
+							(Test::A(ref __field_0), Test::A(ref __other_field_0)) =>
+								match ::core::cmp::PartialOrd::partial_cmp(__field_0, __other_field_0) {
 									::core::option::Option::Some(::core::cmp::Ordering::Equal) => ::core::option::Option::Some(::core::cmp::Ordering::Equal),
 									__cmp => __cmp,
 								},
@@ -366,7 +366,7 @@ fn tuple_unit() -> Result<()> {
 	#[cfg(all(not(feature = "nightly"), feature = "safe"))]
 	let partial_ord = quote! {
 		match self {
-			Test::A(ref __0) => ::core::option::Option::Some(::core::cmp::Ordering::Less),
+			Test::A(ref __field_0) => ::core::option::Option::Some(::core::cmp::Ordering::Less),
 			Test::B() => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
 		}
 	};
@@ -382,8 +382,8 @@ fn tuple_unit() -> Result<()> {
 				fn eq(&self, __other: &Self) -> bool {
 					if ::core::mem::discriminant(self) == ::core::mem::discriminant(__other) {
 						match (self, __other) {
-							(Test::A(ref __0), Test::A(ref __other_0)) =>
-								true && ::core::cmp::PartialEq::eq(__0, __other_0),
+							(Test::A(ref __field_0), Test::A(ref __other_field_0)) =>
+								true && ::core::cmp::PartialEq::eq(__field_0, __other_field_0),
 							_ => true,
 						}
 					} else {
@@ -399,8 +399,8 @@ fn tuple_unit() -> Result<()> {
 
 					if __self_disc == __other_disc {
 						match (self, __other) {
-							(Test::A(ref __0), Test::A(ref __other_0)) =>
-								match ::core::cmp::PartialOrd::partial_cmp(__0, __other_0) {
+							(Test::A(ref __field_0), Test::A(ref __other_field_0)) =>
+								match ::core::cmp::PartialOrd::partial_cmp(__field_0, __other_field_0) {
 									::core::option::Option::Some(::core::cmp::Ordering::Equal) => ::core::option::Option::Some(::core::cmp::Ordering::Equal),
 									__cmp => __cmp,
 								},
