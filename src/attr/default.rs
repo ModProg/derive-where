@@ -6,7 +6,7 @@ use syn::{spanned::Spanned, Meta, Result};
 use crate::{DeriveWhere, Error, Trait};
 
 /// Stores if this variant should be the default when implementing
-/// [`Default`](std::default::Default).
+/// [`Default`](trait@std::default::Default).
 #[derive(Clone, Copy, Default)]
 #[cfg_attr(test, derive(Debug))]
 pub struct Default(pub Option<Span>);

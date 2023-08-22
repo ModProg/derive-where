@@ -1,11 +1,12 @@
-//! [`Eq`](std::cmp::Eq) implementation.
+//! [`Eq`](trait@std::cmp::Eq) implementation.
 
 use proc_macro2::TokenStream;
 use quote::quote;
 
 use crate::{Data, DeriveTrait, Item, TraitImpl};
 
-/// Dummy-struct implement [`Trait`](crate::Trait) for [`Eq`](std::cmp::Eq).
+/// Dummy-struct implement [`Trait`](crate::Trait) for
+/// [`Eq`](trait@std::cmp::Eq).
 pub struct Eq;
 
 impl TraitImpl for Eq {

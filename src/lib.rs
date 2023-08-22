@@ -438,7 +438,7 @@ const DERIVE_WHERE_VISITED: &str = "derive_where_visited";
 ///
 /// Variant-level options:
 /// - `#[derive_where(default)]`: Uses this variant as the default for the
-///   [`Default`](core::default::Default) implementation.
+///   [`Default`](trait@core::default::Default) implementation.
 /// - `#[derive_where(skip_inner(EqHashOrd, ..))]`: Skip all fields in this
 ///   variant. Optionally specify trait groups to constrain skipping fields.
 ///
@@ -448,7 +448,7 @@ const DERIVE_WHERE_VISITED: &str = "derive_where_visited";
 /// - `#[derive_where(Zeroize(fqs))]`: Use fully-qualified-syntax when
 ///   implementing [`Zeroize`].
 ///
-/// See the [crate](crate) level description for more details.
+/// See the [crate] level description for more details.
 ///
 /// [`Zeroize`]: https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html
 /// [`ZeroizeOnDrop`]: https://docs.rs/zeroize/latest/zeroize/trait.ZeroizeOnDrop.html

@@ -1,4 +1,4 @@
-//! [`PartialOrd`](std::cmp::PartialOrd) implementation.
+//! [`PartialOrd`](trait@std::cmp::PartialOrd) implementation.
 
 use proc_macro2::TokenStream;
 use quote::quote;
@@ -7,7 +7,7 @@ use super::common_ord;
 use crate::{Data, DeriveTrait, Item, SimpleType, Trait, TraitImpl};
 
 /// Dummy-struct implement [`Trait`] for
-/// [`PartialOrd`](std::cmp::PartialOrd).
+/// [`PartialOrd`](trait@std::cmp::PartialOrd).
 pub struct PartialOrd;
 
 impl TraitImpl for PartialOrd {
