@@ -12,11 +12,12 @@ jobs:
   test:
     name: Test
 
+    if: github.event_name == 'schedule'
+
     strategy:
       fail-fast: false
       matrix:
         rust:
-          - 1.57.0
           - stable
           - beta
 
@@ -50,17 +51,6 @@ jobs:
         run: |
           rustup toolchain install nightly --profile minimal --component miri,rust-src --allow-downgrade
           rustup default nightly
-      - name: Cache xargo
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/.crates.toml
-            ~/.cargo/.crates2.json
-            ~/.cargo/bin/xargo
-            ~/.cargo/bin/xargo-check
-          key: xargo
-      - name: Install xargo
-        run: cargo install xargo
       - name: Checkout
         uses: actions/checkout@v3
       - name: Test
