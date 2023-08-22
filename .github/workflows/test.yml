@@ -104,8 +104,6 @@ jobs:
             features: safe,zeroize-on-drop
           - version: stable
             features: safe,zeroize-on-drop
-          - version: nightly
-            features: nightly,safe,zeroize-on-drop
 
     runs-on: ubuntu-latest
 
