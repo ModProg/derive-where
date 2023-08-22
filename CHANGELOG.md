@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.2.2] - 2023-08-22
 
 ### Fixed
 - Avoid collisions between field names and trait method parameters.
@@ -13,12 +13,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - `PartialOrd` implementations now use `Ord` if applicable.
 
-## [1.2.1] - 2022-04-14
+## [1.2.1] - 2023-04-14
 
 ### Fixed
 - Correctly handle raw identifiers in named fields.
 
-## [1.2.0] - 2022-03-19
+## [1.2.0] - 2023-03-19
 
 ### Changed
 - Updated `syn` to v2.
@@ -28,7 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The `crate` attribute now takes a bare path instead of a path inside a string
   literal.
 
-## [1.1.0] - 2022-02-06
+## [1.1.0] - 2023-02-06
 
 ### Added
 - `incomparable` variant and item attribute for `PartialEq` and `PartialOrd`
@@ -64,7 +64,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Initial release.
 
-[unreleased]: https://github.com/ModProg/derive-where/compare/v1.2.1...HEAD
+[unreleased]: https://github.com/ModProg/derive-where/compare/v1.2.2...HEAD
+[1.2.2]: https://github.com/ModProg/derive-where/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/ModProg/derive-where/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/ModProg/derive-where/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/ModProg/derive-where/compare/v1.0.0...v1.1.0
