@@ -24,9 +24,9 @@ fn struct_() -> Result<()> {
 			impl<T> ::core::fmt::Debug for Test<T> {
 				fn fmt(&self, __f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
 					match self {
-						Test { field: ref __field } => {
+						Test { field: ref __field_field } => {
 							let mut __builder = ::core::fmt::Formatter::debug_struct(__f, "Test");
-							::core::fmt::DebugStruct::field(&mut __builder, "field", __field);
+							::core::fmt::DebugStruct::field(&mut __builder, "field", __field_field);
 							::core::fmt::DebugStruct::finish(&mut __builder)
 						}
 					}
@@ -52,7 +52,7 @@ fn struct_() -> Result<()> {
 			impl<T> ::core::hash::Hash for Test<T> {
 				fn hash<__H: ::core::hash::Hasher>(&self, __state: &mut __H) {
 					match self {
-						Test { field: ref __field } => { ::core::hash::Hash::hash(__field, __state); }
+						Test { field: ref __field_field } => { ::core::hash::Hash::hash(__field_field, __state); }
 					}
 				}
 			}
@@ -61,8 +61,8 @@ fn struct_() -> Result<()> {
 				#[inline]
 				fn cmp(&self, __other: &Self) -> ::core::cmp::Ordering {
 					match (self, __other) {
-						(Test { field: ref __field }, Test { field: ref __other_field }) =>
-							match ::core::cmp::Ord::cmp(__field, __other_field) {
+						(Test { field: ref __field_field }, Test { field: ref __other_field_field }) =>
+							match ::core::cmp::Ord::cmp(__field_field, __other_field_field) {
 								::core::cmp::Ordering::Equal => ::core::cmp::Ordering::Equal,
 								__cmp => __cmp,
 							},
@@ -74,8 +74,8 @@ fn struct_() -> Result<()> {
 				#[inline]
 				fn eq(&self, __other: &Self) -> bool {
 					match (self, __other) {
-						(Test { field: ref __field }, Test { field: ref __other_field }) =>
-							true && ::core::cmp::PartialEq::eq(__field, __other_field),
+						(Test { field: ref __field_field }, Test { field: ref __other_field_field }) =>
+							true && ::core::cmp::PartialEq::eq(__field_field, __other_field_field),
 					}
 				}
 			}
@@ -111,9 +111,9 @@ fn tuple() -> Result<()> {
 			impl<T> ::core::fmt::Debug for Test<T> {
 				fn fmt(&self, __f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
 					match self {
-						Test(ref __0) => {
+						Test(ref __field_0) => {
 							let mut __builder = ::core::fmt::Formatter::debug_tuple(__f, "Test");
-							::core::fmt::DebugTuple::field(&mut __builder, __0);
+							::core::fmt::DebugTuple::field(&mut __builder, __field_0);
 							::core::fmt::DebugTuple::finish(&mut __builder)
 						}
 					}
@@ -139,7 +139,7 @@ fn tuple() -> Result<()> {
 			impl<T> ::core::hash::Hash for Test<T> {
 				fn hash<__H: ::core::hash::Hasher>(&self, __state: &mut __H) {
 					match self {
-						Test(ref __0) => { ::core::hash::Hash::hash(__0, __state); }
+						Test(ref __field_0) => { ::core::hash::Hash::hash(__field_0, __state); }
 					}
 				}
 			}
@@ -148,8 +148,8 @@ fn tuple() -> Result<()> {
 				#[inline]
 				fn cmp(&self, __other: &Self) -> ::core::cmp::Ordering {
 					match (self, __other) {
-						(Test(ref __0), Test(ref __other_0)) =>
-							match ::core::cmp::Ord::cmp(__0, __other_0) {
+						(Test(ref __field_0), Test(ref __other_field_0)) =>
+							match ::core::cmp::Ord::cmp(__field_0, __other_field_0) {
 								::core::cmp::Ordering::Equal => ::core::cmp::Ordering::Equal,
 								__cmp => __cmp,
 							},
@@ -161,8 +161,8 @@ fn tuple() -> Result<()> {
 				#[inline]
 				fn eq(&self, __other: &Self) -> bool {
 					match (self, __other) {
-						(Test(ref __0), Test(ref __other_0)) =>
-							true && ::core::cmp::PartialEq::eq(__0, __other_0),
+						(Test(ref __field_0), Test(ref __other_field_0)) =>
+							true && ::core::cmp::PartialEq::eq(__field_0, __other_field_0),
 					}
 				}
 			}
@@ -204,13 +204,13 @@ fn enum_() -> Result<()> {
 	#[cfg(all(not(feature = "nightly"), feature = "safe"))]
 	let ord = quote! {
 		match self {
-			Test::A { field: ref __field } => ::core::cmp::Ordering::Less,
+			Test::A { field: ref __field_field } => ::core::cmp::Ordering::Less,
 			Test::B { } =>
 				match __other {
 					Test::A { .. } => ::core::cmp::Ordering::Greater,
 					_ => ::core::cmp::Ordering::Less,
 				},
-			Test::C(ref __0) =>
+			Test::C(ref __field_0) =>
 				match __other {
 					Test::A { .. } | Test::B { .. } => ::core::cmp::Ordering::Greater,
 					_ => ::core::cmp::Ordering::Less,
@@ -250,18 +250,18 @@ fn enum_() -> Result<()> {
 			impl<T> ::core::fmt::Debug for Test<T> {
 				fn fmt(&self, __f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
 					match self {
-						Test::A { field: ref __field } => {
+						Test::A { field: ref __field_field } => {
 							let mut __builder = ::core::fmt::Formatter::debug_struct(__f, "A");
-							::core::fmt::DebugStruct::field(&mut __builder, "field", __field);
+							::core::fmt::DebugStruct::field(&mut __builder, "field", __field_field);
 							::core::fmt::DebugStruct::finish(&mut __builder)
 						}
 						Test::B { } => {
 							let mut __builder = ::core::fmt::Formatter::debug_struct(__f, "B");
 							::core::fmt::DebugStruct::finish(&mut __builder)
 						}
-						Test::C(ref __0) => {
+						Test::C(ref __field_0) => {
 							let mut __builder = ::core::fmt::Formatter::debug_tuple(__f, "C");
-							::core::fmt::DebugTuple::field(&mut __builder, __0);
+							::core::fmt::DebugTuple::field(&mut __builder, __field_0);
 							::core::fmt::DebugTuple::finish(&mut __builder)
 						}
 						Test::D() => {
@@ -293,16 +293,16 @@ fn enum_() -> Result<()> {
 			impl<T> ::core::hash::Hash for Test<T> {
 				fn hash<__H: ::core::hash::Hasher>(&self, __state: &mut __H) {
 					match self {
-						Test::A { field: ref __field } => {
+						Test::A { field: ref __field_field } => {
 							::core::hash::Hash::hash(&::core::mem::discriminant(self), __state);
-							::core::hash::Hash::hash(__field, __state);
+							::core::hash::Hash::hash(__field_field, __state);
 						}
 						Test::B { } => {
 							::core::hash::Hash::hash(&::core::mem::discriminant(self), __state);
 						}
-						Test::C(ref __0) => {
+						Test::C(ref __field_0) => {
 							::core::hash::Hash::hash(&::core::mem::discriminant(self), __state);
-							::core::hash::Hash::hash(__0, __state);
+							::core::hash::Hash::hash(__field_0, __state);
 						}
 						Test::D() => {
 							::core::hash::Hash::hash(&::core::mem::discriminant(self), __state);
@@ -321,13 +321,13 @@ fn enum_() -> Result<()> {
 
 					if __self_disc == __other_disc {
 						match (self, __other) {
-							(Test::A { field: ref __field }, Test::A { field: ref __other_field }) =>
-								match ::core::cmp::Ord::cmp(__field, __other_field) {
+							(Test::A { field: ref __field_field }, Test::A { field: ref __other_field_field }) =>
+								match ::core::cmp::Ord::cmp(__field_field, __other_field_field) {
 									::core::cmp::Ordering::Equal => ::core::cmp::Ordering::Equal,
 									__cmp => __cmp,
 								},
-							(Test::C(ref __0), Test::C(ref __other_0)) =>
-								match ::core::cmp::Ord::cmp(__0, __other_0) {
+							(Test::C(ref __field_0), Test::C(ref __other_field_0)) =>
+								match ::core::cmp::Ord::cmp(__field_0, __other_field_0) {
 									::core::cmp::Ordering::Equal => ::core::cmp::Ordering::Equal,
 									__cmp => __cmp,
 								},
@@ -344,10 +344,10 @@ fn enum_() -> Result<()> {
 				fn eq(&self, __other: &Self) -> bool {
 					if ::core::mem::discriminant(self) == ::core::mem::discriminant(__other) {
 						match (self, __other) {
-							(Test::A { field: ref __field }, Test::A { field: ref __other_field }) =>
-								true && ::core::cmp::PartialEq::eq(__field, __other_field),
-							(Test::C(ref __0), Test::C(ref __other_0)) =>
-								true && ::core::cmp::PartialEq::eq(__0, __other_0),
+							(Test::A { field: ref __field_field }, Test::A { field: ref __other_field_field }) =>
+								true && ::core::cmp::PartialEq::eq(__field_field, __other_field_field),
+							(Test::C(ref __field_0), Test::C(ref __other_field_0)) =>
+								true && ::core::cmp::PartialEq::eq(__field_0, __other_field_0),
 							_ => true,
 						}
 					} else {

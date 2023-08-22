@@ -15,7 +15,7 @@ fn struct_() -> Result<()> {
 				#[inline]
 				fn clone(&self) -> Self {
 					match self {
-						Test { field: ref __field } => Test { field: ::core::clone::Clone::clone(__field) },
+						Test { field: ref __field_field } => Test { field: ::core::clone::Clone::clone(__field_field) },
 					}
 				}
 			}
@@ -35,7 +35,7 @@ fn tuple() -> Result<()> {
 				#[inline]
 				fn clone(&self) -> Self {
 					match self {
-						Test(ref __0) => Test(::core::clone::Clone::clone(__0)),
+						Test(ref __field_0) => Test(::core::clone::Clone::clone(__field_0)),
 					}
 				}
 			}
@@ -61,9 +61,9 @@ fn enum_() -> Result<()> {
 				#[inline]
 				fn clone(&self) -> Self {
 					match self {
-						Test::A { field: ref __field } => Test::A { field: ::core::clone::Clone::clone(__field) },
+						Test::A { field: ref __field_field } => Test::A { field: ::core::clone::Clone::clone(__field_field) },
 						Test::B { } => Test::B { },
-						Test::C(ref __0) => Test::C(::core::clone::Clone::clone(__0)),
+						Test::C(ref __field_0) => Test::C(::core::clone::Clone::clone(__field_0)),
 						Test::D() => Test::D(),
 						Test::E => Test::E,
 					}

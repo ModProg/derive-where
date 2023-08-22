@@ -15,7 +15,7 @@ fn struct_inner() -> Result<()> {
 			impl<T> ::core::fmt::Debug for Test<T> {
 				fn fmt(&self, __f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
 					match self {
-						Test(ref __0) => {
+						Test(ref __field_0) => {
 							let mut __builder = ::core::fmt::Formatter::debug_tuple(__f, "Test");
 							::core::fmt::DebugTuple::finish(&mut __builder)
 						}
@@ -40,7 +40,7 @@ fn enum_inner() -> Result<()> {
 			impl<T> ::core::fmt::Debug for Test<T> {
 				fn fmt(&self, __f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
 					match self {
-						Test::A(ref __0) => {
+						Test::A(ref __field_0) => {
 							let mut __builder = ::core::fmt::Formatter::debug_tuple(__f, "A");
 							::core::fmt::DebugTuple::finish(&mut __builder)
 						}
@@ -118,8 +118,8 @@ fn variants_empty() -> Result<()> {
 	#[cfg(all(not(feature = "nightly"), feature = "safe"))]
 	let ord = quote! {
 		match self {
-			Test::A(ref __0) => ::core::cmp::Ordering::Less,
-			Test::B(ref __0) => ::core::cmp::Ordering::Greater,
+			Test::A(ref __field_0) => ::core::cmp::Ordering::Less,
+			Test::B(ref __field_0) => ::core::cmp::Ordering::Greater,
 		}
 	};
 
@@ -177,8 +177,8 @@ fn variants_partly_empty() -> Result<()> {
 	#[cfg(all(not(feature = "nightly"), feature = "safe"))]
 	let ord = quote! {
 		match self {
-			Test::A(ref __0) => ::core::cmp::Ordering::Less,
-			Test::B(ref __0, ref __1) => ::core::cmp::Ordering::Greater,
+			Test::A(ref __field_0) => ::core::cmp::Ordering::Less,
+			Test::B(ref __field_0, ref __field_1) => ::core::cmp::Ordering::Greater,
 		}
 	};
 
@@ -199,8 +199,8 @@ fn variants_partly_empty() -> Result<()> {
 
 					if __self_disc == __other_disc {
 						match (self , __other) {
-							(Test::B(ref __0, ref __1), Test::B(ref __other_0, ref __other_1)) =>
-								match ::core::cmp::Ord::cmp(__1 ,__other_1) {
+							(Test::B(ref __field_0, ref __field_1), Test::B(ref __other_field_0, ref __other_field_1)) =>
+								match ::core::cmp::Ord::cmp(__field_1 ,__other_field_1) {
 									::core::cmp::Ordering::Equal => ::core::cmp::Ordering::Equal, __cmp => __cmp,
 								},
 							_ => ::core::cmp::Ordering::Equal,

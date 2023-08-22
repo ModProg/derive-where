@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Avoid collisions between field names and trait method parameters.
+
 ### Changed
 - `PartialOrd` implementations now use `Ord` if applicable.
 

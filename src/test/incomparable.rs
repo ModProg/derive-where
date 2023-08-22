@@ -25,7 +25,7 @@ fn variants() -> Result<()> {
 				fn eq(&self, __other: &Self) -> bool {
 					if ::core::mem::discriminant(self) == ::core::mem::discriminant(__other) {
 						match (self, __other) {
-							(Test::C(ref __0), Test::C(ref __other_0)) => true && ::core::cmp::PartialEq::eq(__0, __other_0),
+							(Test::C(ref __field_0), Test::C(ref __other_field_0)) => true && ::core::cmp::PartialEq::eq(__field_0, __other_field_0),
 							(Test::B(..) | Test::D | Test::E {..}, ..) => false,
 							_ => true,
 						}
@@ -46,8 +46,8 @@ fn variants() -> Result<()> {
 					let __other_disc = ::core::mem::discriminant(__other);
 					if __self_disc == __other_disc {
 						match (self, __other) {
-							(Test::C(ref __0), Test::C(ref __other_0)) =>
-								match ::core::cmp::PartialOrd::partial_cmp(__0, __other_0) {
+							(Test::C(ref __field_0), Test::C(ref __other_field_0)) =>
+								match ::core::cmp::PartialOrd::partial_cmp(__field_0, __other_field_0) {
 									::core::option::Option::Some(::core::cmp::Ordering::Equal) =>
 										::core::option::Option::Some(::core::cmp::Ordering::Equal),
 									__cmp => __cmp,
@@ -244,8 +244,8 @@ fn enum_non_empty_and_incomparable_variant() -> Result<()> {
 				fn eq(&self, __other: &Self) -> bool {
 					if ::core::mem::discriminant(self) == ::core::mem::discriminant(__other) {
 						match (self, __other) {
-							(Test::B(ref __0), Test::B(ref __other_0)) =>
-								true && ::core::cmp::PartialEq::eq(__0, __other_0),
+							(Test::B(ref __field_0), Test::B(ref __other_field_0)) =>
+								true && ::core::cmp::PartialEq::eq(__field_0, __other_field_0),
 							(Test::A, ..) => false,
 							_ => unsafe { ::core::hint::unreachable_unchecked() },
 						}
@@ -261,8 +261,8 @@ fn enum_non_empty_and_incomparable_variant() -> Result<()> {
 						::core::option::Option::None
 					} else {
 						match (self, __other) {
-							(Test::B(ref __0), Test::B(ref __other_0)) =>
-								match ::core::cmp::PartialOrd::partial_cmp(__0, __other_0) {
+							(Test::B(ref __field_0), Test::B(ref __other_field_0)) =>
+								match ::core::cmp::PartialOrd::partial_cmp(__field_0, __other_field_0) {
 									::core::option::Option::Some(::core::cmp::Ordering::Equal) =>
 										::core::option::Option::Some(::core::cmp::Ordering::Equal),
 									__cmp => __cmp,
