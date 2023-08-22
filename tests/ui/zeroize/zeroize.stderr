@@ -22,7 +22,7 @@ error: unexpected option syntax
 16 | #[derive_where(Zeroize(crate(zeroize_)))]
    |                        ^^^^^^^^^^^^^^^
 
-error: expected expression
+error: expected an expression
   --> tests/ui/zeroize/zeroize.rs:19:32
    |
 19 | #[derive_where(Zeroize(crate = struct Test))]
