@@ -1,5 +1,9 @@
 #![deny(unsafe_code)]
-#![cfg_attr(feature = "nightly", feature(allow_internal_unstable))]
+#![cfg_attr(
+	feature = "nightly",
+	feature(allow_internal_unstable),
+	allow(internal_features)
+)]
 #![allow(clippy::tabs_in_doc_comments)]
 #![warn(clippy::cargo, clippy::missing_docs_in_private_items)]
 #![cfg_attr(doc, allow(unknown_lints), warn(rustdoc::all))]
