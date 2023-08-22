@@ -1,4 +1,4 @@
-//! [`Debug`](std::fmt::Debug) implementation.
+//! [`Debug`](trait@std::fmt::Debug) implementation.
 
 use proc_macro2::TokenStream;
 use quote::quote;
@@ -6,7 +6,7 @@ use quote::quote;
 use crate::{Data, DeriveTrait, Item, SimpleType, TraitImpl};
 
 /// Dummy-struct implement [`Trait`](crate::Trait) for
-/// [`Debug`](std::fmt::Debug).
+/// [`Debug`](trait@std::fmt::Debug).
 pub struct Debug;
 
 impl TraitImpl for Debug {

@@ -1,4 +1,4 @@
-//! [`Hash`](std::hash::Hash) implementation.
+//! [`Hash`](trait@std::hash::Hash) implementation.
 
 use proc_macro2::TokenStream;
 use quote::quote;
@@ -6,7 +6,7 @@ use quote::quote;
 use crate::{Data, DataType, DeriveTrait, Item, SimpleType, TraitImpl};
 
 /// Dummy-struct implement [`Trait`](crate::Trait) for
-/// [`Hash`](std::hash::Hash).
+/// [`Hash`](trait@std::hash::Hash).
 pub struct Hash;
 
 impl TraitImpl for Hash {

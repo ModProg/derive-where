@@ -1,4 +1,4 @@
-//! [`Ord`](std::cmp::Ord) implementation.
+//! [`Ord`](trait@std::cmp::Ord) implementation.
 
 use proc_macro2::TokenStream;
 use quote::quote;
@@ -6,7 +6,8 @@ use quote::quote;
 use super::common_ord;
 use crate::{Data, DeriveTrait, Item, SimpleType, TraitImpl};
 
-/// Dummy-struct implement [`Trait`](crate::Trait) for [`Ord`](std::cmp::Ord).
+/// Dummy-struct implement [`Trait`](crate::Trait) for
+/// [`Ord`](trait@std::cmp::Ord).
 pub struct Ord;
 
 impl TraitImpl for Ord {
