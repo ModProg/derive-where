@@ -4,9 +4,9 @@ use proc_macro2::TokenStream;
 use quote::quote;
 
 use super::common_ord;
-use crate::{Data, DeriveTrait, Item, SimpleType, TraitImpl};
+use crate::{Data, DeriveTrait, Item, SimpleType, Trait, TraitImpl};
 
-/// Dummy-struct implement [`Trait`](crate::Trait) for
+/// Dummy-struct implement [`Trait`] for
 /// [`PartialOrd`](std::cmp::PartialOrd).
 pub struct PartialOrd;
 
@@ -22,11 +22,17 @@ impl TraitImpl for PartialOrd {
 	fn build_signature(
 		&self,
 		item: &Item,
-		_traits: &[DeriveTrait],
+		traits: &[DeriveTrait],
 		trait_: &DeriveTrait,
 		body: &TokenStream,
 	) -> TokenStream {
-		let body = common_ord::build_ord_signature(item, trait_, body);
+		let body = if traits.iter().any(|trait_| trait_ == Trait::Ord) {
+			quote! {
+				::core::option::Option::Some(::core::cmp::Ord::cmp(self, __other))
+			}
+		} else {
+			common_ord::build_ord_signature(item, trait_, body)
+		};
 
 		quote! {
 			#[inline]
@@ -36,13 +42,11 @@ impl TraitImpl for PartialOrd {
 		}
 	}
 
-	fn build_body(
-		&self,
-		_traits: &[DeriveTrait],
-		trait_: &DeriveTrait,
-		data: &Data,
-	) -> TokenStream {
-		if data.is_empty(**trait_) || data.is_incomparable() {
+	fn build_body(&self, traits: &[DeriveTrait], trait_: &DeriveTrait, data: &Data) -> TokenStream {
+		if data.is_empty(**trait_)
+			|| data.is_incomparable()
+			|| traits.iter().any(|trait_| trait_ == Trait::Ord)
+		{
 			TokenStream::new()
 		} else {
 			match data.simple_type() {

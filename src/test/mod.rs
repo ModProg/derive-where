@@ -4,6 +4,7 @@ mod enum_;
 #[cfg(not(any(feature = "nightly", feature = "safe")))]
 mod incomparable;
 mod misc;
+mod partial_ord;
 mod skip;
 mod use_case;
 #[cfg(feature = "zeroize")]

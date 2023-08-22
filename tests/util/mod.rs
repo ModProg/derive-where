@@ -20,10 +20,7 @@ pub struct Wrapper<T = ()> {
 
 impl<T> Clone for Wrapper<T> {
 	fn clone(&self) -> Self {
-		Self {
-			data: self.data,
-			hack: self.hack,
-		}
+		*self
 	}
 }
 
@@ -81,7 +78,7 @@ impl<T> PartialEq<i32> for Wrapper<T> {
 
 impl<T> PartialOrd for Wrapper<T> {
 	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-		self.data.partial_cmp(&other.data)
+		Some(self.cmp(other))
 	}
 }
 

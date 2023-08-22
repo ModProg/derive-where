@@ -246,16 +246,7 @@ fn check_trait_bounds() -> Result<()> {
 			{
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
-					match (self, __other) {
-						(Test(ref __0, ref __1), Test(ref __other_0, ref __other_1)) =>
-							match ::core::cmp::PartialOrd::partial_cmp(__0, __other_0) {
-								::core::option::Option::Some(::core::cmp::Ordering::Equal) => match ::core::cmp::PartialOrd::partial_cmp(__1, __other_1) {
-									::core::option::Option::Some(::core::cmp::Ordering::Equal) => ::core::option::Option::Some(::core::cmp::Ordering::Equal),
-									__cmp => __cmp,
-								},
-								__cmp => __cmp,
-							},
-					}
+					::core::option::Option::Some(::core::cmp::Ord::cmp(self, __other))
 				}
 			}
 		},
@@ -387,16 +378,7 @@ fn check_multiple_trait_bounds() -> Result<()> {
 			{
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
-					match (self, __other) {
-						(Test(ref __0, ref __1), Test(ref __other_0, ref __other_1)) =>
-							match ::core::cmp::PartialOrd::partial_cmp(__0, __other_0) {
-								::core::option::Option::Some(::core::cmp::Ordering::Equal) => match ::core::cmp::PartialOrd::partial_cmp(__1, __other_1) {
-									::core::option::Option::Some(::core::cmp::Ordering::Equal) => ::core::option::Option::Some(::core::cmp::Ordering::Equal),
-									__cmp => __cmp,
-								},
-								__cmp => __cmp,
-							},
-					}
+					::core::option::Option::Some(::core::cmp::Ord::cmp(self, __other))
 				}
 			}
 		},
