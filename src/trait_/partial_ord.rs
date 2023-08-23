@@ -21,12 +21,13 @@ impl TraitImpl for PartialOrd {
 
 	fn build_signature(
 		&self,
+		any_bound: bool,
 		item: &Item,
 		traits: &[DeriveTrait],
 		trait_: &DeriveTrait,
 		body: &TokenStream,
 	) -> TokenStream {
-		let body = if traits.iter().any(|trait_| trait_ == Trait::Ord) {
+		let body = if !any_bound && traits.iter().any(|trait_| trait_ == Trait::Ord) {
 			quote! {
 				::core::option::Option::Some(::core::cmp::Ord::cmp(self, __other))
 			}
@@ -42,10 +43,16 @@ impl TraitImpl for PartialOrd {
 		}
 	}
 
-	fn build_body(&self, traits: &[DeriveTrait], trait_: &DeriveTrait, data: &Data) -> TokenStream {
+	fn build_body(
+		&self,
+		any_bound: bool,
+		traits: &[DeriveTrait],
+		trait_: &DeriveTrait,
+		data: &Data,
+	) -> TokenStream {
 		if data.is_empty(**trait_)
 			|| data.is_incomparable()
-			|| traits.iter().any(|trait_| trait_ == Trait::Ord)
+			|| (!any_bound && traits.iter().any(|trait_| trait_ == Trait::Ord))
 		{
 			TokenStream::new()
 		} else {

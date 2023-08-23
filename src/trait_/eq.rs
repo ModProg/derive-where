@@ -20,6 +20,7 @@ impl TraitImpl for Eq {
 
 	fn build_signature(
 		&self,
+		_any_bound: bool,
 		_item: &Item,
 		_traits: &[DeriveTrait],
 		_trait_: &DeriveTrait,
@@ -37,6 +38,7 @@ impl TraitImpl for Eq {
 
 	fn build_body(
 		&self,
+		_any_bound: bool,
 		_traits: &[DeriveTrait],
 		trait_: &DeriveTrait,
 		data: &Data,

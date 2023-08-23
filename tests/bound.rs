@@ -49,3 +49,19 @@ fn custom_bound() {
 	let test_clone = test_1.clone();
 	assert_eq!(test_clone.0, 42);
 }
+
+#[test]
+fn ord_requirement() {
+	trait Trait {
+		type Type;
+	}
+
+	struct Impl;
+
+	impl Trait for Impl {
+		type Type = i32;
+	}
+
+	#[derive_where(Eq, Ord, PartialEq, PartialOrd; T::Type)]
+	struct Test<T: Trait>(T::Type);
+}

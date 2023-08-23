@@ -85,6 +85,7 @@ impl TraitImpl for ZeroizeOnDrop {
 
 	fn build_signature(
 		&self,
+		_any_bound: bool,
 		item: &Item,
 		_traits: &[DeriveTrait],
 		trait_: &DeriveTrait,
@@ -133,6 +134,7 @@ impl TraitImpl for ZeroizeOnDrop {
 
 	fn build_body(
 		&self,
+		_any_bound: bool,
 		_traits: &[DeriveTrait],
 		trait_: &DeriveTrait,
 		data: &Data,

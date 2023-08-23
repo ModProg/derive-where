@@ -42,6 +42,7 @@ impl TraitImpl for Clone {
 
 	fn build_signature(
 		&self,
+		_any_bound: bool,
 		item: &Item,
 		traits: &[DeriveTrait],
 		_trait_: &DeriveTrait,
@@ -81,7 +82,13 @@ impl TraitImpl for Clone {
 		}
 	}
 
-	fn build_body(&self, traits: &[DeriveTrait], trait_: &DeriveTrait, data: &Data) -> TokenStream {
+	fn build_body(
+		&self,
+		_any_bound: bool,
+		traits: &[DeriveTrait],
+		trait_: &DeriveTrait,
+		data: &Data,
+	) -> TokenStream {
 		if traits.iter().any(|trait_| trait_ == Trait::Copy) {
 			return TokenStream::new();
 		}
