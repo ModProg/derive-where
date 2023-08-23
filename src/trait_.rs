@@ -133,17 +133,25 @@ impl TraitImpl for Trait {
 
 	fn build_signature(
 		&self,
+		any_bound: bool,
 		item: &Item,
 		traits: &[DeriveTrait],
 		trait_: &DeriveTrait,
 		body: &TokenStream,
 	) -> TokenStream {
 		self.implementation()
-			.build_signature(item, traits, trait_, body)
+			.build_signature(any_bound, item, traits, trait_, body)
 	}
 
-	fn build_body(&self, traits: &[DeriveTrait], trait_: &DeriveTrait, data: &Data) -> TokenStream {
-		self.implementation().build_body(traits, trait_, data)
+	fn build_body(
+		&self,
+		any_bound: bool,
+		traits: &[DeriveTrait],
+		trait_: &DeriveTrait,
+		data: &Data,
+	) -> TokenStream {
+		self.implementation()
+			.build_body(any_bound, traits, trait_, data)
 	}
 }
 
@@ -190,6 +198,7 @@ pub trait TraitImpl {
 	/// Build method signature for this [`Trait`].
 	fn build_signature(
 		&self,
+		_any_bound: bool,
 		_item: &Item,
 		_traits: &[DeriveTrait],
 		_trait_: &DeriveTrait,
@@ -201,6 +210,7 @@ pub trait TraitImpl {
 	/// Build method body for this [`Trait`].
 	fn build_body(
 		&self,
+		_any_bound: bool,
 		_traits: &[DeriveTrait],
 		_trait_: &DeriveTrait,
 		_data: &Data,
