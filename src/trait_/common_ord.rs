@@ -128,7 +128,7 @@ pub fn build_ord_signature(item: &Item, trait_: &DeriveTrait, body: &TokenStream
 								__other as isize,
 							)
 						},
-						Discriminant::Default => {
+						Discriminant::Unknown => {
 							build_recursive_order(trait_, variants, &incomparable)
 						}
 						Discriminant::UnitRepr(repr) => quote! {
