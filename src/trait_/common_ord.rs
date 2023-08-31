@@ -5,14 +5,14 @@ use quote::quote;
 #[cfg(not(feature = "nightly"))]
 use syn::PatOr;
 
+use crate::{Data, DeriveTrait, Item, SimpleType};
 #[cfg(not(feature = "nightly"))]
-use crate::Discriminant;
-use crate::{Data, DeriveTrait, Item, SimpleType, Trait};
+use crate::{Discriminant, Trait};
 
 /// Build signature for [`PartialOrd`] and [`Ord`].
 pub fn build_ord_signature(
 	item: &Item,
-	traits: &[DeriveTrait],
+	#[cfg_attr(feature = "nightly", allow(unused_variables))] traits: &[DeriveTrait],
 	trait_: &DeriveTrait,
 	body: &TokenStream,
 ) -> TokenStream {
@@ -173,8 +173,8 @@ pub fn build_ord_signature(
 						Discriminant::UnitRepr(repr) | Discriminant::Repr(repr) => {
 							quote! {
 								#path::#method(
-									unsafe { *<*const _>::from(self).cast::<#repr>() },
-									unsafe { *<*const _>::from(__other).cast::<#repr>() },
+									&unsafe { *<*const _>::from(self).cast::<#repr>() },
+									&unsafe { *<*const _>::from(__other).cast::<#repr>() },
 								)
 							}
 						}

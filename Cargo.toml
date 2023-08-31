@@ -40,6 +40,7 @@ syn = { version = "2", default-features = false, features = [
 
 [dev-dependencies]
 pretty_assertions = "1"
+rustversion = "1"
 trybuild = { version = "1.0.18", default-features = false }
 zeroize_ = { version = "1.5", package = "zeroize", default-features = false }
 

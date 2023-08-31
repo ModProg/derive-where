@@ -108,24 +108,28 @@ fn repr_with_values() {
 	assert_eq!(2, unsafe { *<*const _>::from(&Test::C).cast::<u8>() });
 }
 
-#[test]
-fn repr_with_discriminants_values() {
-	#[repr(u8)]
-	enum Test {
-		A(u8) = 3,
-		B,
-		C,
-	}
+#[rustversion::since(1.66)]
+mod repr_with_discriminants_values {
+	#[test]
+	fn test() {
+		#[repr(u8)]
+		enum Test {
+			A(u8) = 3,
+			B,
+			C,
+		}
 
-	#[cfg(feature = "nightly")]
-	{
-		assert_eq!(3_u8, discriminant_value(&Test::A(0)));
-		assert_eq!(4_u8, discriminant_value(&Test::B));
-		assert_eq!(5_u8, discriminant_value(&Test::C));
+		#[cfg(feature = "nightly")]
+		{
+			use std::intrinsics::discriminant_value;
+			assert_eq!(3_u8, discriminant_value(&Test::A(0)));
+			assert_eq!(4_u8, discriminant_value(&Test::B));
+			assert_eq!(5_u8, discriminant_value(&Test::C));
+		}
+		assert_eq!(3, unsafe { *<*const _>::from(&Test::A(0)).cast::<u8>() });
+		assert_eq!(4, unsafe { *<*const _>::from(&Test::B).cast::<u8>() });
+		assert_eq!(5, unsafe { *<*const _>::from(&Test::C).cast::<u8>() });
 	}
-	assert_eq!(3, unsafe { *<*const _>::from(&Test::A(0)).cast::<u8>() });
-	assert_eq!(4, unsafe { *<*const _>::from(&Test::B).cast::<u8>() });
-	assert_eq!(5, unsafe { *<*const _>::from(&Test::C).cast::<u8>() });
 }
 
 #[test]
@@ -148,22 +152,26 @@ fn repr_with_repr_c_with_values() {
 	assert_eq!(2, unsafe { *<*const _>::from(&Test::C).cast::<u8>() });
 }
 
-#[test]
-fn repr_with_repr_c_with_values_discriminants() {
-	#[repr(C, u8)]
-	enum Test {
-		A(u8) = 3,
-		B,
-		C,
-	}
+#[rustversion::since(1.66)]
+mod repr_with_repr_c_with_values_discriminants {
+	#[test]
+	fn test() {
+		#[repr(C, u8)]
+		enum Test {
+			A(u8) = 3,
+			B,
+			C,
+		}
 
-	#[cfg(feature = "nightly")]
-	{
-		assert_eq!(3_u8, discriminant_value(&Test::A(0)));
-		assert_eq!(4_u8, discriminant_value(&Test::B));
-		assert_eq!(5_u8, discriminant_value(&Test::C));
+		#[cfg(feature = "nightly")]
+		{
+			use std::intrinsics::discriminant_value;
+			assert_eq!(3_u8, discriminant_value(&Test::A(0)));
+			assert_eq!(4_u8, discriminant_value(&Test::B));
+			assert_eq!(5_u8, discriminant_value(&Test::C));
+		}
+		assert_eq!(3, unsafe { *<*const _>::from(&Test::A(0)).cast::<u8>() });
+		assert_eq!(4, unsafe { *<*const _>::from(&Test::B).cast::<u8>() });
+		assert_eq!(5, unsafe { *<*const _>::from(&Test::C).cast::<u8>() });
 	}
-	assert_eq!(3, unsafe { *<*const _>::from(&Test::A(0)).cast::<u8>() });
-	assert_eq!(4, unsafe { *<*const _>::from(&Test::B).cast::<u8>() });
-	assert_eq!(5, unsafe { *<*const _>::from(&Test::C).cast::<u8>() });
 }
