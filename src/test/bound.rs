@@ -144,7 +144,7 @@ fn check_trait_bounds() -> Result<()> {
 	test_derive(
 		quote! {
 			#[derive_where(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd; T)]
-			struct Test<T, U>(T, std::marker::PhatomData<U>);
+			struct Test<T, U>(T, std::marker::PhantomData<U>);
 		},
 		quote! {
 			impl<T, U> ::core::clone::Clone for Test<T, U>
@@ -192,7 +192,7 @@ fn check_trait_bounds() -> Result<()> {
 
 					// For some reason the comparison fails without the extra space at the end.
 					let _: __AssertEq<T >;
-					let _: __AssertEq<std::marker::PhatomData<U> >;
+					let _: __AssertEq<std::marker::PhantomData<U> >;
 				}
 			}
 
@@ -267,7 +267,7 @@ fn check_multiple_trait_bounds() -> Result<()> {
 	test_derive(
 		quote! {
 			#[derive_where(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd; T, U)]
-			struct Test<T, U, V>(T, std::marker::PhatomData<(U, V)>);
+			struct Test<T, U, V>(T, std::marker::PhantomData<(U, V)>);
 		},
 		quote! {
 			impl<T, U, V> ::core::clone::Clone for Test<T, U, V>
@@ -325,7 +325,7 @@ fn check_multiple_trait_bounds() -> Result<()> {
 
 					// For some reason the comparison fails without the extra space at the end.
 					let _: __AssertEq<T >;
-					let _: __AssertEq<std::marker::PhatomData<(U, V)> >;
+					let _: __AssertEq<std::marker::PhantomData<(U, V)> >;
 				}
 			}
 

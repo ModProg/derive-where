@@ -9,7 +9,7 @@ fn struct_inner() -> Result<()> {
 		quote! {
 			#[derive_where(Debug)]
 			#[derive_where(skip_inner)]
-			struct Test<T>(std::marker::PhatomData<T>);
+			struct Test<T>(std::marker::PhantomData<T>);
 		},
 		quote! {
 			impl<T> ::core::fmt::Debug for Test<T> {
@@ -33,7 +33,7 @@ fn enum_inner() -> Result<()> {
 			#[derive_where(Debug)]
 			enum Test<T> {
 				#[derive_where(skip_inner)]
-				A(std::marker::PhatomData<T>),
+				A(std::marker::PhantomData<T>),
 			}
 		},
 		quote! {
@@ -57,7 +57,7 @@ fn struct_empty() -> Result<()> {
 		quote! {
 			#[derive_where(Ord)]
 			#[derive_where(skip_inner)]
-			struct Test<T>(std::marker::PhatomData<T>);
+			struct Test<T>(std::marker::PhantomData<T>);
 		},
 		quote! {
 			impl<T> ::core::cmp::Ord for Test<T> {
@@ -77,7 +77,7 @@ fn variant_empty() -> Result<()> {
 			#[derive_where(Ord)]
 			enum Test<T> {
 				#[derive_where(skip_inner)]
-				A(std::marker::PhatomData<T>),
+				A(std::marker::PhantomData<T>),
 			}
 		},
 		quote! {
@@ -128,9 +128,9 @@ fn variants_empty() -> Result<()> {
 			#[derive_where(Ord)]
 			enum Test<T> {
 				#[derive_where(skip_inner)]
-				A(std::marker::PhatomData<T>),
+				A(std::marker::PhantomData<T>),
 				#[derive_where(skip_inner)]
-				B(std::marker::PhatomData<T>),
+				B(std::marker::PhantomData<T>),
 			}
 		},
 		quote! {
@@ -187,8 +187,8 @@ fn variants_partly_empty() -> Result<()> {
 			#[derive_where(Ord)]
 			enum Test<T> {
 				#[derive_where(skip_inner)]
-				A(std::marker::PhatomData<T>),
-				B(#[derive_where(skip)] std::marker::PhatomData<T>, std::marker::PhatomData<T>),
+				A(std::marker::PhantomData<T>),
+				B(#[derive_where(skip)] std::marker::PhantomData<T>, std::marker::PhantomData<T>),
 			}
 		},
 		quote! {
