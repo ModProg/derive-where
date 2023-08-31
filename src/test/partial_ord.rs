@@ -8,7 +8,7 @@ fn struct_() -> Result<()> {
 	test_derive(
 		quote! {
 			#[derive_where(PartialOrd)]
-			struct Test<T> { field: std::marker::PhatomData<T> }
+			struct Test<T> { field: std::marker::PhantomData<T> }
 		},
 		quote! {
 			impl<T> ::core::cmp::PartialOrd for Test<T> {
@@ -32,7 +32,7 @@ fn tuple() -> Result<()> {
 	test_derive(
 		quote! {
 			#[derive_where(PartialOrd)]
-			struct Test<T>(std::marker::PhatomData<T>);
+			struct Test<T>(std::marker::PhantomData<T>);
 		},
 		quote! {
 			impl<T> ::core::cmp::PartialOrd for Test<T> {
@@ -101,9 +101,9 @@ fn enum_() -> Result<()> {
 		quote! {
 			#[derive_where(PartialOrd)]
 			enum Test<T> {
-				A { field: std::marker::PhatomData<T>},
+				A { field: std::marker::PhantomData<T>},
 				B { },
-				C(std::marker::PhatomData<T>),
+				C(std::marker::PhantomData<T>),
 				D(),
 				E,
 			}

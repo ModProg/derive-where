@@ -8,7 +8,7 @@ fn struct_() -> Result<()> {
 	test_derive(
 		quote! {
 			#[derive_where(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
-			struct Test<T> { field: std::marker::PhatomData<T> }
+			struct Test<T> { field: std::marker::PhantomData<T> }
 		},
 		quote! {
 			impl<T> ::core::clone::Clone for Test<T> {
@@ -45,7 +45,7 @@ fn struct_() -> Result<()> {
 					struct __AssertEq<__T: ::core::cmp::Eq + ?::core::marker::Sized>(::core::marker::PhantomData<__T>);
 
 					// For some reason the comparison fails without the extra space at the end.
-					let _: __AssertEq<std::marker::PhatomData<T> >;
+					let _: __AssertEq<std::marker::PhantomData<T> >;
 				}
 			}
 
@@ -95,7 +95,7 @@ fn tuple() -> Result<()> {
 	test_derive(
 		quote! {
 			#[derive_where(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
-			struct Test<T>(std::marker::PhatomData<T>);
+			struct Test<T>(std::marker::PhantomData<T>);
 		},
 		quote! {
 			impl<T> ::core::clone::Clone for Test<T> {
@@ -132,7 +132,7 @@ fn tuple() -> Result<()> {
 					struct __AssertEq<__T: ::core::cmp::Eq + ?::core::marker::Sized>(::core::marker::PhantomData<__T>);
 
 					// For some reason the comparison fails without the extra space at the end.
-					let _: __AssertEq<std::marker::PhatomData<T> >;
+					let _: __AssertEq<std::marker::PhantomData<T> >;
 				}
 			}
 
@@ -228,9 +228,9 @@ fn enum_() -> Result<()> {
 		quote! {
 			#[derive_where(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 			enum Test<T> {
-				A { field: std::marker::PhatomData<T>},
+				A { field: std::marker::PhantomData<T>},
 				B { },
-				C(std::marker::PhatomData<T>),
+				C(std::marker::PhantomData<T>),
 				D(),
 				#[derive_where(default)]
 				E,
@@ -285,8 +285,8 @@ fn enum_() -> Result<()> {
 					struct __AssertEq<__T: ::core::cmp::Eq + ?::core::marker::Sized>(::core::marker::PhantomData<__T>);
 
 					// For some reason the comparison fails without the extra space at the end.
-					let _: __AssertEq<std::marker::PhatomData<T> >;
-					let _: __AssertEq<std::marker::PhatomData<T> >;
+					let _: __AssertEq<std::marker::PhantomData<T> >;
+					let _: __AssertEq<std::marker::PhantomData<T> >;
 				}
 			}
 
