@@ -23,11 +23,11 @@ impl TraitImpl for Ord {
 		&self,
 		_any_bound: bool,
 		item: &Item,
-		_traits: &[DeriveTrait],
+		traits: &[DeriveTrait],
 		trait_: &DeriveTrait,
 		body: &TokenStream,
 	) -> TokenStream {
-		let body = common_ord::build_ord_signature(item, trait_, body);
+		let body = common_ord::build_ord_signature(item, traits, trait_, body);
 
 		quote! {
 			#[inline]
