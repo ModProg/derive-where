@@ -101,69 +101,22 @@ pub fn build_ord_signature(item: &Item, trait_: &DeriveTrait, body: &TokenStream
 					_ => unreachable!("unsupported trait in `prepare_ord`"),
 				};
 
-				// Nightly or unsafe (default) implementation.
-				#[cfg(any(feature = "nightly", not(feature = "safe")))]
-				{
-					// Nightly implementation.
-					#[cfg(feature = "nightly")]
-					quote! {
-						#incomparable
+				// Nightly implementation.
+				#[cfg(feature = "nightly")]
+				quote! {
+					#incomparable
 
-						let __self_disc = ::core::intrinsics::discriminant_value(self);
-						let __other_disc = ::core::intrinsics::discriminant_value(__other);
+					let __self_disc = ::core::intrinsics::discriminant_value(self);
+					let __other_disc = ::core::intrinsics::discriminant_value(__other);
 
-						if __self_disc == __other_disc {
-							#body_equal
-						} else {
-							#path::#method(&__self_disc, &__other_disc)
-						}
-					}
-					// Unsafe (default) implementation.
-					#[cfg(not(feature = "nightly"))]
-					{
-						let body_else = match discriminant {
-							Discriminant::Single => unreachable!(
-								"we should only generate this code with multiple variants"
-							),
-							Discriminant::UnitDefault => quote! {
-								#path::#method(
-									self as isize,
-									__other as isize,
-								)
-							},
-							Discriminant::Default => {
-								build_recursive_order(trait_, variants, &incomparable)
-							}
-							Discriminant::UnitRepr(repr) => quote! {
-								#path::#method(
-									self as #repr,
-									__other as #repr,
-								)
-							},
-							Discriminant::Repr(repr) => quote! {
-								#path::#method(
-									unsafe { *<*const _>::from(self).cast::<#repr>() },
-									unsafe { *<*const _>::from(__other).cast::<#repr>() },
-								)
-							},
-						};
-
-						quote! {
-							#incomparable
-
-							let __self_disc = ::core::mem::discriminant(self);
-							let __other_disc = ::core::mem::discriminant(__other);
-
-							if __self_disc == __other_disc {
-								#body_equal
-							} else {
-								#body_else
-							}
-						}
+					if __self_disc == __other_disc {
+						#body_equal
+					} else {
+						#path::#method(&__self_disc, &__other_disc)
 					}
 				}
-				// Safe implementation when not on nightly.
-				#[cfg(all(not(feature = "nightly"), feature = "safe"))]
+
+				#[cfg(not(feature = "nightly"))]
 				{
 					let body_else = match discriminant {
 						Discriminant::Single => {
@@ -175,15 +128,26 @@ pub fn build_ord_signature(item: &Item, trait_: &DeriveTrait, body: &TokenStream
 								__other as isize,
 							)
 						},
+						Discriminant::Default => {
+							build_recursive_order(trait_, variants, &incomparable)
+						}
 						Discriminant::UnitRepr(repr) => quote! {
 							#path::#method(
 								self as #repr,
 								__other as #repr,
 							)
 						},
-						Discriminant::Default | Discriminant::Repr(_) => {
-							build_recursive_order(trait_, variants, &incomparable)
+						#[cfg(not(feature = "safe"))]
+						Discriminant::Repr(repr) => {
+							quote! {
+								#path::#method(
+									unsafe { *<*const _>::from(self).cast::<#repr>() },
+									unsafe { *<*const _>::from(__other).cast::<#repr>() },
+								)
+							}
 						}
+						#[cfg(feature = "safe")]
+						Discriminant::Repr(_) => build_recursive_order(trait_, variants, &incomparable),
 					};
 
 					quote! {

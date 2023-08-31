@@ -3,8 +3,7 @@
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 use syn::{
-	punctuated::Punctuated, spanned::Spanned, Attribute, Fields, Ident, Meta, Result, Token,
-	Variant,
+	punctuated::Punctuated, spanned::Spanned, Attribute, Ident, Meta, Result, Token, Variant,
 };
 
 use crate::{Data, Error, Incomparable, Trait};
@@ -138,11 +137,7 @@ impl Discriminant {
 			}
 		}
 
-		let is_unit = variants.iter().all(|variant| match &variant.fields {
-			Fields::Named(fields) => fields.named.is_empty(),
-			Fields::Unnamed(fields) => fields.unnamed.is_empty(),
-			Fields::Unit => true,
-		});
+		let is_unit = variants.iter().all(|variant| variant.fields.is_empty());
 
 		Ok(if let Some(repr) = has_repr {
 			if is_unit {
