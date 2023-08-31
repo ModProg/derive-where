@@ -32,7 +32,7 @@ impl TraitImpl for PartialOrd {
 				::core::option::Option::Some(::core::cmp::Ord::cmp(self, __other))
 			}
 		} else {
-			common_ord::build_ord_signature(item, trait_, body)
+			common_ord::build_ord_signature(item, traits, trait_, body)
 		};
 
 		quote! {

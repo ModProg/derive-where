@@ -98,11 +98,11 @@ impl Item<'_> {
 /// Type of discriminant used.
 #[cfg_attr(test, derive(Debug))]
 pub enum Discriminant {
+	/// The enum has only a single variant.
+	Single,
 	/// The enum uses the default representation but has a non-unit variant or
 	/// an enum with a C representation without an integer representation.
 	Unknown,
-	/// The enum has only a single variant.
-	Single,
 	/// The enum uses the default representation and has only unit variants.
 	UnitDefault,
 	/// The enum uses a non-default representation and has only unit variants.

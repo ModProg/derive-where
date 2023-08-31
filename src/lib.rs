@@ -324,10 +324,9 @@
 //!   default too. Without this feature [`transmute`](core::mem::transmute) is
 //!   used to convert [`Discriminant`](core::mem::Discriminant) to a [`i32`],
 //!   which is the underlying type.
-//! - `safe`: Implements [`Ord`] and [`PartialOrd`] on enums with a non-default
-//!   representation and at least one non-empty variant without unsafely
-//!   accessing the discriminant. This is much slower, but might be preferred if
-//!   you don't trust derive-where. It also replaces all cases of
+//! - `safe`: `safe`: Uses only safe ways to access the discriminant of the enum
+//!   for [`Ord`] and [`PartialOrd`]. This is much slower, but might be
+//!   preferred if you don't trust derive-where. It also replaces all cases of
 //!   [`core::hint::unreachable_unchecked`] in [`Ord`], [`PartialEq`] and
 //!   [`PartialOrd`], which is what std uses, with [`unreachable`].
 //! - `zeroize`: Allows deriving [`Zeroize`] and [`zeroize`][method@zeroize] on

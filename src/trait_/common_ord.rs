@@ -7,10 +7,15 @@ use syn::PatOr;
 
 #[cfg(not(feature = "nightly"))]
 use crate::Discriminant;
-use crate::{data::SimpleType, Data, DeriveTrait, Item};
+use crate::{Data, DeriveTrait, Item, SimpleType, Trait};
 
 /// Build signature for [`PartialOrd`] and [`Ord`].
-pub fn build_ord_signature(item: &Item, trait_: &DeriveTrait, body: &TokenStream) -> TokenStream {
+pub fn build_ord_signature(
+	item: &Item,
+	traits: &[DeriveTrait],
+	trait_: &DeriveTrait,
+	body: &TokenStream,
+) -> TokenStream {
 	let mut equal = quote! { ::core::cmp::Ordering::Equal };
 
 	// Add `Option` to `Ordering` if we are implementing `PartialOrd`.
@@ -122,23 +127,50 @@ pub fn build_ord_signature(item: &Item, trait_: &DeriveTrait, body: &TokenStream
 						Discriminant::Single => {
 							unreachable!("we should only generate this code with multiple variants")
 						}
-						Discriminant::UnitDefault => quote! {
-							#path::#method(
-								self as isize,
-								__other as isize,
-							)
-						},
+						Discriminant::UnitDefault => {
+							if traits.iter().any(|trait_| trait_ == Trait::Copy) {
+								quote! {
+									#path::#method(
+										*self as isize,
+										*__other as isize,
+									)
+								}
+							} else if traits.iter().any(|trait_| trait_ == Trait::Clone) {
+								quote! {
+									#path::#method(
+										self.clone() as isize,
+										__other.clone() as isize,
+									)
+								}
+							} else {
+								build_recursive_order(trait_, variants, &incomparable)
+							}
+						}
 						Discriminant::Unknown => {
 							build_recursive_order(trait_, variants, &incomparable)
 						}
-						Discriminant::UnitRepr(repr) => quote! {
-							#path::#method(
-								self as #repr,
-								__other as #repr,
-							)
-						},
+						#[cfg(feature = "safe")]
+						Discriminant::UnitRepr(repr) => {
+							if traits.iter().any(|trait_| trait_ == Trait::Copy) {
+								quote! {
+									#path::#method(
+										*self as #repr,
+										*__other as #repr,
+									)
+								}
+							} else if traits.iter().any(|trait_| trait_ == Trait::Clone) {
+								quote! {
+									#path::#method(
+										self.clone() as #repr,
+										__other.clone() as #repr,
+									)
+								}
+							} else {
+								build_recursive_order(trait_, variants, &incomparable)
+							}
+						}
 						#[cfg(not(feature = "safe"))]
-						Discriminant::Repr(repr) => {
+						Discriminant::UnitRepr(repr) | Discriminant::Repr(repr) => {
 							quote! {
 								#path::#method(
 									unsafe { *<*const _>::from(self).cast::<#repr>() },
