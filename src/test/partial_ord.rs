@@ -67,14 +67,7 @@ fn enum_() -> Result<()> {
 	let partial_ord = quote! {
 		::core::cmp::PartialOrd::partial_cmp(&__self_disc, &__other_disc)
 	};
-	#[cfg(not(any(feature = "nightly", feature = "safe")))]
-	let partial_ord = quote! {
-		::core::cmp::PartialOrd::partial_cmp(
-			&unsafe { ::core::mem::transmute::<_, isize>(__self_disc) },
-			&unsafe { ::core::mem::transmute::<_, isize>(__other_disc) },
-		)
-	};
-	#[cfg(all(not(feature = "nightly"), feature = "safe"))]
+	#[cfg(not(feature = "nightly"))]
 	let partial_ord = quote! {
 		match self {
 			Test::A { field: ref __field_field } => ::core::option::Option::Some(::core::cmp::Ordering::Less),

@@ -212,6 +212,11 @@ impl Error {
 		syn::Error::new(span, "duplicate trait with the same bound")
 	}
 
+	/// `repr` attribute that isn't a meta list.
+	pub fn repr(span: Span) -> syn::Error {
+		syn::Error::new(span, "unable to parse `repr` attribute")
+	}
+
 	/// Unsupported default option if [`Default`] isn't implemented.
 	pub fn default(span: Span) -> syn::Error {
 		syn::Error::new(

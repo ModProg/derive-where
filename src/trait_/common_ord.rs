@@ -2,17 +2,19 @@
 
 use proc_macro2::TokenStream;
 use quote::quote;
+#[cfg(not(feature = "nightly"))]
+use syn::PatOr;
 
+#[cfg(not(feature = "nightly"))]
+use crate::Discriminant;
 use crate::{data::SimpleType, Data, DeriveTrait, Item};
 
 /// Build signature for [`PartialOrd`] and [`Ord`].
 pub fn build_ord_signature(item: &Item, trait_: &DeriveTrait, body: &TokenStream) -> TokenStream {
-	use DeriveTrait::*;
-
 	let mut equal = quote! { ::core::cmp::Ordering::Equal };
 
 	// Add `Option` to `Ordering` if we are implementing `PartialOrd`.
-	if let PartialOrd = trait_ {
+	if let DeriveTrait::PartialOrd = trait_ {
 		equal = quote! { ::core::option::Option::Some(#equal) };
 	}
 
@@ -22,10 +24,15 @@ pub fn build_ord_signature(item: &Item, trait_: &DeriveTrait, body: &TokenStream
 			quote! { ::core::option::Option::None }
 		}
 		// If there is more than one variant, check for the discriminant.
-		Item::Enum { variants, .. } if variants.len() > 1 => {
+		Item::Enum {
+			#[cfg(not(feature = "nightly"))]
+			discriminant,
+			variants,
+			..
+		} if variants.len() > 1 => {
 			// In case the discriminant matches:
 			// If all variants are empty, return `Equal`.
-			let body = if item.is_empty(**trait_) {
+			let body_equal = if item.is_empty(**trait_) {
 				quote! { #equal }
 			}
 			// Compare variant data and return `Equal` in the rest pattern if there are any empty
@@ -70,7 +77,7 @@ pub fn build_ord_signature(item: &Item, trait_: &DeriveTrait, body: &TokenStream
 				let equal = if comparable.is_empty(**trait_) {
 					equal
 				} else {
-					body
+					body_equal
 				};
 				quote! {
 					if ::core::matches!(self, #incomparable) || ::core::matches!(__other, #incomparable) {
@@ -87,16 +94,16 @@ pub fn build_ord_signature(item: &Item, trait_: &DeriveTrait, body: &TokenStream
 					})*
 				};
 
+				let path = trait_.path();
+				let method = match trait_ {
+					DeriveTrait::PartialOrd => quote! { partial_cmp },
+					DeriveTrait::Ord => quote! { cmp },
+					_ => unreachable!("unsupported trait in `prepare_ord`"),
+				};
+
 				// Nightly or unsafe (default) implementation.
 				#[cfg(any(feature = "nightly", not(feature = "safe")))]
 				{
-					let path = trait_.path();
-					let method = match trait_ {
-						PartialOrd => quote! { partial_cmp },
-						Ord => quote! { cmp },
-						_ => unreachable!("unsupported trait in `prepare_ord`"),
-					};
-
 					// Nightly implementation.
 					#[cfg(feature = "nightly")]
 					quote! {
@@ -106,98 +113,77 @@ pub fn build_ord_signature(item: &Item, trait_: &DeriveTrait, body: &TokenStream
 						let __other_disc = ::core::intrinsics::discriminant_value(__other);
 
 						if __self_disc == __other_disc {
-							#body
+							#body_equal
 						} else {
 							#path::#method(&__self_disc, &__other_disc)
 						}
 					}
 					// Unsafe (default) implementation.
 					#[cfg(not(feature = "nightly"))]
-					quote! {
-						#incomparable
+					{
+						let body_else = match discriminant {
+							Discriminant::Single => unreachable!(
+								"we should only generate this code with multiple variants"
+							),
+							Discriminant::UnitDefault => quote! {
+								#path::#method(
+									self as isize,
+									__other as isize,
+								)
+							},
+							Discriminant::Default => {
+								build_recursive_order(trait_, variants, &incomparable)
+							}
+							Discriminant::UnitRepr(repr) => quote! {
+								#path::#method(
+									self as #repr,
+									__other as #repr,
+								)
+							},
+							Discriminant::Repr(repr) => quote! {
+								#path::#method(
+									unsafe { *<*const _>::from(self).cast::<#repr>() },
+									unsafe { *<*const _>::from(__other).cast::<#repr>() },
+								)
+							},
+						};
 
-						let __self_disc = ::core::mem::discriminant(self);
-						let __other_disc = ::core::mem::discriminant(__other);
+						quote! {
+							#incomparable
 
-						if __self_disc == __other_disc {
-							#body
-						} else {
-							#path::#method(
-								&unsafe { ::core::mem::transmute::<_, isize>(__self_disc) },
-								&unsafe { ::core::mem::transmute::<_, isize>(__other_disc) },
-							)
+							let __self_disc = ::core::mem::discriminant(self);
+							let __other_disc = ::core::mem::discriminant(__other);
+
+							if __self_disc == __other_disc {
+								#body_equal
+							} else {
+								#body_else
+							}
 						}
 					}
 				}
 				// Safe implementation when not on nightly.
 				#[cfg(all(not(feature = "nightly"), feature = "safe"))]
 				{
-					use syn::PatOr;
-
-					let mut less = quote! { ::core::cmp::Ordering::Less };
-					let mut greater = quote! { ::core::cmp::Ordering::Greater };
-
-					// Add `Option` to `Ordering` if we are implementing `PartialOrd`.
-					if let PartialOrd = trait_ {
-						less = quote! { ::core::option::Option::Some(#less) };
-						greater = quote! { ::core::option::Option::Some(#greater) };
-					}
-
-					let mut different = Vec::with_capacity(variants.len());
-					let variants: Vec<_> =
-						variants.iter().filter(|v| !v.is_incomparable()).collect();
-
-					// Build separate `match` arms to compare different variants to each
-					// other. The index for these variants is used to determine which
-					// `Ordering` to return.
-					for (index, variant) in variants.iter().enumerate() {
-						let pattern = &variant.self_pattern();
-
-						// The first variant is always `Less` then everything.
-						if index == 0 {
-							different.push(quote! {
-								#pattern => #less,
-							})
+					let body_else = match discriminant {
+						Discriminant::Single => {
+							unreachable!("we should only generate this code with multiple variants")
 						}
-						// The last variant is always `Greater` then everything.
-						else if index == variants.len() - 1 {
-							different.push(quote! {
-								#pattern => #greater,
-							})
+						Discriminant::UnitDefault => quote! {
+							#path::#method(
+								self as isize,
+								__other as isize,
+							)
+						},
+						Discriminant::UnitRepr(repr) => quote! {
+							#path::#method(
+								self as #repr,
+								__other as #repr,
+							)
+						},
+						Discriminant::Default | Discriminant::Repr(_) => {
+							build_recursive_order(trait_, variants, &incomparable)
 						}
-						// Any variant between the first and last.
-						else {
-							// Collect all variants that are `Less`.
-							let cases = variants
-								.iter()
-								.enumerate()
-								.filter(|(index_other, _)| *index_other < index)
-								.map(|(_, variant_other)| {
-									variant_other.other_pattern_skip().clone()
-								})
-								.collect();
-
-							// Build one match arm pattern with all variants that are `Greater`.
-							let pattern_less = PatOr {
-								attrs: Vec::new(),
-								leading_vert: None,
-								cases,
-							};
-
-							// All other variants are `Less`.
-							different.push(quote! {
-								#pattern => match __other {
-									#pattern_less => #greater,
-									_ => #less,
-								},
-							});
-						}
-					}
-
-					let rest = if incomparable.is_empty() {
-						quote!()
-					} else {
-						quote!(_ => unreachable!("incomparable variants should have already returned"),)
 					};
 
 					quote! {
@@ -207,12 +193,9 @@ pub fn build_ord_signature(item: &Item, trait_: &DeriveTrait, body: &TokenStream
 						let __other_disc = ::core::mem::discriminant(__other);
 
 						if __self_disc == __other_disc {
-							#body
+							#body_equal
 						} else {
-							match self {
-								#(#different)*
-								#rest
-							}
+							#body_else
 						}
 					}
 				}
@@ -229,6 +212,84 @@ pub fn build_ord_signature(item: &Item, trait_: &DeriveTrait, body: &TokenStream
 					#body
 				}
 			}
+		}
+	}
+}
+
+/// Builds order comparison recursively for all variants.
+#[cfg(not(feature = "nightly"))]
+fn build_recursive_order(
+	trait_: &DeriveTrait,
+	variants: &[Data<'_>],
+	incomparable: &TokenStream,
+) -> TokenStream {
+	let mut less = quote! { ::core::cmp::Ordering::Less };
+	let mut greater = quote! { ::core::cmp::Ordering::Greater };
+
+	// Add `Option` to `Ordering` if we are implementing `PartialOrd`.
+	if let DeriveTrait::PartialOrd = trait_ {
+		less = quote! { ::core::option::Option::Some(#less) };
+		greater = quote! { ::core::option::Option::Some(#greater) };
+	}
+
+	let mut different = Vec::with_capacity(variants.len());
+	let variants: Vec<_> = variants.iter().filter(|v| !v.is_incomparable()).collect();
+
+	// Build separate `match` arms to compare different variants to each
+	// other. The index for these variants is used to determine which
+	// `Ordering` to return.
+	for (index, variant) in variants.iter().enumerate() {
+		let pattern = &variant.self_pattern();
+
+		// The first variant is always `Less` then everything.
+		if index == 0 {
+			different.push(quote! {
+				#pattern => #less,
+			})
+		}
+		// The last variant is always `Greater` then everything.
+		else if index == variants.len() - 1 {
+			different.push(quote! {
+				#pattern => #greater,
+			})
+		}
+		// Any variant between the first and last.
+		else {
+			// Collect all variants that are `Less`.
+			let cases = variants
+				.iter()
+				.enumerate()
+				.filter(|(index_other, _)| *index_other < index)
+				.map(|(_, variant_other)| variant_other.other_pattern_skip().clone())
+				.collect();
+
+			// Build one match arm pattern with all variants that are `Greater`.
+			let pattern_less = PatOr {
+				attrs: Vec::new(),
+				leading_vert: None,
+				cases,
+			};
+
+			// All other variants are `Less`.
+			different.push(quote! {
+				#pattern => match __other {
+					#pattern_less => #greater,
+					_ => #less,
+				},
+			});
+		}
+	}
+
+	let rest = if incomparable.is_empty() {
+		quote!()
+	} else {
+		quote!(_ => unreachable!("incomparable variants should have already returned"),)
+	};
+
+	quote! {
+		match self {
+			#(#different)*
+			#rest
 		}
 	}
 }

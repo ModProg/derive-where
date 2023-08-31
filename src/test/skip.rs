@@ -107,15 +107,7 @@ fn variants_empty() -> Result<()> {
 	let ord = quote! {
 		::core::cmp::Ord::cmp(&__self_disc, &__other_disc)
 	};
-	#[cfg(not(any(feature = "nightly", feature = "safe")))]
-	let ord = quote! {
-		::core::cmp::Ord::cmp(
-			&unsafe { ::core::mem::transmute::<_, isize>(__self_disc) },
-			&unsafe { ::core::mem::transmute::<_, isize>(__other_disc) },
-		)
-	};
-
-	#[cfg(all(not(feature = "nightly"), feature = "safe"))]
+	#[cfg(not(feature = "nightly"))]
 	let ord = quote! {
 		match self {
 			Test::A(ref __field_0) => ::core::cmp::Ordering::Less,
@@ -166,15 +158,7 @@ fn variants_partly_empty() -> Result<()> {
 	let ord = quote! {
 		::core::cmp::Ord::cmp(&__self_disc, &__other_disc)
 	};
-	#[cfg(not(any(feature = "nightly", feature = "safe")))]
-	let ord = quote! {
-		::core::cmp::Ord::cmp(
-			&unsafe { ::core::mem::transmute::<_, isize>(__self_disc) },
-			&unsafe { ::core::mem::transmute::<_, isize>(__other_disc) },
-		)
-	};
-
-	#[cfg(all(not(feature = "nightly"), feature = "safe"))]
+	#[cfg(not(feature = "nightly"))]
 	let ord = quote! {
 		match self {
 			Test::A(ref __field_0) => ::core::cmp::Ordering::Less,

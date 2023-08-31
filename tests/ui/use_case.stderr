@@ -13,20 +13,20 @@ error: derive-where doesn't support empty items, as this can already be handled 
 error: derive-where doesn't support empty items, as this can already be handled by standard `#[derive(..)]`
   --> tests/ui/use_case.rs:10:1
    |
-10 | struct Unit;
-   | ^^^^^^^^^^^^
+10 | enum EnumEmpty {}
+   | ^^^^^^^^^^^^^^^^^
 
 error: derive-where doesn't support empty items, as this can already be handled by standard `#[derive(..)]`
   --> tests/ui/use_case.rs:13:1
    |
-13 | struct UnionEmpty {}
-   | ^^^^^^^^^^^^^^^^^^^^
+13 | struct Unit;
+   | ^^^^^^^^^^^^
 
-error: this can be handled by standard `#[derive(..)]`, use a `skip` or `incomparable` attribute, implement `Default` on an enum, or different generic type parameters
-  --> tests/ui/use_case.rs:15:16
+error: derive-where doesn't support empty items, as this can already be handled by standard `#[derive(..)]`
+  --> tests/ui/use_case.rs:16:1
    |
-15 | #[derive_where(Clone)]
-   |                ^^^^^
+16 | struct UnionEmpty {}
+   | ^^^^^^^^^^^^^^^^^^^^
 
 error: this can be handled by standard `#[derive(..)]`, use a `skip` or `incomparable` attribute, implement `Default` on an enum, or different generic type parameters
   --> tests/ui/use_case.rs:18:16
@@ -35,19 +35,25 @@ error: this can be handled by standard `#[derive(..)]`, use a `skip` or `incompa
    |                ^^^^^
 
 error: this can be handled by standard `#[derive(..)]`, use a `skip` or `incomparable` attribute, implement `Default` on an enum, or different generic type parameters
-  --> tests/ui/use_case.rs:23:16
+  --> tests/ui/use_case.rs:21:16
    |
-23 | #[derive_where(Clone; T)]
+21 | #[derive_where(Clone)]
    |                ^^^^^
 
 error: this can be handled by standard `#[derive(..)]`, use a `skip` or `incomparable` attribute, implement `Default` on an enum, or different generic type parameters
   --> tests/ui/use_case.rs:26:16
    |
-26 | #[derive_where(Clone, Debug; T)]
+26 | #[derive_where(Clone; T)]
    |                ^^^^^
 
 error: this can be handled by standard `#[derive(..)]`, use a `skip` or `incomparable` attribute, implement `Default` on an enum, or different generic type parameters
-  --> tests/ui/use_case.rs:30:16
+  --> tests/ui/use_case.rs:29:16
    |
-30 | #[derive_where(Clone, Default; T)]
+29 | #[derive_where(Clone, Debug; T)]
+   |                ^^^^^
+
+error: this can be handled by standard `#[derive(..)]`, use a `skip` or `incomparable` attribute, implement `Default` on an enum, or different generic type parameters
+  --> tests/ui/use_case.rs:33:16
+   |
+33 | #[derive_where(Clone, Default; T)]
    |                ^^^^^
