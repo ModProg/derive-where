@@ -213,8 +213,13 @@ impl Error {
 	}
 
 	/// `repr` attribute that isn't a meta list.
-	pub fn repr(span: Span) -> syn::Error {
+	pub fn repr_parse(span: Span) -> syn::Error {
 		syn::Error::new(span, "unable to parse `repr` attribute")
+	}
+
+	/// Unknown `repr`.
+	pub fn repr_unknown(span: Span) -> syn::Error {
+		syn::Error::new(span, "found unknown representation")
 	}
 
 	/// Unsupported default option if [`Default`] isn't implemented.

@@ -133,10 +133,12 @@ impl Discriminant {
 						} else if let Some(repr) = Representation::parse(&ident) {
 							has_repr = Some(repr);
 							break;
+						} else if ident != "Rust" && ident != "align" {
+							return Err(Error::repr_unknown(ident.span()));
 						}
 					}
 				} else {
-					return Err(Error::repr(attr.span()));
+					return Err(Error::repr_parse(attr.span()));
 				}
 			}
 		}
