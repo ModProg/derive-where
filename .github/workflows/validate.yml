@@ -1,39 +1,8 @@
 name: Validate
 
-on:
-  push:
-  pull_request:
-  schedule:
-    # Give nightly release some time to complete.
-    # See <https://github.com/rust-lang/rustup-components-history/blob/dc6890bde289ac72d9d16959e4432f72f30c051b/.github/workflows/rust.yml#L9-L10>
-    - cron: 0 2 * * *
+on: [push, pull_request]
 
 jobs:
-  test:
-    name: Test
-
-    if: github.event_name == 'schedule'
-
-    strategy:
-      fail-fast: false
-      matrix:
-        rust:
-          - stable
-          - beta
-
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Update Rust
-        run: |
-          rustup toolchain install ${{ matrix.rust }} --profile minimal --allow-downgrade
-          rustup default ${{ matrix.rust }}
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Test
-        run:
-          cargo test --workspace --all-targets --no-fail-fast
-
   miri:
     name: Miri
 
