@@ -255,7 +255,7 @@ impl<'a> Data<'a> {
 	}
 
 	/// Returns the destructuring `other` pattern of this [`Data`].
-	#[cfg(all(not(feature = "nightly"), feature = "safe"))]
+	#[cfg(not(feature = "nightly"))]
 	pub fn other_pattern_skip(&self) -> &Pat {
 		match self.fields() {
 			Either::Left(fields) => &fields.other_pattern_skip,

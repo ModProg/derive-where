@@ -7,6 +7,9 @@ struct StructEmpty {}
 struct TupleEmpty();
 
 #[derive_where(Clone)]
+enum EnumEmpty {}
+
+#[derive_where(Clone)]
 struct Unit;
 
 #[derive_where(Clone)]

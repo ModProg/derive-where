@@ -55,10 +55,11 @@ fn variants() -> Result<()> {
 							_ => ::core::option::Option::Some(::core::cmp::Ordering::Equal),
 						}
 					} else {
-						::core::cmp::PartialOrd::partial_cmp(
-							&unsafe { ::core::mem::transmute::<_, isize>(__self_disc) },
-							&unsafe { ::core::mem::transmute::<_, isize>(__other_disc) },
-						)
+						match self {
+							Test::A => ::core::option::Option::Some(::core::cmp::Ordering::Less),
+							Test::C(ref __field_0) => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
+							_ => unreachable!("incomparable variants should have already returned"),
+						}
 					}
 				}
 			}
