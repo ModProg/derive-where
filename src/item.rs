@@ -98,12 +98,13 @@ impl Item<'_> {
 /// Type of discriminant used.
 #[cfg_attr(test, derive(Debug))]
 pub enum Discriminant {
+	/// The enum uses the default representation but has a non-unit variant or
+	/// an enum with a C representation without an integer representation.
+	Unknown,
 	/// The enum has only a single variant.
 	Single,
 	/// The enum uses the default representation and has only unit variants.
 	UnitDefault,
-	/// The enum uses the default representation but has a non-unit variant.
-	Default,
 	/// The enum uses a non-default representation and has only unit variants.
 	UnitRepr(Representation),
 	/// The enum uses a non-default representation and has a non-unit variant.
@@ -118,6 +119,7 @@ impl Discriminant {
 		}
 
 		let mut has_repr = None;
+		let mut is_c = false;
 
 		for attr in attrs {
 			if attr.path().is_ident("repr") {
@@ -126,7 +128,9 @@ impl Discriminant {
 						list.parse_args_with(Punctuated::<Ident, Token![,]>::parse_terminated)?;
 
 					for ident in list {
-						if let Some(repr) = Representation::parse(&ident) {
+						if ident == "C" {
+							is_c = true;
+						} else if let Some(repr) = Representation::parse(&ident) {
 							has_repr = Some(repr);
 							break;
 						}
@@ -145,10 +149,10 @@ impl Discriminant {
 			} else {
 				Self::Repr(repr)
 			}
-		} else if is_unit {
+		} else if is_unit && !is_c {
 			Self::UnitDefault
 		} else {
-			Self::Default
+			Self::Unknown
 		})
 	}
 }
