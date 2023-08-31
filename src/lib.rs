@@ -6,6 +6,7 @@
 )]
 #![allow(clippy::tabs_in_doc_comments)]
 #![warn(clippy::cargo, clippy::missing_docs_in_private_items)]
+#![cfg_attr(feature = "nightly", allow(clippy::implied_bounds_in_impls))]
 #![cfg_attr(doc, allow(unknown_lints), warn(rustdoc::all))]
 
 //! # Description
