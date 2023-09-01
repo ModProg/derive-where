@@ -94,18 +94,11 @@ fn variant_empty() -> Result<()> {
 #[test]
 fn variants_empty() -> Result<()> {
 	#[cfg(feature = "nightly")]
-	let discriminant = quote! {
-		let __self_disc = ::core::intrinsics::discriminant_value(self);
-		let __other_disc = ::core::intrinsics::discriminant_value(__other);
-	};
-	#[cfg(not(feature = "nightly"))]
-	let discriminant = quote! {
-		let __self_disc = ::core::mem::discriminant(self);
-		let __other_disc = ::core::mem::discriminant(__other);
-	};
-	#[cfg(feature = "nightly")]
 	let ord = quote! {
-		::core::cmp::Ord::cmp(&__self_disc, &__other_disc)
+		::core::cmp::Ord::cmp(
+			&::core::intrinsics::discriminant_value(self),
+			&::core::intrinsics::discriminant_value(__other),
+		)
 	};
 	#[cfg(not(feature = "nightly"))]
 	let ord = quote! {
@@ -133,13 +126,7 @@ fn variants_empty() -> Result<()> {
 			impl<T> ::core::cmp::Ord for Test<T> {
 				#[inline]
 				fn cmp(&self, __other: &Self) -> ::core::cmp::Ordering {
-					#discriminant
-
-					if __self_disc == __other_disc {
-						::core::cmp::Ordering::Equal
-					} else {
-						#ord
-					}
+					#ord
 				}
 			}
 		},

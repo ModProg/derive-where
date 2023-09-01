@@ -39,7 +39,7 @@ pub fn build_ord_signature(
 			// In case the discriminant matches:
 			// If all variants are empty, return `Equal`.
 			let body_equal = if item.is_empty(**trait_) {
-				quote! { #equal }
+				None
 			}
 			// Compare variant data and return `Equal` in the rest pattern if there are any empty
 			// variants that are comparable.
@@ -47,12 +47,12 @@ pub fn build_ord_signature(
 				.iter()
 				.any(|variant| variant.is_empty(**trait_) && !variant.is_incomparable())
 			{
-				quote! {
+				Some(quote! {
 					match (self, __other) {
 						#body
 						_ => #equal,
 					}
-				}
+				})
 			}
 			// Insert `unreachable!` in the rest pattern if no variants are empty.
 			else {
@@ -62,12 +62,12 @@ pub fn build_ord_signature(
 				#[cfg(feature = "safe")]
 				let rest = quote! { ::core::unreachable!("comparing variants yielded unexpected results") };
 
-				quote! {
+				Some(quote! {
 					match (self, __other) {
 						#body
 						_ => #rest,
 					}
-				}
+				})
 			};
 
 			let incomparable = build_incomparable_pattern(variants);
@@ -83,7 +83,7 @@ pub fn build_ord_signature(
 				let equal = if comparable.is_empty(**trait_) {
 					equal
 				} else {
-					body_equal
+					body_equal.unwrap_or(equal)
 				};
 				quote! {
 					if ::core::matches!(self, #incomparable) || ::core::matches!(__other, #incomparable) {
@@ -109,16 +109,27 @@ pub fn build_ord_signature(
 
 				// Nightly implementation.
 				#[cfg(feature = "nightly")]
-				quote! {
-					#incomparable
+				if let Some(body_equal) = body_equal {
+					quote! {
+						#incomparable
 
-					let __self_disc = ::core::intrinsics::discriminant_value(self);
-					let __other_disc = ::core::intrinsics::discriminant_value(__other);
+						let __self_disc = ::core::intrinsics::discriminant_value(self);
+						let __other_disc = ::core::intrinsics::discriminant_value(__other);
 
-					if __self_disc == __other_disc {
-						#body_equal
-					} else {
-						#path::#method(&__self_disc, &__other_disc)
+						if __self_disc == __other_disc {
+							#body_equal
+						} else {
+							#path::#method(&__self_disc, &__other_disc)
+						}
+					}
+				} else {
+					quote! {
+						#incomparable
+
+						#path::#method(
+							&::core::intrinsics::discriminant_value(self),
+							&::core::intrinsics::discriminant_value(__other),
+						)
 					}
 				}
 
@@ -204,15 +215,23 @@ pub fn build_ord_signature(
 						),
 					};
 
-					quote! {
-						#incomparable
+					if let Some(body_equal) = body_equal {
+						quote! {
+							#incomparable
 
-						let __self_disc = ::core::mem::discriminant(self);
-						let __other_disc = ::core::mem::discriminant(__other);
+							let __self_disc = ::core::mem::discriminant(self);
+							let __other_disc = ::core::mem::discriminant(__other);
 
-						if __self_disc == __other_disc {
-							#body_equal
-						} else {
+							if __self_disc == __other_disc {
+								#body_equal
+							} else {
+								#body_else
+							}
+						}
+					} else {
+						quote! {
+							#incomparable
+
 							#body_else
 						}
 					}

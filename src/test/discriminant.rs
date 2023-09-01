@@ -6,18 +6,11 @@ use super::test_derive;
 #[test]
 fn default() -> Result<()> {
 	#[cfg(feature = "nightly")]
-	let discriminant = quote! {
-		let __self_disc = ::core::intrinsics::discriminant_value(self);
-		let __other_disc = ::core::intrinsics::discriminant_value(__other);
-	};
-	#[cfg(not(feature = "nightly"))]
-	let discriminant = quote! {
-		let __self_disc = ::core::mem::discriminant(self);
-		let __other_disc = ::core::mem::discriminant(__other);
-	};
-	#[cfg(feature = "nightly")]
 	let partial_ord = quote! {
-		::core::cmp::PartialOrd::partial_cmp(&__self_disc, &__other_disc)
+		::core::cmp::PartialOrd::partial_cmp(
+			&::core::intrinsics::discriminant_value(self),
+			&::core::intrinsics::discriminant_value(__other),
+		)
 	};
 	#[cfg(not(feature = "nightly"))]
 	let partial_ord = quote! {
@@ -50,13 +43,7 @@ fn default() -> Result<()> {
 						return ::core::option::Option::None;
 					}
 
-					#discriminant
-
-					if __self_disc == __other_disc {
-						::core::option::Option::Some(::core::cmp::Ordering::Equal)
-					} else {
-						#partial_ord
-					}
+					#partial_ord
 				}
 			}
 		},
@@ -66,18 +53,11 @@ fn default() -> Result<()> {
 #[test]
 fn default_clone() -> Result<()> {
 	#[cfg(feature = "nightly")]
-	let discriminant = quote! {
-		let __self_disc = ::core::intrinsics::discriminant_value(self);
-		let __other_disc = ::core::intrinsics::discriminant_value(__other);
-	};
-	#[cfg(not(feature = "nightly"))]
-	let discriminant = quote! {
-		let __self_disc = ::core::mem::discriminant(self);
-		let __other_disc = ::core::mem::discriminant(__other);
-	};
-	#[cfg(feature = "nightly")]
 	let partial_ord = quote! {
-		::core::cmp::PartialOrd::partial_cmp(&__self_disc, &__other_disc)
+		::core::cmp::PartialOrd::partial_cmp(
+			&::core::intrinsics::discriminant_value(self),
+			&::core::intrinsics::discriminant_value(__other),
+		)
 	};
 	#[cfg(not(feature = "nightly"))]
 	let partial_ord = quote! {
@@ -113,13 +93,7 @@ fn default_clone() -> Result<()> {
 						return ::core::option::Option::None;
 					}
 
-					#discriminant
-
-					if __self_disc == __other_disc {
-						::core::option::Option::Some(::core::cmp::Ordering::Equal)
-					} else {
-						#partial_ord
-					}
+					#partial_ord
 				}
 			}
 		},
@@ -129,18 +103,11 @@ fn default_clone() -> Result<()> {
 #[test]
 fn default_copy() -> Result<()> {
 	#[cfg(feature = "nightly")]
-	let discriminant = quote! {
-		let __self_disc = ::core::intrinsics::discriminant_value(self);
-		let __other_disc = ::core::intrinsics::discriminant_value(__other);
-	};
-	#[cfg(not(feature = "nightly"))]
-	let discriminant = quote! {
-		let __self_disc = ::core::mem::discriminant(self);
-		let __other_disc = ::core::mem::discriminant(__other);
-	};
-	#[cfg(feature = "nightly")]
 	let partial_ord = quote! {
-		::core::cmp::PartialOrd::partial_cmp(&__self_disc, &__other_disc)
+		::core::cmp::PartialOrd::partial_cmp(
+			&::core::intrinsics::discriminant_value(self),
+			&::core::intrinsics::discriminant_value(__other),
+		)
 	};
 	#[cfg(not(feature = "nightly"))]
 	let partial_ord = quote! {
@@ -167,13 +134,7 @@ fn default_copy() -> Result<()> {
 						return ::core::option::Option::None;
 					}
 
-					#discriminant
-
-					if __self_disc == __other_disc {
-						::core::option::Option::Some(::core::cmp::Ordering::Equal)
-					} else {
-						#partial_ord
-					}
+					#partial_ord
 				}
 			}
 		},
@@ -183,18 +144,11 @@ fn default_copy() -> Result<()> {
 #[test]
 fn default_reverse() -> Result<()> {
 	#[cfg(feature = "nightly")]
-	let discriminant = quote! {
-		let __self_disc = ::core::intrinsics::discriminant_value(self);
-		let __other_disc = ::core::intrinsics::discriminant_value(__other);
-	};
-	#[cfg(not(feature = "nightly"))]
-	let discriminant = quote! {
-		let __self_disc = ::core::mem::discriminant(self);
-		let __other_disc = ::core::mem::discriminant(__other);
-	};
-	#[cfg(feature = "nightly")]
 	let partial_ord = quote! {
-		::core::cmp::PartialOrd::partial_cmp(&__self_disc, &__other_disc)
+		::core::cmp::PartialOrd::partial_cmp(
+			&::core::intrinsics::discriminant_value(self),
+			&::core::intrinsics::discriminant_value(__other),
+		)
 	};
 	#[cfg(not(feature = "nightly"))]
 	let partial_ord = quote! {
@@ -227,13 +181,7 @@ fn default_reverse() -> Result<()> {
 						return ::core::option::Option::None;
 					}
 
-					#discriminant
-
-					if __self_disc == __other_disc {
-						::core::option::Option::Some(::core::cmp::Ordering::Equal)
-					} else {
-						#partial_ord
-					}
+					#partial_ord
 				}
 			}
 		},
@@ -243,18 +191,11 @@ fn default_reverse() -> Result<()> {
 #[test]
 fn default_mix() -> Result<()> {
 	#[cfg(feature = "nightly")]
-	let discriminant = quote! {
-		let __self_disc = ::core::intrinsics::discriminant_value(self);
-		let __other_disc = ::core::intrinsics::discriminant_value(__other);
-	};
-	#[cfg(not(feature = "nightly"))]
-	let discriminant = quote! {
-		let __self_disc = ::core::mem::discriminant(self);
-		let __other_disc = ::core::mem::discriminant(__other);
-	};
-	#[cfg(feature = "nightly")]
 	let partial_ord = quote! {
-		::core::cmp::PartialOrd::partial_cmp(&__self_disc, &__other_disc)
+		::core::cmp::PartialOrd::partial_cmp(
+			&::core::intrinsics::discriminant_value(self),
+			&::core::intrinsics::discriminant_value(__other),
+		)
 	};
 	#[cfg(not(feature = "nightly"))]
 	let partial_ord = quote! {
@@ -289,13 +230,7 @@ fn default_mix() -> Result<()> {
 						return ::core::option::Option::None;
 					}
 
-					#discriminant
-
-					if __self_disc == __other_disc {
-						::core::option::Option::Some(::core::cmp::Ordering::Equal)
-					} else {
-						#partial_ord
-					}
+					#partial_ord
 				}
 			}
 		},
@@ -305,18 +240,11 @@ fn default_mix() -> Result<()> {
 #[test]
 fn default_skip() -> Result<()> {
 	#[cfg(feature = "nightly")]
-	let discriminant = quote! {
-		let __self_disc = ::core::intrinsics::discriminant_value(self);
-		let __other_disc = ::core::intrinsics::discriminant_value(__other);
-	};
-	#[cfg(not(feature = "nightly"))]
-	let discriminant = quote! {
-		let __self_disc = ::core::mem::discriminant(self);
-		let __other_disc = ::core::mem::discriminant(__other);
-	};
-	#[cfg(feature = "nightly")]
 	let partial_ord = quote! {
-		::core::cmp::PartialOrd::partial_cmp(&__self_disc, &__other_disc)
+		::core::cmp::PartialOrd::partial_cmp(
+			&::core::intrinsics::discriminant_value(self),
+			&::core::intrinsics::discriminant_value(__other),
+		)
 	};
 	#[cfg(not(feature = "nightly"))]
 	let partial_ord = quote! {
@@ -353,13 +281,7 @@ fn default_skip() -> Result<()> {
 						return ::core::option::Option::None;
 					}
 
-					#discriminant
-
-					if __self_disc == __other_disc {
-						::core::option::Option::Some(::core::cmp::Ordering::Equal)
-					} else {
-						#partial_ord
-					}
+					#partial_ord
 				}
 			}
 		},
@@ -369,18 +291,11 @@ fn default_skip() -> Result<()> {
 #[test]
 fn default_expr() -> Result<()> {
 	#[cfg(feature = "nightly")]
-	let discriminant = quote! {
-		let __self_disc = ::core::intrinsics::discriminant_value(self);
-		let __other_disc = ::core::intrinsics::discriminant_value(__other);
-	};
-	#[cfg(not(feature = "nightly"))]
-	let discriminant = quote! {
-		let __self_disc = ::core::mem::discriminant(self);
-		let __other_disc = ::core::mem::discriminant(__other);
-	};
-	#[cfg(feature = "nightly")]
 	let partial_ord = quote! {
-		::core::cmp::PartialOrd::partial_cmp(&__self_disc, &__other_disc)
+		::core::cmp::PartialOrd::partial_cmp(
+			&::core::intrinsics::discriminant_value(self),
+			&::core::intrinsics::discriminant_value(__other),
+		)
 	};
 	#[cfg(not(feature = "nightly"))]
 	let partial_ord = quote! {
@@ -413,13 +328,7 @@ fn default_expr() -> Result<()> {
 						return ::core::option::Option::None;
 					}
 
-					#discriminant
-
-					if __self_disc == __other_disc {
-						::core::option::Option::Some(::core::cmp::Ordering::Equal)
-					} else {
-						#partial_ord
-					}
+					#partial_ord
 				}
 			}
 		},
@@ -429,18 +338,11 @@ fn default_expr() -> Result<()> {
 #[test]
 fn repr_c() -> Result<()> {
 	#[cfg(feature = "nightly")]
-	let discriminant = quote! {
-		let __self_disc = ::core::intrinsics::discriminant_value(self);
-		let __other_disc = ::core::intrinsics::discriminant_value(__other);
-	};
-	#[cfg(not(feature = "nightly"))]
-	let discriminant = quote! {
-		let __self_disc = ::core::mem::discriminant(self);
-		let __other_disc = ::core::mem::discriminant(__other);
-	};
-	#[cfg(feature = "nightly")]
 	let partial_ord = quote! {
-		::core::cmp::PartialOrd::partial_cmp(&__self_disc, &__other_disc)
+		::core::cmp::PartialOrd::partial_cmp(
+			&::core::intrinsics::discriminant_value(self),
+			&::core::intrinsics::discriminant_value(__other),
+		)
 	};
 	#[cfg(not(feature = "nightly"))]
 	let partial_ord = quote! {
@@ -477,13 +379,7 @@ fn repr_c() -> Result<()> {
 						return ::core::option::Option::None;
 					}
 
-					#discriminant
-
-					if __self_disc == __other_disc {
-						::core::option::Option::Some(::core::cmp::Ordering::Equal)
-					} else {
-						#partial_ord
-					}
+					#partial_ord
 				}
 			}
 		},
@@ -493,18 +389,11 @@ fn repr_c() -> Result<()> {
 #[test]
 fn repr_c_clone() -> Result<()> {
 	#[cfg(feature = "nightly")]
-	let discriminant = quote! {
-		let __self_disc = ::core::intrinsics::discriminant_value(self);
-		let __other_disc = ::core::intrinsics::discriminant_value(__other);
-	};
-	#[cfg(not(feature = "nightly"))]
-	let discriminant = quote! {
-		let __self_disc = ::core::mem::discriminant(self);
-		let __other_disc = ::core::mem::discriminant(__other);
-	};
-	#[cfg(feature = "nightly")]
 	let partial_ord = quote! {
-		::core::cmp::PartialOrd::partial_cmp(&__self_disc, &__other_disc)
+		::core::cmp::PartialOrd::partial_cmp(
+			&::core::intrinsics::discriminant_value(self),
+			&::core::intrinsics::discriminant_value(__other),
+		)
 	};
 	#[cfg(not(feature = "nightly"))]
 	let partial_ord = quote! {
@@ -544,13 +433,7 @@ fn repr_c_clone() -> Result<()> {
 						return ::core::option::Option::None;
 					}
 
-					#discriminant
-
-					if __self_disc == __other_disc {
-						::core::option::Option::Some(::core::cmp::Ordering::Equal)
-					} else {
-						#partial_ord
-					}
+					#partial_ord
 				}
 			}
 		},
@@ -560,18 +443,11 @@ fn repr_c_clone() -> Result<()> {
 #[test]
 fn repr_c_copy() -> Result<()> {
 	#[cfg(feature = "nightly")]
-	let discriminant = quote! {
-		let __self_disc = ::core::intrinsics::discriminant_value(self);
-		let __other_disc = ::core::intrinsics::discriminant_value(__other);
-	};
-	#[cfg(not(feature = "nightly"))]
-	let discriminant = quote! {
-		let __self_disc = ::core::mem::discriminant(self);
-		let __other_disc = ::core::mem::discriminant(__other);
-	};
-	#[cfg(feature = "nightly")]
 	let partial_ord = quote! {
-		::core::cmp::PartialOrd::partial_cmp(&__self_disc, &__other_disc)
+		::core::cmp::PartialOrd::partial_cmp(
+			&::core::intrinsics::discriminant_value(self),
+			&::core::intrinsics::discriminant_value(__other),
+		)
 	};
 	#[cfg(not(feature = "nightly"))]
 	let partial_ord = quote! {
@@ -602,13 +478,7 @@ fn repr_c_copy() -> Result<()> {
 						return ::core::option::Option::None;
 					}
 
-					#discriminant
-
-					if __self_disc == __other_disc {
-						::core::option::Option::Some(::core::cmp::Ordering::Equal)
-					} else {
-						#partial_ord
-					}
+					#partial_ord
 				}
 			}
 		},
@@ -618,18 +488,11 @@ fn repr_c_copy() -> Result<()> {
 #[test]
 fn repr_c_reverse() -> Result<()> {
 	#[cfg(feature = "nightly")]
-	let discriminant = quote! {
-		let __self_disc = ::core::intrinsics::discriminant_value(self);
-		let __other_disc = ::core::intrinsics::discriminant_value(__other);
-	};
-	#[cfg(not(feature = "nightly"))]
-	let discriminant = quote! {
-		let __self_disc = ::core::mem::discriminant(self);
-		let __other_disc = ::core::mem::discriminant(__other);
-	};
-	#[cfg(feature = "nightly")]
 	let partial_ord = quote! {
-		::core::cmp::PartialOrd::partial_cmp(&__self_disc, &__other_disc)
+		::core::cmp::PartialOrd::partial_cmp(
+			&::core::intrinsics::discriminant_value(self),
+			&::core::intrinsics::discriminant_value(__other),
+		)
 	};
 	#[cfg(not(feature = "nightly"))]
 	let partial_ord = quote! {
@@ -666,13 +529,7 @@ fn repr_c_reverse() -> Result<()> {
 						return ::core::option::Option::None;
 					}
 
-					#discriminant
-
-					if __self_disc == __other_disc {
-						::core::option::Option::Some(::core::cmp::Ordering::Equal)
-					} else {
-						#partial_ord
-					}
+					#partial_ord
 				}
 			}
 		},
@@ -682,18 +539,11 @@ fn repr_c_reverse() -> Result<()> {
 #[test]
 fn repr_c_mix() -> Result<()> {
 	#[cfg(feature = "nightly")]
-	let discriminant = quote! {
-		let __self_disc = ::core::intrinsics::discriminant_value(self);
-		let __other_disc = ::core::intrinsics::discriminant_value(__other);
-	};
-	#[cfg(not(feature = "nightly"))]
-	let discriminant = quote! {
-		let __self_disc = ::core::mem::discriminant(self);
-		let __other_disc = ::core::mem::discriminant(__other);
-	};
-	#[cfg(feature = "nightly")]
 	let partial_ord = quote! {
-		::core::cmp::PartialOrd::partial_cmp(&__self_disc, &__other_disc)
+		::core::cmp::PartialOrd::partial_cmp(
+			&::core::intrinsics::discriminant_value(self),
+			&::core::intrinsics::discriminant_value(__other),
+		)
 	};
 	#[cfg(not(feature = "nightly"))]
 	let partial_ord = quote! {
@@ -732,13 +582,7 @@ fn repr_c_mix() -> Result<()> {
 						return ::core::option::Option::None;
 					}
 
-					#discriminant
-
-					if __self_disc == __other_disc {
-						::core::option::Option::Some(::core::cmp::Ordering::Equal)
-					} else {
-						#partial_ord
-					}
+					#partial_ord
 				}
 			}
 		},
@@ -748,18 +592,11 @@ fn repr_c_mix() -> Result<()> {
 #[test]
 fn repr_c_skip() -> Result<()> {
 	#[cfg(feature = "nightly")]
-	let discriminant = quote! {
-		let __self_disc = ::core::intrinsics::discriminant_value(self);
-		let __other_disc = ::core::intrinsics::discriminant_value(__other);
-	};
-	#[cfg(not(feature = "nightly"))]
-	let discriminant = quote! {
-		let __self_disc = ::core::mem::discriminant(self);
-		let __other_disc = ::core::mem::discriminant(__other);
-	};
-	#[cfg(feature = "nightly")]
 	let partial_ord = quote! {
-		::core::cmp::PartialOrd::partial_cmp(&__self_disc, &__other_disc)
+		::core::cmp::PartialOrd::partial_cmp(
+			&::core::intrinsics::discriminant_value(self),
+			&::core::intrinsics::discriminant_value(__other),
+		)
 	};
 	#[cfg(not(feature = "nightly"))]
 	let partial_ord = quote! {
@@ -800,13 +637,7 @@ fn repr_c_skip() -> Result<()> {
 						return ::core::option::Option::None;
 					}
 
-					#discriminant
-
-					if __self_disc == __other_disc {
-						::core::option::Option::Some(::core::cmp::Ordering::Equal)
-					} else {
-						#partial_ord
-					}
+					#partial_ord
 				}
 			}
 		},
@@ -816,18 +647,11 @@ fn repr_c_skip() -> Result<()> {
 #[test]
 fn repr_c_expr() -> Result<()> {
 	#[cfg(feature = "nightly")]
-	let discriminant = quote! {
-		let __self_disc = ::core::intrinsics::discriminant_value(self);
-		let __other_disc = ::core::intrinsics::discriminant_value(__other);
-	};
-	#[cfg(not(feature = "nightly"))]
-	let discriminant = quote! {
-		let __self_disc = ::core::mem::discriminant(self);
-		let __other_disc = ::core::mem::discriminant(__other);
-	};
-	#[cfg(feature = "nightly")]
 	let partial_ord = quote! {
-		::core::cmp::PartialOrd::partial_cmp(&__self_disc, &__other_disc)
+		::core::cmp::PartialOrd::partial_cmp(
+			&::core::intrinsics::discriminant_value(self),
+			&::core::intrinsics::discriminant_value(__other),
+		)
 	};
 	#[cfg(not(feature = "nightly"))]
 	let partial_ord = quote! {
@@ -864,13 +688,7 @@ fn repr_c_expr() -> Result<()> {
 						return ::core::option::Option::None;
 					}
 
-					#discriminant
-
-					if __self_disc == __other_disc {
-						::core::option::Option::Some(::core::cmp::Ordering::Equal)
-					} else {
-						#partial_ord
-					}
+					#partial_ord
 				}
 			}
 		},
@@ -1232,18 +1050,11 @@ fn repr_c_with_value_expr() -> Result<()> {
 #[test]
 fn repr() -> Result<()> {
 	#[cfg(feature = "nightly")]
-	let discriminant = quote! {
-		let __self_disc = ::core::intrinsics::discriminant_value(self);
-		let __other_disc = ::core::intrinsics::discriminant_value(__other);
-	};
-	#[cfg(not(feature = "nightly"))]
-	let discriminant = quote! {
-		let __self_disc = ::core::mem::discriminant(self);
-		let __other_disc = ::core::mem::discriminant(__other);
-	};
-	#[cfg(feature = "nightly")]
 	let partial_ord = quote! {
-		::core::cmp::PartialOrd::partial_cmp(&__self_disc, &__other_disc)
+		::core::cmp::PartialOrd::partial_cmp(
+			&::core::intrinsics::discriminant_value(self),
+			&::core::intrinsics::discriminant_value(__other),
+		)
 	};
 	#[cfg(not(any(feature = "nightly", feature = "safe")))]
 	let partial_ord = quote! {
@@ -1284,13 +1095,7 @@ fn repr() -> Result<()> {
 						return ::core::option::Option::None;
 					}
 
-					#discriminant
-
-					if __self_disc == __other_disc {
-						::core::option::Option::Some(::core::cmp::Ordering::Equal)
-					} else {
-						#partial_ord
-					}
+					#partial_ord
 				}
 			}
 		},
@@ -1300,18 +1105,11 @@ fn repr() -> Result<()> {
 #[test]
 fn repr_clone() -> Result<()> {
 	#[cfg(feature = "nightly")]
-	let discriminant = quote! {
-		let __self_disc = ::core::intrinsics::discriminant_value(self);
-		let __other_disc = ::core::intrinsics::discriminant_value(__other);
-	};
-	#[cfg(not(feature = "nightly"))]
-	let discriminant = quote! {
-		let __self_disc = ::core::mem::discriminant(self);
-		let __other_disc = ::core::mem::discriminant(__other);
-	};
-	#[cfg(feature = "nightly")]
 	let partial_ord = quote! {
-		::core::cmp::PartialOrd::partial_cmp(&__self_disc, &__other_disc)
+		::core::cmp::PartialOrd::partial_cmp(
+			&::core::intrinsics::discriminant_value(self),
+			&::core::intrinsics::discriminant_value(__other),
+		)
 	};
 	#[cfg(not(any(feature = "nightly", feature = "safe")))]
 	let partial_ord = quote! {
@@ -1355,13 +1153,7 @@ fn repr_clone() -> Result<()> {
 						return ::core::option::Option::None;
 					}
 
-					#discriminant
-
-					if __self_disc == __other_disc {
-						::core::option::Option::Some(::core::cmp::Ordering::Equal)
-					} else {
-						#partial_ord
-					}
+					#partial_ord
 				}
 			}
 		},
@@ -1371,18 +1163,11 @@ fn repr_clone() -> Result<()> {
 #[test]
 fn repr_copy() -> Result<()> {
 	#[cfg(feature = "nightly")]
-	let discriminant = quote! {
-		let __self_disc = ::core::intrinsics::discriminant_value(self);
-		let __other_disc = ::core::intrinsics::discriminant_value(__other);
-	};
-	#[cfg(not(feature = "nightly"))]
-	let discriminant = quote! {
-		let __self_disc = ::core::mem::discriminant(self);
-		let __other_disc = ::core::mem::discriminant(__other);
-	};
-	#[cfg(feature = "nightly")]
 	let partial_ord = quote! {
-		::core::cmp::PartialOrd::partial_cmp(&__self_disc, &__other_disc)
+		::core::cmp::PartialOrd::partial_cmp(
+			&::core::intrinsics::discriminant_value(self),
+			&::core::intrinsics::discriminant_value(__other),
+		)
 	};
 	#[cfg(not(any(feature = "nightly", feature = "safe")))]
 	let partial_ord = quote! {
@@ -1417,13 +1202,7 @@ fn repr_copy() -> Result<()> {
 						return ::core::option::Option::None;
 					}
 
-					#discriminant
-
-					if __self_disc == __other_disc {
-						::core::option::Option::Some(::core::cmp::Ordering::Equal)
-					} else {
-						#partial_ord
-					}
+					#partial_ord
 				}
 			}
 		},
@@ -1433,18 +1212,11 @@ fn repr_copy() -> Result<()> {
 #[test]
 fn repr_reverse() -> Result<()> {
 	#[cfg(feature = "nightly")]
-	let discriminant = quote! {
-		let __self_disc = ::core::intrinsics::discriminant_value(self);
-		let __other_disc = ::core::intrinsics::discriminant_value(__other);
-	};
-	#[cfg(not(feature = "nightly"))]
-	let discriminant = quote! {
-		let __self_disc = ::core::mem::discriminant(self);
-		let __other_disc = ::core::mem::discriminant(__other);
-	};
-	#[cfg(feature = "nightly")]
 	let partial_ord = quote! {
-		::core::cmp::PartialOrd::partial_cmp(&__self_disc, &__other_disc)
+		::core::cmp::PartialOrd::partial_cmp(
+			&::core::intrinsics::discriminant_value(self),
+			&::core::intrinsics::discriminant_value(__other),
+		)
 	};
 	#[cfg(not(any(feature = "nightly", feature = "safe")))]
 	let partial_ord = quote! {
@@ -1485,13 +1257,7 @@ fn repr_reverse() -> Result<()> {
 						return ::core::option::Option::None;
 					}
 
-					#discriminant
-
-					if __self_disc == __other_disc {
-						::core::option::Option::Some(::core::cmp::Ordering::Equal)
-					} else {
-						#partial_ord
-					}
+					#partial_ord
 				}
 			}
 		},
@@ -1501,18 +1267,11 @@ fn repr_reverse() -> Result<()> {
 #[test]
 fn repr_mix() -> Result<()> {
 	#[cfg(feature = "nightly")]
-	let discriminant = quote! {
-		let __self_disc = ::core::intrinsics::discriminant_value(self);
-		let __other_disc = ::core::intrinsics::discriminant_value(__other);
-	};
-	#[cfg(not(feature = "nightly"))]
-	let discriminant = quote! {
-		let __self_disc = ::core::mem::discriminant(self);
-		let __other_disc = ::core::mem::discriminant(__other);
-	};
-	#[cfg(feature = "nightly")]
 	let partial_ord = quote! {
-		::core::cmp::PartialOrd::partial_cmp(&__self_disc, &__other_disc)
+		::core::cmp::PartialOrd::partial_cmp(
+			&::core::intrinsics::discriminant_value(self),
+			&::core::intrinsics::discriminant_value(__other),
+		)
 	};
 	#[cfg(not(any(feature = "nightly", feature = "safe")))]
 	let partial_ord = quote! {
@@ -1555,13 +1314,7 @@ fn repr_mix() -> Result<()> {
 						return ::core::option::Option::None;
 					}
 
-					#discriminant
-
-					if __self_disc == __other_disc {
-						::core::option::Option::Some(::core::cmp::Ordering::Equal)
-					} else {
-						#partial_ord
-					}
+					#partial_ord
 				}
 			}
 		},
@@ -1571,18 +1324,11 @@ fn repr_mix() -> Result<()> {
 #[test]
 fn repr_skip() -> Result<()> {
 	#[cfg(feature = "nightly")]
-	let discriminant = quote! {
-		let __self_disc = ::core::intrinsics::discriminant_value(self);
-		let __other_disc = ::core::intrinsics::discriminant_value(__other);
-	};
-	#[cfg(not(feature = "nightly"))]
-	let discriminant = quote! {
-		let __self_disc = ::core::mem::discriminant(self);
-		let __other_disc = ::core::mem::discriminant(__other);
-	};
-	#[cfg(feature = "nightly")]
 	let partial_ord = quote! {
-		::core::cmp::PartialOrd::partial_cmp(&__self_disc, &__other_disc)
+		::core::cmp::PartialOrd::partial_cmp(
+			&::core::intrinsics::discriminant_value(self),
+			&::core::intrinsics::discriminant_value(__other),
+		)
 	};
 	#[cfg(not(any(feature = "nightly", feature = "safe")))]
 	let partial_ord = quote! {
@@ -1627,13 +1373,7 @@ fn repr_skip() -> Result<()> {
 						return ::core::option::Option::None;
 					}
 
-					#discriminant
-
-					if __self_disc == __other_disc {
-						::core::option::Option::Some(::core::cmp::Ordering::Equal)
-					} else {
-						#partial_ord
-					}
+					#partial_ord
 				}
 			}
 		},
@@ -1643,18 +1383,11 @@ fn repr_skip() -> Result<()> {
 #[test]
 fn repr_expr() -> Result<()> {
 	#[cfg(feature = "nightly")]
-	let discriminant = quote! {
-		let __self_disc = ::core::intrinsics::discriminant_value(self);
-		let __other_disc = ::core::intrinsics::discriminant_value(__other);
-	};
-	#[cfg(not(feature = "nightly"))]
-	let discriminant = quote! {
-		let __self_disc = ::core::mem::discriminant(self);
-		let __other_disc = ::core::mem::discriminant(__other);
-	};
-	#[cfg(feature = "nightly")]
 	let partial_ord = quote! {
-		::core::cmp::PartialOrd::partial_cmp(&__self_disc, &__other_disc)
+		::core::cmp::PartialOrd::partial_cmp(
+			&::core::intrinsics::discriminant_value(self),
+			&::core::intrinsics::discriminant_value(__other),
+		)
 	};
 	#[cfg(not(any(feature = "nightly", feature = "safe")))]
 	let partial_ord = quote! {
@@ -1695,13 +1428,7 @@ fn repr_expr() -> Result<()> {
 						return ::core::option::Option::None;
 					}
 
-					#discriminant
-
-					if __self_disc == __other_disc {
-						::core::option::Option::Some(::core::cmp::Ordering::Equal)
-					} else {
-						#partial_ord
-					}
+					#partial_ord
 				}
 			}
 		},
