@@ -217,7 +217,7 @@ impl Error {
 		syn::Error::new(span, "found unknown representation")
 	}
 
-	/// Invalid enum with on-empty variants and custom discriminants without an
+	/// Invalid enum with non-empty variants and custom discriminants without an
 	/// integer representation.
 	pub fn repr_discriminant_invalid(span: Span) -> syn::Error {
 		syn::Error::new(

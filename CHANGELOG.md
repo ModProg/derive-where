@@ -12,8 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Use stable methods to retrieve the discriminant in `PartialOrd` and `Ord`
-  implementations. Safe used with the `safe` crate feature don't use recursive
-  matches anymore, significantly improving the performance.
+  implementations. Safe methods used with the `safe` crate feature don't use
+  recursive matches anymore, significantly improving the performance.
 
 ## [1.2.3] - 2023-08-23
 

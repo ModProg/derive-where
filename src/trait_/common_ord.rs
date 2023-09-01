@@ -247,7 +247,7 @@ fn build_discriminant_order(
 ) -> TokenStream {
 	use std::{borrow::Cow, ops::Deref};
 
-	use proc_macro2::Span;
+	use proc_macro2::{Literal, Span};
 	use syn::{parse_quote, Expr, ExprLit, LitInt};
 
 	let mut discriminants = Vec::<Cow<Expr>>::with_capacity(variants.len());
@@ -262,7 +262,7 @@ fn build_discriminant_order(
 				Some((Some(expr_index), counter)) => {
 					let expr = &discriminants[*expr_index];
 					*counter += 1;
-					let counter = LitInt::new(&counter.to_string(), Span::call_site());
+					let counter = Literal::usize_unsuffixed(*counter);
 					parse_quote! { (#expr) + #counter }
 				}
 				Some((None, counter)) => {
