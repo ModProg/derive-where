@@ -271,11 +271,11 @@ fn build_discriminant_order(
 
 					if !has_non_isize {
 						#[cfg(target_pointer_width = "16")]
-						let max = i128::try_from(i16::MAX);
+						let max = i128::from(i16::MAX);
 						#[cfg(target_pointer_width = "32")]
-						let max = i128::try_from(i32::MAX);
+						let max = i128::from(i32::MAX);
 						#[cfg(target_pointer_width = "64")]
-						let max = i128::try_from(i64::MAX);
+						let max = i128::from(i64::MAX);
 						#[cfg(not(any(
 							target_pointer_width = "16",
 							target_pointer_width = "32",
@@ -283,39 +283,18 @@ fn build_discriminant_order(
 						)))]
 						let max = unreachable!("128-bit targets aren't supported");
 
-						if let Ok(max) = max {
-							if int > max {
-								has_non_isize = true;
-							}
+						if int > max {
+							has_non_isize = true;
 						}
 					}
 
 					int.to_string()
 				} else if let Ok(int) = int.base10_parse::<u128>() {
-					let int = int + 1;
+					// If we couldn't parse it to a `i128`, then it can't fit in a `isize` we
+					// support anyway.
+					has_non_isize = true;
 
-					if !has_non_isize {
-						#[cfg(target_pointer_width = "16")]
-						let max = u128::try_from(i16::MAX);
-						#[cfg(target_pointer_width = "32")]
-						let max = u128::try_from(i32::MAX);
-						#[cfg(target_pointer_width = "64")]
-						let max = u128::try_from(i64::MAX);
-						#[cfg(not(any(
-							target_pointer_width = "16",
-							target_pointer_width = "32",
-							target_pointer_width = "64"
-						)))]
-						let max = unreachable!("128-bit targets aren't supported");
-
-						if let Ok(max) = max {
-							if int > max {
-								has_non_isize = true;
-							}
-						}
-					}
-
-					int.to_string()
+					(int + 1).to_string()
 				} else {
 					unreachable!("found unparsable integer literal")
 				};
