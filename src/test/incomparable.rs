@@ -64,7 +64,7 @@ fn variants() -> Result<()> {
 								Test::E { test: ref __field_test } => 4
 							}
 						}
-				
+
 						::core::cmp::PartialOrd::partial_cmp(&__discriminant(self), &__discriminant(__other))
 					}
 				}

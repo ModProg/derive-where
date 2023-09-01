@@ -5,9 +5,9 @@ use quote::quote;
 #[cfg(not(feature = "nightly"))]
 use syn::Path;
 
-use crate::{Data, DeriveTrait, Item, Representation, SimpleType, SplitGenerics};
 #[cfg(not(feature = "nightly"))]
-use crate::{Discriminant, Trait};
+use crate::{item::Representation, Discriminant, Trait};
+use crate::{Data, DeriveTrait, Item, SimpleType, SplitGenerics};
 
 /// Build signature for [`PartialOrd`] and [`Ord`].
 pub fn build_ord_signature(

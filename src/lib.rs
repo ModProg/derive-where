@@ -414,7 +414,7 @@ use self::{
 	data::{Data, DataType, Field, SimpleType},
 	error::Error,
 	input::Input,
-	item::{Discriminant, Item, Representation},
+	item::{Discriminant, Item},
 	trait_::{Trait, TraitImpl},
 	util::Either,
 };
