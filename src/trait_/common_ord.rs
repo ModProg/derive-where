@@ -145,13 +145,25 @@ pub fn build_ord_signature(
 								}
 							} else {
 								build_discriminant_order(
-									None, item, generics, variants, &path, &method,
+									None,
+									item,
+									generics,
+									*discriminant,
+									variants,
+									&path,
+									&method,
 								)
 							}
 						}
-						Discriminant::Unknown => {
-							build_discriminant_order(None, item, generics, variants, &path, &method)
-						}
+						Discriminant::Unknown => build_discriminant_order(
+							None,
+							item,
+							generics,
+							*discriminant,
+							variants,
+							&path,
+							&method,
+						),
 						#[cfg(feature = "safe")]
 						Discriminant::UnitRepr(repr) => {
 							if traits.iter().any(|trait_| trait_ == Trait::Copy) {
@@ -173,6 +185,7 @@ pub fn build_ord_signature(
 									Some(*repr),
 									item,
 									generics,
+									*discriminant,
 									variants,
 									&path,
 									&method,
@@ -193,6 +206,7 @@ pub fn build_ord_signature(
 							Some(*repr),
 							item,
 							generics,
+							*discriminant,
 							variants,
 							&path,
 							&method,
@@ -235,6 +249,7 @@ fn build_discriminant_order(
 	repr: Option<Representation>,
 	item: &Item,
 	generics: &SplitGenerics<'_>,
+	discriminant: Discriminant,
 	variants: &[Data<'_>],
 	path: &Path,
 	method: &TokenStream,
@@ -246,6 +261,7 @@ fn build_discriminant_order(
 
 	let mut discriminants = Vec::<Cow<Expr>>::with_capacity(variants.len());
 	let mut has_non_isize = false;
+	let mut last_expression: Option<(usize, usize)> = None;
 
 	for variant in variants {
 		let discriminant = if let Some(discriminant) = variant.discriminant {
@@ -304,7 +320,13 @@ fn build_discriminant_order(
 					lit: LitInt::new(&int, Span::call_site()).into(),
 				}
 				.into()
+			} else if let Some((expr_index, counter)) = &mut last_expression {
+				let expr = &discriminants[*expr_index];
+				*counter += 1;
+				let counter = LitInt::new(&counter.to_string(), Span::call_site());
+				parse_quote! { (#expr) + #counter }
 			} else {
+				last_expression = Some((discriminants.len() - 1, 1));
 				parse_quote! { (#discriminant) + 1 }
 			};
 
@@ -335,7 +357,7 @@ fn build_discriminant_order(
 		});
 
 	let repr = repr.map(Representation::to_token).unwrap_or_else(|| {
-		if has_non_isize {
+		if has_non_isize && matches!(discriminant, Discriminant::Unknown) {
 			quote! { impl #path }
 		} else {
 			// `isize` is currently used by Rust as the default representation when none is

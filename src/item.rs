@@ -94,6 +94,7 @@ impl Item<'_> {
 }
 
 /// Type of discriminant used.
+#[derive(Clone, Copy)]
 #[cfg_attr(test, derive(Debug))]
 pub enum Discriminant {
 	/// The enum has only a single variant.

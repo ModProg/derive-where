@@ -1,5 +1,6 @@
 mod basic;
 mod bound;
+mod discriminant;
 mod enum_;
 #[cfg(not(any(feature = "nightly", feature = "safe")))]
 mod incomparable;
