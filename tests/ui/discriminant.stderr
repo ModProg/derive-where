@@ -1,0 +1,19 @@
+error[E0552]: unrecognized representation hint
+ --> tests/ui/discriminant.rs:6:8
+  |
+6 | #[repr(A)]
+  |        ^
+  |
+  = help: valid reprs are `Rust` (default), `C`, `align`, `packed`, `transparent`, `simd`, `i8`, `u8`, `i16`, `u16`, `i32`, `u32`, `i64`, `u64`, `i128`, `u128`, `isize`, `usize`
+
+error[E0732]: `#[repr(inttype)]` must be specified
+  --> tests/ui/discriminant.rs:12:1
+   |
+12 | enum MissingIntegerRepr<T> {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0732]: `#[repr(inttype)]` must be specified
+  --> tests/ui/discriminant.rs:18:1
+   |
+18 | enum MissingIntegerReprC<T> {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^

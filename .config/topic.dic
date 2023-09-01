@@ -4,6 +4,7 @@ Changelog
 CHANGELOG
 derive_bounded
 destructure/G
+discriminants
 enum/S
 FQS
 invariants

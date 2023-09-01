@@ -217,6 +217,16 @@ impl Error {
 		syn::Error::new(span, "found unknown representation")
 	}
 
+	/// Invalid enum with on-empty variants and custom discriminants without an
+	/// integer representation.
+	pub fn repr_discriminant_invalid(span: Span) -> syn::Error {
+		syn::Error::new(
+			span,
+			"enums with non-empty variants and custom discriminants require a integer \
+			 representation",
+		)
+	}
+
 	/// Unsupported default option if [`Default`] isn't implemented.
 	pub fn default(span: Span) -> syn::Error {
 		syn::Error::new(

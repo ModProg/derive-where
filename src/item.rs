@@ -2,7 +2,7 @@
 
 use proc_macro2::{Ident, Span, TokenStream, TokenTree};
 use quote::ToTokens;
-use syn::{punctuated::Punctuated, Attribute, Meta, Result, Token, Variant};
+use syn::{punctuated::Punctuated, spanned::Spanned, Attribute, Meta, Result, Token, Variant};
 
 use crate::{Data, Error, Incomparable, Trait};
 
@@ -107,10 +107,7 @@ pub enum Discriminant {
 	},
 	/// The enum uses the default or C representation but has a non-unit
 	/// variant.
-	Data {
-		/// `true` if this is using the C representation.
-		c: bool,
-	},
+	Data,
 	/// The enum uses a non-default representation and has only unit variants.
 	UnitRepr(Representation),
 	/// The enum uses a non-default representation and has a non-unit variant.
@@ -160,10 +157,15 @@ impl Discriminant {
 		} else if is_unit {
 			Self::Unit { c: is_c }
 		} else {
-			debug_assert!(variants
+			let discriminant = variants
 				.iter()
-				.all(|variant| variant.discriminant.is_none()));
-			Self::Data { c: is_c }
+				.find_map(|variant| variant.discriminant.as_ref());
+
+			if let Some(discriminant) = discriminant {
+				return Err(Error::repr_discriminant_invalid(discriminant.1.span()));
+			}
+
+			Self::Data
 		})
 	}
 }
