@@ -226,7 +226,7 @@ impl<'a> Data<'a> {
 						default,
 						type_: VariantType::Unit(pattern),
 					},
-					discriminant: None,
+					discriminant: variant.discriminant.as_ref().map(|(_, expr)| expr),
 				})
 			}
 		}
