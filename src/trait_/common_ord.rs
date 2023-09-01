@@ -128,7 +128,7 @@ pub fn build_ord_signature(
 						Discriminant::Single => {
 							unreachable!("we should only generate this code with multiple variants")
 						}
-						Discriminant::UnitDefault => {
+						Discriminant::Unit { c } => {
 							if traits.iter().any(|trait_| trait_ == Trait::Copy) {
 								quote! {
 									#path::#method(&(*self as isize), &(*__other as isize))
@@ -139,13 +139,13 @@ pub fn build_ord_signature(
 								}
 							} else {
 								build_discriminant_order(
-									None, item, generics, variants, &path, &method,
+									None, *c, item, generics, variants, &path, &method,
 								)
 							}
 						}
-						Discriminant::Unknown => {
-							build_discriminant_order(None, item, generics, variants, &path, &method)
-						}
+						Discriminant::Data { c } => build_discriminant_order(
+							None, *c, item, generics, variants, &path, &method,
+						),
 						#[cfg(feature = "safe")]
 						Discriminant::UnitRepr(repr) => {
 							if traits.iter().any(|trait_| trait_ == Trait::Copy) {
@@ -159,6 +159,7 @@ pub fn build_ord_signature(
 							} else {
 								build_discriminant_order(
 									Some(*repr),
+									false,
 									item,
 									generics,
 									variants,
@@ -168,7 +169,7 @@ pub fn build_ord_signature(
 							}
 						}
 						#[cfg(not(feature = "safe"))]
-						Discriminant::UnitRepr(repr) | Discriminant::Repr(repr) => {
+						Discriminant::UnitRepr(repr) | Discriminant::DataRepr(repr) => {
 							quote! {
 								#path::#method(
 									&unsafe { *<*const _>::from(self).cast::<#repr>() },
@@ -177,8 +178,9 @@ pub fn build_ord_signature(
 							}
 						}
 						#[cfg(feature = "safe")]
-						Discriminant::Repr(repr) => build_discriminant_order(
+						Discriminant::DataRepr(repr) => build_discriminant_order(
 							Some(*repr),
+							false,
 							item,
 							generics,
 							variants,
@@ -221,6 +223,7 @@ pub fn build_ord_signature(
 #[cfg(not(feature = "nightly"))]
 fn build_discriminant_order(
 	repr: Option<Representation>,
+	c: bool,
 	item: &Item,
 	generics: &SplitGenerics<'_>,
 	variants: &[Data<'_>],
@@ -294,7 +297,19 @@ fn build_discriminant_order(
 		ty,
 		where_clause,
 	} = generics;
+
+	let validate_c = c.then(|| {
+		quote! {
+			#[repr(C)]
+			enum EnsureReprCIsIsize {
+			   Test = 0_isize
+			}
+		}
+	});
+
 	quote! {
+		#validate_c
+
 		fn __discriminant #imp(__this: &#item #ty) -> #repr #where_clause {
 			match __this {
 				#(#variants),*

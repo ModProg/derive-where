@@ -99,15 +99,22 @@ impl Item<'_> {
 pub enum Discriminant {
 	/// The enum has only a single variant.
 	Single,
-	/// The enum uses the default representation but has a non-unit variant or
-	/// an enum with a C representation without an integer representation.
-	Unknown,
-	/// The enum uses the default representation and has only unit variants.
-	UnitDefault,
+	/// The enum uses the default or C representation and has only unit
+	/// variants.
+	Unit {
+		/// `true` if this is using the C representation.
+		c: bool,
+	},
+	/// The enum uses the default or C representation but has a non-unit
+	/// variant.
+	Data {
+		/// `true` if this is using the C representation.
+		c: bool,
+	},
 	/// The enum uses a non-default representation and has only unit variants.
 	UnitRepr(Representation),
 	/// The enum uses a non-default representation and has a non-unit variant.
-	Repr(Representation),
+	DataRepr(Representation),
 }
 
 impl Discriminant {
@@ -148,15 +155,15 @@ impl Discriminant {
 			if is_unit {
 				Self::UnitRepr(repr)
 			} else {
-				Self::Repr(repr)
+				Self::DataRepr(repr)
 			}
-		} else if is_unit && !is_c {
-			Self::UnitDefault
+		} else if is_unit {
+			Self::Unit { c: is_c }
 		} else {
 			debug_assert!(variants
 				.iter()
 				.all(|variant| variant.discriminant.is_none()));
-			Self::Unknown
+			Self::Data { c: is_c }
 		})
 	}
 }
