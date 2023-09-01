@@ -2,7 +2,7 @@
 
 use proc_macro2::{Ident, Span, TokenStream, TokenTree};
 use quote::ToTokens;
-use syn::{punctuated::Punctuated, spanned::Spanned, Attribute, Meta, Result, Token, Variant};
+use syn::{punctuated::Punctuated, Attribute, Meta, Result, Token, Variant};
 
 use crate::{Data, Error, Incomparable, Trait};
 
@@ -136,7 +136,7 @@ impl Discriminant {
 						}
 					}
 				} else {
-					return Err(Error::repr_parse(attr.span()));
+					unreachable!("found invalid `repr` attribute")
 				}
 			}
 		}
