@@ -627,11 +627,11 @@ fn generate_impl(
 	generics: &SplitGenerics,
 ) -> TokenStream {
 	let SplitGenerics {
-		r#impl,
+		imp,
 		ty,
-		r#where,
+		where_clause,
 	} = generics;
-	let mut where_clause = r#where.map(Cow::Borrowed);
+	let mut where_clause = where_clause.map(Cow::Borrowed);
 	derive_where.where_clause(&mut where_clause, trait_, item);
 
 	let body = generate_body(derive_where, &derive_where.traits, trait_, item, generics);
@@ -639,7 +639,7 @@ fn generate_impl(
 	let ident = item.ident();
 	let path = trait_.impl_path(trait_);
 	let mut output = quote! {
-		impl #r#impl #path for #ident #ty
+		impl #imp #path for #ident #ty
 		#where_clause
 		{
 			#body
@@ -648,7 +648,7 @@ fn generate_impl(
 
 	if let Some((path, body)) = trait_.additional_impl(trait_) {
 		output.extend(quote! {
-			impl #r#impl #path for #ident #ty
+			impl #imp #path for #ident #ty
 			#where_clause
 			{
 				#body

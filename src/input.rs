@@ -207,22 +207,22 @@ impl<'a> Input<'a> {
 /// Stores output of [`Generics::split_for_impl()`].
 pub struct SplitGenerics<'a> {
 	/// Necessary generic definitions.
-	pub r#impl: ImplGenerics<'a>,
+	pub imp: ImplGenerics<'a>,
 	/// Generics on the type itself.
 	pub ty: TypeGenerics<'a>,
 	/// `where` clause.
-	pub r#where: Option<&'a WhereClause>,
+	pub where_clause: Option<&'a WhereClause>,
 }
 
 impl<'a> SplitGenerics<'a> {
 	/// Creates a [`SplitGenerics`] from [`Generics`].
 	fn new(generics: &'a Generics) -> Self {
-		let (r#impl, ty, r#where) = generics.split_for_impl();
+		let (imp, ty, where_clause) = generics.split_for_impl();
 
 		SplitGenerics {
-			r#impl,
+			imp,
 			ty,
-			r#where,
+			where_clause,
 		}
 	}
 }

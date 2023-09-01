@@ -270,7 +270,20 @@ fn build_discriminant_order(
 					let int = int + 1;
 
 					if !has_non_isize {
-						if let Ok(max) = i128::try_from(isize::MAX) {
+						#[cfg(target_pointer_width = "16")]
+						let max = i128::try_from(i16::MAX);
+						#[cfg(target_pointer_width = "32")]
+						let max = i128::try_from(i32::MAX);
+						#[cfg(target_pointer_width = "64")]
+						let max = i128::try_from(i64::MAX);
+						#[cfg(not(any(
+							target_pointer_width = "16",
+							target_pointer_width = "32",
+							target_pointer_width = "64"
+						)))]
+						let max = unreachable!("128-bit targets aren't supported");
+
+						if let Ok(max) = max {
 							if int > max {
 								has_non_isize = true;
 							}
@@ -282,7 +295,20 @@ fn build_discriminant_order(
 					let int = int + 1;
 
 					if !has_non_isize {
-						if let Ok(max) = u128::try_from(isize::MAX) {
+						#[cfg(target_pointer_width = "16")]
+						let max = u128::try_from(i16::MAX);
+						#[cfg(target_pointer_width = "32")]
+						let max = u128::try_from(i32::MAX);
+						#[cfg(target_pointer_width = "64")]
+						let max = u128::try_from(i64::MAX);
+						#[cfg(not(any(
+							target_pointer_width = "16",
+							target_pointer_width = "32",
+							target_pointer_width = "64"
+						)))]
+						let max = unreachable!("128-bit targets aren't supported");
+
+						if let Ok(max) = max {
 							if int > max {
 								has_non_isize = true;
 							}
@@ -341,12 +367,12 @@ fn build_discriminant_order(
 
 	let item = item.ident();
 	let SplitGenerics {
-		r#impl,
+		imp,
 		ty,
-		r#where,
+		where_clause,
 	} = generics;
 	quote! {
-		fn __discriminant #r#impl(__this: &#item #ty) -> #repr #r#where {
+		fn __discriminant #imp(__this: &#item #ty) -> #repr #where_clause {
 			match __this {
 				#(#variants),*
 			}
