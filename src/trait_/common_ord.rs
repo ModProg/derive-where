@@ -131,17 +131,11 @@ pub fn build_ord_signature(
 						Discriminant::UnitDefault => {
 							if traits.iter().any(|trait_| trait_ == Trait::Copy) {
 								quote! {
-									#path::#method(
-										*self as isize,
-										*__other as isize,
-									)
+									#path::#method(&(*self as isize), &(*__other as isize))
 								}
 							} else if traits.iter().any(|trait_| trait_ == Trait::Clone) {
 								quote! {
-									#path::#method(
-										self.clone() as isize,
-										__other.clone() as isize,
-									)
+									#path::#method(&(self.clone() as isize), &(__other.clone() as isize))
 								}
 							} else {
 								build_discriminant_order(
@@ -156,17 +150,11 @@ pub fn build_ord_signature(
 						Discriminant::UnitRepr(repr) => {
 							if traits.iter().any(|trait_| trait_ == Trait::Copy) {
 								quote! {
-									#path::#method(
-										*self as #repr,
-										*__other as #repr,
-									)
+									#path::#method(&(*self as isize), &(*__other as isize))
 								}
 							} else if traits.iter().any(|trait_| trait_ == Trait::Clone) {
 								quote! {
-									#path::#method(
-										self.clone() as #repr,
-										__other.clone() as #repr,
-									)
+									#path::#method(&(self.clone() as isize), &(__other.clone() as isize))
 								}
 							} else {
 								build_discriminant_order(

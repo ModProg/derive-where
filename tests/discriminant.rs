@@ -38,6 +38,62 @@ fn default() {
 }
 
 #[test]
+fn default_clone() {
+	#[derive_where(Clone, PartialEq, PartialOrd)]
+	enum Test {
+		A = 0,
+		B,
+		#[allow(dead_code)]
+		#[derive_where(incomparable)]
+		C,
+	}
+
+	let test_a_1 = Test::A;
+	let test_a_2 = Test::A;
+
+	let test_b_1 = Test::B;
+	let test_b_2 = Test::B;
+
+	assert!(test_a_1 == test_a_2);
+	assert!(test_a_1 != test_b_1);
+	assert!(test_b_1 == test_b_2);
+	assert!(test_b_1 != test_a_1);
+
+	assert_eq!(test_a_1.partial_cmp(&test_a_2), Some(Ordering::Equal));
+	assert!(test_a_1 < test_b_1);
+	assert_eq!(test_b_1.partial_cmp(&test_b_2), Some(Ordering::Equal));
+	assert!(test_b_1 > test_a_1);
+}
+
+#[test]
+fn default_copy() {
+	#[derive_where(Clone, Copy, PartialEq, PartialOrd)]
+	enum Test {
+		A = 0,
+		B,
+		#[allow(dead_code)]
+		#[derive_where(incomparable)]
+		C,
+	}
+
+	let test_a_1 = Test::A;
+	let test_a_2 = Test::A;
+
+	let test_b_1 = Test::B;
+	let test_b_2 = Test::B;
+
+	assert!(test_a_1 == test_a_2);
+	assert!(test_a_1 != test_b_1);
+	assert!(test_b_1 == test_b_2);
+	assert!(test_b_1 != test_a_1);
+
+	assert_eq!(test_a_1.partial_cmp(&test_a_2), Some(Ordering::Equal));
+	assert!(test_a_1 < test_b_1);
+	assert_eq!(test_b_1.partial_cmp(&test_b_2), Some(Ordering::Equal));
+	assert!(test_b_1 > test_a_1);
+}
+
+#[test]
 fn default_reverse() {
 	#[derive_where(PartialEq, PartialOrd)]
 	enum Test {
