@@ -3,15 +3,16 @@
 use proc_macro2::TokenStream;
 use quote::quote;
 #[cfg(not(feature = "nightly"))]
-use syn::PatOr;
+use syn::Path;
 
-use crate::{Data, DeriveTrait, Item, SimpleType};
 #[cfg(not(feature = "nightly"))]
-use crate::{Discriminant, Trait};
+use crate::{item::Representation, Discriminant, Trait};
+use crate::{Data, DeriveTrait, Item, SimpleType, SplitGenerics};
 
 /// Build signature for [`PartialOrd`] and [`Ord`].
 pub fn build_ord_signature(
 	item: &Item,
+	#[cfg_attr(feature = "nightly", allow(unused_variables))] generics: &SplitGenerics<'_>,
 	#[cfg_attr(feature = "nightly", allow(unused_variables))] traits: &[DeriveTrait],
 	trait_: &DeriveTrait,
 	body: &TokenStream,
@@ -38,7 +39,7 @@ pub fn build_ord_signature(
 			// In case the discriminant matches:
 			// If all variants are empty, return `Equal`.
 			let body_equal = if item.is_empty(**trait_) {
-				quote! { #equal }
+				None
 			}
 			// Compare variant data and return `Equal` in the rest pattern if there are any empty
 			// variants that are comparable.
@@ -46,12 +47,12 @@ pub fn build_ord_signature(
 				.iter()
 				.any(|variant| variant.is_empty(**trait_) && !variant.is_incomparable())
 			{
-				quote! {
+				Some(quote! {
 					match (self, __other) {
 						#body
 						_ => #equal,
 					}
-				}
+				})
 			}
 			// Insert `unreachable!` in the rest pattern if no variants are empty.
 			else {
@@ -61,12 +62,12 @@ pub fn build_ord_signature(
 				#[cfg(feature = "safe")]
 				let rest = quote! { ::core::unreachable!("comparing variants yielded unexpected results") };
 
-				quote! {
+				Some(quote! {
 					match (self, __other) {
 						#body
 						_ => #rest,
 					}
-				}
+				})
 			};
 
 			let incomparable = build_incomparable_pattern(variants);
@@ -82,7 +83,7 @@ pub fn build_ord_signature(
 				let equal = if comparable.is_empty(**trait_) {
 					equal
 				} else {
-					body_equal
+					body_equal.unwrap_or(equal)
 				};
 				quote! {
 					if ::core::matches!(self, #incomparable) || ::core::matches!(__other, #incomparable) {
@@ -108,16 +109,27 @@ pub fn build_ord_signature(
 
 				// Nightly implementation.
 				#[cfg(feature = "nightly")]
-				quote! {
-					#incomparable
+				if let Some(body_equal) = body_equal {
+					quote! {
+						#incomparable
 
-					let __self_disc = ::core::intrinsics::discriminant_value(self);
-					let __other_disc = ::core::intrinsics::discriminant_value(__other);
+						let __self_disc = ::core::intrinsics::discriminant_value(self);
+						let __other_disc = ::core::intrinsics::discriminant_value(__other);
 
-					if __self_disc == __other_disc {
-						#body_equal
-					} else {
-						#path::#method(&__self_disc, &__other_disc)
+						if __self_disc == __other_disc {
+							#body_equal
+						} else {
+							#path::#method(&__self_disc, &__other_disc)
+						}
+					}
+				} else {
+					quote! {
+						#incomparable
+
+						#path::#method(
+							&::core::intrinsics::discriminant_value(self),
+							&::core::intrinsics::discriminant_value(__other),
+						)
 					}
 				}
 
@@ -127,50 +139,63 @@ pub fn build_ord_signature(
 						Discriminant::Single => {
 							unreachable!("we should only generate this code with multiple variants")
 						}
-						Discriminant::UnitDefault => {
+						Discriminant::Unit { c } => {
+							let validate_c = c.then(|| {
+								quote! {
+									#[repr(C)]
+									enum EnsureReprCIsIsize {
+									   Test = 0_isize
+									}
+								}
+							});
+
 							if traits.iter().any(|trait_| trait_ == Trait::Copy) {
 								quote! {
-									#path::#method(
-										*self as isize,
-										*__other as isize,
-									)
+									#validate_c
+
+									#path::#method(&(*self as isize), &(*__other as isize))
 								}
 							} else if traits.iter().any(|trait_| trait_ == Trait::Clone) {
+								let clone = DeriveTrait::Clone.path();
 								quote! {
-									#path::#method(
-										self.clone() as isize,
-										__other.clone() as isize,
-									)
+									#validate_c
+
+									#path::#method(&(#clone::clone(self) as isize), &(#clone::clone(__other) as isize))
 								}
 							} else {
-								build_recursive_order(trait_, variants, &incomparable)
+								build_discriminant_order(
+									None, validate_c, item, generics, variants, &path, &method,
+								)
 							}
 						}
-						Discriminant::Unknown => {
-							build_recursive_order(trait_, variants, &incomparable)
-						}
+						Discriminant::Data => build_discriminant_order(
+							None, None, item, generics, variants, &path, &method,
+						),
 						#[cfg(feature = "safe")]
 						Discriminant::UnitRepr(repr) => {
 							if traits.iter().any(|trait_| trait_ == Trait::Copy) {
 								quote! {
-									#path::#method(
-										*self as #repr,
-										*__other as #repr,
-									)
+									#path::#method(&(*self as #repr), &(*__other as #repr))
 								}
 							} else if traits.iter().any(|trait_| trait_ == Trait::Clone) {
+								let clone = DeriveTrait::Clone.path();
 								quote! {
-									#path::#method(
-										self.clone() as #repr,
-										__other.clone() as #repr,
-									)
+									#path::#method(&(#clone::clone(self) as #repr), &(#clone::clone(__other) as #repr))
 								}
 							} else {
-								build_recursive_order(trait_, variants, &incomparable)
+								build_discriminant_order(
+									Some(*repr),
+									None,
+									item,
+									generics,
+									variants,
+									&path,
+									&method,
+								)
 							}
 						}
 						#[cfg(not(feature = "safe"))]
-						Discriminant::UnitRepr(repr) | Discriminant::Repr(repr) => {
+						Discriminant::UnitRepr(repr) | Discriminant::DataRepr(repr) => {
 							quote! {
 								#path::#method(
 									&unsafe { *<*const _>::from(self).cast::<#repr>() },
@@ -179,18 +204,34 @@ pub fn build_ord_signature(
 							}
 						}
 						#[cfg(feature = "safe")]
-						Discriminant::Repr(_) => build_recursive_order(trait_, variants, &incomparable),
+						Discriminant::DataRepr(repr) => build_discriminant_order(
+							Some(*repr),
+							None,
+							item,
+							generics,
+							variants,
+							&path,
+							&method,
+						),
 					};
 
-					quote! {
-						#incomparable
+					if let Some(body_equal) = body_equal {
+						quote! {
+							#incomparable
 
-						let __self_disc = ::core::mem::discriminant(self);
-						let __other_disc = ::core::mem::discriminant(__other);
+							let __self_disc = ::core::mem::discriminant(self);
+							let __other_disc = ::core::mem::discriminant(__other);
 
-						if __self_disc == __other_disc {
-							#body_equal
-						} else {
+							if __self_disc == __other_disc {
+								#body_equal
+							} else {
+								#body_else
+							}
+						}
+					} else {
+						quote! {
+							#incomparable
+
 							#body_else
 						}
 					}
@@ -214,79 +255,93 @@ pub fn build_ord_signature(
 
 /// Builds order comparison recursively for all variants.
 #[cfg(not(feature = "nightly"))]
-fn build_recursive_order(
-	trait_: &DeriveTrait,
+fn build_discriminant_order(
+	repr: Option<Representation>,
+	validate_c: Option<TokenStream>,
+	item: &Item,
+	generics: &SplitGenerics<'_>,
 	variants: &[Data<'_>],
-	incomparable: &TokenStream,
+	path: &Path,
+	method: &TokenStream,
 ) -> TokenStream {
-	let mut less = quote! { ::core::cmp::Ordering::Less };
-	let mut greater = quote! { ::core::cmp::Ordering::Greater };
+	use std::{borrow::Cow, ops::Deref};
 
-	// Add `Option` to `Ordering` if we are implementing `PartialOrd`.
-	if let DeriveTrait::PartialOrd = trait_ {
-		less = quote! { ::core::option::Option::Some(#less) };
-		greater = quote! { ::core::option::Option::Some(#greater) };
-	}
+	use proc_macro2::{Literal, Span};
+	use syn::{parse_quote, Expr, ExprLit, LitInt};
 
-	let mut different = Vec::with_capacity(variants.len());
-	let variants: Vec<_> = variants.iter().filter(|v| !v.is_incomparable()).collect();
+	let mut discriminants = Vec::<Cow<Expr>>::with_capacity(variants.len());
+	let mut last_expression: Option<(Option<usize>, usize)> = None;
 
-	// Build separate `match` arms to compare different variants to each
-	// other. The index for these variants is used to determine which
-	// `Ordering` to return.
-	for (index, variant) in variants.iter().enumerate() {
-		let pattern = &variant.self_pattern();
+	for variant in variants {
+		let discriminant = if let Some(discriminant) = variant.discriminant {
+			last_expression = Some((Some(discriminants.len()), 0));
+			Cow::Borrowed(discriminant)
+		} else {
+			let discriminant = match &mut last_expression {
+				Some((Some(expr_index), counter)) => {
+					let expr = &discriminants[*expr_index];
+					*counter += 1;
+					let counter = Literal::usize_unsuffixed(*counter);
+					parse_quote! { (#expr) + #counter }
+				}
+				Some((None, counter)) => {
+					*counter += 1;
 
-		// The first variant is always `Less` then everything.
-		if index == 0 {
-			different.push(quote! {
-				#pattern => #less,
-			})
-		}
-		// The last variant is always `Greater` then everything.
-		else if index == variants.len() - 1 {
-			different.push(quote! {
-				#pattern => #greater,
-			})
-		}
-		// Any variant between the first and last.
-		else {
-			// Collect all variants that are `Less`.
-			let cases = variants
-				.iter()
-				.enumerate()
-				.filter(|(index_other, _)| *index_other < index)
-				.map(|(_, variant_other)| variant_other.other_pattern_skip().clone())
-				.collect();
-
-			// Build one match arm pattern with all variants that are `Greater`.
-			let pattern_less = PatOr {
-				attrs: Vec::new(),
-				leading_vert: None,
-				cases,
+					ExprLit {
+						attrs: Vec::new(),
+						lit: LitInt::new(&counter.to_string(), Span::call_site()).into(),
+					}
+					.into()
+				}
+				None => {
+					last_expression = Some((None, 0));
+					ExprLit {
+						attrs: Vec::new(),
+						lit: LitInt::new("0", Span::call_site()).into(),
+					}
+					.into()
+				}
 			};
 
-			// All other variants are `Less`.
-			different.push(quote! {
-				#pattern => match __other {
-					#pattern_less => #greater,
-					_ => #less,
-				},
-			});
-		}
+			Cow::Owned(discriminant)
+		};
+
+		discriminants.push(discriminant);
 	}
 
-	let rest = if incomparable.is_empty() {
-		quote!()
-	} else {
-		quote!(_ => unreachable!("incomparable variants should have already returned"),)
-	};
+	let variants = variants
+		.iter()
+		.zip(discriminants)
+		.map(|(variant, discriminant)| {
+			let pattern = variant.self_pattern();
+			let discriminant = discriminant.deref();
+
+			quote! {
+				#pattern => #discriminant
+			}
+		});
+
+	// `isize` is currently used by Rust as the default representation when none is
+	// defined.
+	let repr = repr.unwrap_or(Representation::ISize).to_token();
+
+	let item = item.ident();
+	let SplitGenerics {
+		imp,
+		ty,
+		where_clause,
+	} = generics;
 
 	quote! {
-		match self {
-			#(#different)*
-			#rest
+		#validate_c
+
+		fn __discriminant #imp(__this: &#item #ty) -> #repr #where_clause {
+			match __this {
+				#(#variants),*
+			}
 		}
+
+		#path::#method(&__discriminant(self), &__discriminant(__other))
 	}
 }
 

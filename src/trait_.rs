@@ -18,7 +18,7 @@ mod zeroize_on_drop;
 use proc_macro2::{Span, TokenStream};
 use syn::{punctuated::Punctuated, spanned::Spanned, Meta, Path, Result, Token, TypeParamBound};
 
-use crate::{Data, DeriveTrait, Error, Item};
+use crate::{Data, DeriveTrait, Error, Item, SplitGenerics};
 
 /// Type implementing [`TraitImpl`] for every trait.
 #[derive(Clone, Copy, Eq, PartialEq)]
@@ -135,12 +135,13 @@ impl TraitImpl for Trait {
 		&self,
 		any_bound: bool,
 		item: &Item,
+		generics: &SplitGenerics<'_>,
 		traits: &[DeriveTrait],
 		trait_: &DeriveTrait,
 		body: &TokenStream,
 	) -> TokenStream {
 		self.implementation()
-			.build_signature(any_bound, item, traits, trait_, body)
+			.build_signature(any_bound, item, generics, traits, trait_, body)
 	}
 
 	fn build_body(
@@ -200,6 +201,7 @@ pub trait TraitImpl {
 		&self,
 		_any_bound: bool,
 		_item: &Item,
+		_generics: &SplitGenerics<'_>,
 		_traits: &[DeriveTrait],
 		_trait_: &DeriveTrait,
 		_body: &TokenStream,

@@ -1,177 +1,1366 @@
-#![cfg_attr(feature = "nightly", feature(core_intrinsics))]
+#![allow(clippy::enum_clike_unportable_variant)]
 
-#[cfg(feature = "nightly")]
-use std::intrinsics::discriminant_value;
+#[macro_use]
+mod util;
+
+use std::cmp::Ordering;
+
+use derive_where::derive_where;
+
+use self::util::Wrapper;
 
 #[test]
 fn default() {
+	#[derive_where(PartialEq, PartialOrd)]
+	enum Test {
+		A = 0,
+		B,
+		#[allow(dead_code)]
+		#[derive_where(incomparable)]
+		C,
+	}
+
+	let test_a_1 = Test::A;
+	let test_a_2 = Test::A;
+
+	let test_b_1 = Test::B;
+	let test_b_2 = Test::B;
+
+	assert!(test_a_1 == test_a_2);
+	assert!(test_a_1 != test_b_1);
+	assert!(test_b_1 == test_b_2);
+	assert!(test_b_1 != test_a_1);
+
+	assert_eq!(test_a_1.partial_cmp(&test_a_2), Some(Ordering::Equal));
+	assert!(test_a_1 < test_b_1);
+	assert_eq!(test_b_1.partial_cmp(&test_b_2), Some(Ordering::Equal));
+	assert!(test_b_1 > test_a_1);
+}
+
+#[test]
+fn default_clone() {
+	#[derive_where(Clone, PartialEq, PartialOrd)]
 	enum Test {
 		A,
 		B,
+		#[allow(dead_code)]
+		#[derive_where(incomparable)]
 		C,
 	}
 
-	#[cfg(feature = "nightly")]
-	{
-		assert_eq!(0_isize, discriminant_value(&Test::A));
-		assert_eq!(1_isize, discriminant_value(&Test::B));
-		assert_eq!(2_isize, discriminant_value(&Test::C));
-	}
-	assert_eq!(0, Test::A as isize);
-	assert_eq!(1, Test::B as isize);
-	assert_eq!(2, Test::C as isize);
+	let test_a_1 = Test::A;
+	let test_a_2 = Test::A;
+
+	let test_b_1 = Test::B;
+	let test_b_2 = Test::B;
+
+	assert!(test_a_1 == test_a_2);
+	assert!(test_a_1 != test_b_1);
+	assert!(test_b_1 == test_b_2);
+	assert!(test_b_1 != test_a_1);
+
+	assert_eq!(test_a_1.partial_cmp(&test_a_2), Some(Ordering::Equal));
+	assert!(test_a_1 < test_b_1);
+	assert_eq!(test_b_1.partial_cmp(&test_b_2), Some(Ordering::Equal));
+	assert!(test_b_1 > test_a_1);
 }
 
 #[test]
-fn default_with_discriminants() {
+fn default_copy() {
+	#[derive_where(Clone, Copy, PartialEq, PartialOrd)]
 	enum Test {
-		A = 3,
+		A,
 		B,
+		#[allow(dead_code)]
+		#[derive_where(incomparable)]
 		C,
 	}
-	assert_eq!(3, Test::A as isize);
-	assert_eq!(4, Test::B as isize);
-	assert_eq!(5, Test::C as isize);
+
+	let test_a_1 = Test::A;
+	let test_a_2 = Test::A;
+
+	let test_b_1 = Test::B;
+	let test_b_2 = Test::B;
+
+	assert!(test_a_1 == test_a_2);
+	assert!(test_a_1 != test_b_1);
+	assert!(test_b_1 == test_b_2);
+	assert!(test_b_1 != test_a_1);
+
+	assert_eq!(test_a_1.partial_cmp(&test_a_2), Some(Ordering::Equal));
+	assert!(test_a_1 < test_b_1);
+	assert_eq!(test_b_1.partial_cmp(&test_b_2), Some(Ordering::Equal));
+	assert!(test_b_1 > test_a_1);
 }
 
 #[test]
-#[cfg(feature = "nightly")]
-fn default_with_values() {
+fn default_reverse() {
+	#[derive_where(PartialEq, PartialOrd)]
 	enum Test {
-		A(u8),
+		A = 2,
+		B = 1,
+		#[allow(dead_code)]
+		#[derive_where(incomparable)]
+		C = 0,
+	}
+
+	let test_a_1 = Test::A;
+	let test_a_2 = Test::A;
+
+	let test_b_1 = Test::B;
+	let test_b_2 = Test::B;
+
+	assert!(test_a_1 == test_a_2);
+	assert!(test_a_1 != test_b_1);
+	assert!(test_b_1 == test_b_2);
+	assert!(test_b_1 != test_a_1);
+
+	assert_eq!(test_a_1.partial_cmp(&test_a_2), Some(Ordering::Equal));
+	assert!(test_a_1 > test_b_1);
+	assert_eq!(test_b_1.partial_cmp(&test_b_2), Some(Ordering::Equal));
+	assert!(test_b_1 < test_a_1);
+}
+
+#[test]
+fn default_mix() {
+	#[derive_where(PartialEq, PartialOrd)]
+	enum Test {
+		A = 1,
+		B = 0,
+		C = 2,
+		#[allow(dead_code)]
+		#[derive_where(incomparable)]
+		D,
+	}
+
+	let test_a_1 = Test::A;
+	let test_a_2 = Test::A;
+
+	let test_b_1 = Test::B;
+	let test_b_2 = Test::B;
+
+	let test_c_1 = Test::C;
+	let test_c_2 = Test::C;
+
+	assert!(test_a_1 == test_a_2);
+	assert!(test_a_1 != test_b_1);
+	assert!(test_a_1 != test_c_1);
+	assert!(test_b_1 == test_b_2);
+	assert!(test_b_1 != test_a_1);
+	assert!(test_b_1 != test_c_1);
+	assert!(test_c_1 == test_c_2);
+	assert!(test_c_1 != test_a_1);
+	assert!(test_c_1 != test_b_1);
+
+	assert_eq!(test_a_1.partial_cmp(&test_a_2), Some(Ordering::Equal));
+	assert!(test_a_1 > test_b_1);
+	assert!(test_a_1 < test_c_1);
+	assert_eq!(test_b_1.partial_cmp(&test_b_2), Some(Ordering::Equal));
+	assert!(test_b_1 < test_a_1);
+	assert!(test_b_1 < test_c_1);
+	assert_eq!(test_c_1.partial_cmp(&test_c_2), Some(Ordering::Equal));
+	assert!(test_c_1 > test_a_1);
+	assert!(test_c_1 > test_b_1);
+}
+
+#[test]
+fn default_skip() {
+	#[derive_where(PartialEq, PartialOrd)]
+	enum Test {
+		A,
+		B = 3,
+		C,
+		#[allow(dead_code)]
+		#[derive_where(incomparable)]
+		D,
+		E,
+	}
+
+	let test_a_1 = Test::A;
+	let test_a_2 = Test::A;
+
+	let test_b_1 = Test::B;
+	let test_b_2 = Test::B;
+
+	let test_c_1 = Test::C;
+	let test_c_2 = Test::C;
+
+	let test_e_1 = Test::E;
+	let test_e_2 = Test::E;
+
+	assert!(test_a_1 == test_a_2);
+	assert!(test_a_1 != test_b_1);
+	assert!(test_a_1 != test_c_1);
+	assert!(test_a_1 != test_e_1);
+	assert!(test_b_1 == test_b_2);
+	assert!(test_b_1 != test_a_1);
+	assert!(test_b_1 != test_c_1);
+	assert!(test_b_1 != test_e_1);
+	assert!(test_c_1 == test_c_2);
+	assert!(test_c_1 != test_a_1);
+	assert!(test_c_1 != test_b_1);
+	assert!(test_c_1 != test_e_1);
+	assert!(test_e_1 == test_e_2);
+	assert!(test_e_1 != test_a_1);
+	assert!(test_e_1 != test_b_1);
+	assert!(test_e_1 != test_c_1);
+
+	assert_eq!(test_a_1.partial_cmp(&test_a_2), Some(Ordering::Equal));
+	assert!(test_a_1 < test_b_1);
+	assert!(test_a_1 < test_c_1);
+	assert!(test_a_1 < test_e_1);
+	assert_eq!(test_b_1.partial_cmp(&test_b_2), Some(Ordering::Equal));
+	assert!(test_b_1 > test_a_1);
+	assert!(test_b_1 < test_c_1);
+	assert!(test_b_1 < test_e_1);
+	assert_eq!(test_c_1.partial_cmp(&test_c_2), Some(Ordering::Equal));
+	assert!(test_c_1 > test_a_1);
+	assert!(test_c_1 > test_b_1);
+	assert!(test_c_1 < test_e_1);
+	assert_eq!(test_e_1.partial_cmp(&test_e_2), Some(Ordering::Equal));
+	assert!(test_e_1 > test_a_1);
+	assert!(test_e_1 > test_b_1);
+	assert!(test_e_1 > test_c_1);
+}
+
+#[test]
+fn default_negative() {
+	#[derive_where(PartialEq, PartialOrd)]
+	enum Test {
+		A = -0x8000_0000_0000_0000_isize,
 		B,
+		#[allow(dead_code)]
+		#[derive_where(incomparable)]
 		C,
 	}
 
-	assert_eq!(0_isize, discriminant_value(&Test::A(0)));
-	assert_eq!(1_isize, discriminant_value(&Test::B));
-	assert_eq!(2_isize, discriminant_value(&Test::C));
+	let test_a_1 = Test::A;
+	let test_a_2 = Test::A;
+
+	let test_b_1 = Test::B;
+	let test_b_2 = Test::B;
+
+	assert!(test_a_1 == test_a_2);
+	assert!(test_a_1 != test_b_1);
+	assert!(test_b_1 == test_b_2);
+	assert!(test_b_1 != test_a_1);
+
+	assert_eq!(test_a_1.partial_cmp(&test_a_2), Some(Ordering::Equal));
+	assert!(test_a_1 < test_b_1);
+	assert_eq!(test_b_1.partial_cmp(&test_b_2), Some(Ordering::Equal));
+	assert!(test_b_1 > test_a_1);
+}
+
+#[test]
+fn default_expr() {
+	#[derive_where(PartialEq, PartialOrd)]
+	enum Test {
+		A = isize::MAX - 2,
+		B,
+		#[allow(dead_code)]
+		#[derive_where(incomparable)]
+		C,
+	}
+
+	let test_a_1 = Test::A;
+	let test_a_2 = Test::A;
+
+	let test_b_1 = Test::B;
+	let test_b_2 = Test::B;
+
+	assert!(test_a_1 == test_a_2);
+	assert!(test_a_1 != test_b_1);
+	assert!(test_b_1 == test_b_2);
+	assert!(test_b_1 != test_a_1);
+
+	assert_eq!(test_a_1.partial_cmp(&test_a_2), Some(Ordering::Equal));
+	assert!(test_a_1 < test_b_1);
+	assert_eq!(test_b_1.partial_cmp(&test_b_2), Some(Ordering::Equal));
+	assert!(test_b_1 > test_a_1);
+}
+
+#[test]
+fn repr_c() {
+	#[derive_where(PartialEq, PartialOrd)]
+	#[repr(C)]
+	enum Test {
+		A = 0,
+		B,
+		#[allow(dead_code)]
+		#[derive_where(incomparable)]
+		C,
+	}
+
+	let test_a_1 = Test::A;
+	let test_a_2 = Test::A;
+
+	let test_b_1 = Test::B;
+	let test_b_2 = Test::B;
+
+	assert!(test_a_1 == test_a_2);
+	assert!(test_a_1 != test_b_1);
+	assert!(test_b_1 == test_b_2);
+	assert!(test_b_1 != test_a_1);
+
+	assert_eq!(test_a_1.partial_cmp(&test_a_2), Some(Ordering::Equal));
+	assert!(test_a_1 < test_b_1);
+	assert_eq!(test_b_1.partial_cmp(&test_b_2), Some(Ordering::Equal));
+	assert!(test_b_1 > test_a_1);
+}
+
+#[test]
+fn repr_c_clone() {
+	#[derive_where(Clone, PartialEq, PartialOrd)]
+	#[repr(C)]
+	enum Test {
+		A,
+		B,
+		#[allow(dead_code)]
+		#[derive_where(incomparable)]
+		C,
+	}
+
+	let test_a_1 = Test::A;
+	let test_a_2 = Test::A;
+
+	let test_b_1 = Test::B;
+	let test_b_2 = Test::B;
+
+	assert!(test_a_1 == test_a_2);
+	assert!(test_a_1 != test_b_1);
+	assert!(test_b_1 == test_b_2);
+	assert!(test_b_1 != test_a_1);
+
+	assert_eq!(test_a_1.partial_cmp(&test_a_2), Some(Ordering::Equal));
+	assert!(test_a_1 < test_b_1);
+	assert_eq!(test_b_1.partial_cmp(&test_b_2), Some(Ordering::Equal));
+	assert!(test_b_1 > test_a_1);
+}
+
+#[test]
+fn repr_c_copy() {
+	#[derive_where(Clone, Copy, PartialEq, PartialOrd)]
+	#[repr(C)]
+	enum Test {
+		A,
+		B,
+		#[allow(dead_code)]
+		#[derive_where(incomparable)]
+		C,
+	}
+
+	let test_a_1 = Test::A;
+	let test_a_2 = Test::A;
+
+	let test_b_1 = Test::B;
+	let test_b_2 = Test::B;
+
+	assert!(test_a_1 == test_a_2);
+	assert!(test_a_1 != test_b_1);
+	assert!(test_b_1 == test_b_2);
+	assert!(test_b_1 != test_a_1);
+
+	assert_eq!(test_a_1.partial_cmp(&test_a_2), Some(Ordering::Equal));
+	assert!(test_a_1 < test_b_1);
+	assert_eq!(test_b_1.partial_cmp(&test_b_2), Some(Ordering::Equal));
+	assert!(test_b_1 > test_a_1);
+}
+
+#[test]
+fn repr_c_reverse() {
+	#[derive_where(PartialEq, PartialOrd)]
+	#[repr(C)]
+	enum Test {
+		A = 2,
+		B = 1,
+		#[allow(dead_code)]
+		#[derive_where(incomparable)]
+		C = 0,
+	}
+
+	let test_a_1 = Test::A;
+	let test_a_2 = Test::A;
+
+	let test_b_1 = Test::B;
+	let test_b_2 = Test::B;
+
+	assert!(test_a_1 == test_a_2);
+	assert!(test_a_1 != test_b_1);
+	assert!(test_b_1 == test_b_2);
+	assert!(test_b_1 != test_a_1);
+
+	assert_eq!(test_a_1.partial_cmp(&test_a_2), Some(Ordering::Equal));
+	assert!(test_a_1 > test_b_1);
+	assert_eq!(test_b_1.partial_cmp(&test_b_2), Some(Ordering::Equal));
+	assert!(test_b_1 < test_a_1);
+}
+
+#[test]
+fn repr_c_mix() {
+	#[derive_where(PartialEq, PartialOrd)]
+	#[repr(C)]
+	enum Test {
+		A = 1,
+		B = 0,
+		C = 2,
+		#[allow(dead_code)]
+		#[derive_where(incomparable)]
+		D,
+	}
+
+	let test_a_1 = Test::A;
+	let test_a_2 = Test::A;
+
+	let test_b_1 = Test::B;
+	let test_b_2 = Test::B;
+
+	let test_c_1 = Test::C;
+	let test_c_2 = Test::C;
+
+	assert!(test_a_1 == test_a_2);
+	assert!(test_a_1 != test_b_1);
+	assert!(test_a_1 != test_c_1);
+	assert!(test_b_1 == test_b_2);
+	assert!(test_b_1 != test_a_1);
+	assert!(test_b_1 != test_c_1);
+	assert!(test_c_1 == test_c_2);
+	assert!(test_c_1 != test_a_1);
+	assert!(test_c_1 != test_b_1);
+
+	assert_eq!(test_a_1.partial_cmp(&test_a_2), Some(Ordering::Equal));
+	assert!(test_a_1 > test_b_1);
+	assert!(test_a_1 < test_c_1);
+	assert_eq!(test_b_1.partial_cmp(&test_b_2), Some(Ordering::Equal));
+	assert!(test_b_1 < test_a_1);
+	assert!(test_b_1 < test_c_1);
+	assert_eq!(test_c_1.partial_cmp(&test_c_2), Some(Ordering::Equal));
+	assert!(test_c_1 > test_a_1);
+	assert!(test_c_1 > test_b_1);
+}
+
+#[test]
+fn repr_c_skip() {
+	#[derive_where(PartialEq, PartialOrd)]
+	#[repr(C)]
+	enum Test {
+		A,
+		B = 3,
+		C,
+		#[allow(dead_code)]
+		#[derive_where(incomparable)]
+		D,
+		E,
+	}
+
+	let test_a_1 = Test::A;
+	let test_a_2 = Test::A;
+
+	let test_b_1 = Test::B;
+	let test_b_2 = Test::B;
+
+	let test_c_1 = Test::C;
+	let test_c_2 = Test::C;
+
+	let test_e_1 = Test::E;
+	let test_e_2 = Test::E;
+
+	assert!(test_a_1 == test_a_2);
+	assert!(test_a_1 != test_b_1);
+	assert!(test_a_1 != test_c_1);
+	assert!(test_a_1 != test_e_1);
+	assert!(test_b_1 == test_b_2);
+	assert!(test_b_1 != test_a_1);
+	assert!(test_b_1 != test_c_1);
+	assert!(test_b_1 != test_e_1);
+	assert!(test_c_1 == test_c_2);
+	assert!(test_c_1 != test_a_1);
+	assert!(test_c_1 != test_b_1);
+	assert!(test_c_1 != test_e_1);
+	assert!(test_e_1 == test_e_2);
+	assert!(test_e_1 != test_a_1);
+	assert!(test_e_1 != test_b_1);
+	assert!(test_e_1 != test_c_1);
+
+	assert_eq!(test_a_1.partial_cmp(&test_a_2), Some(Ordering::Equal));
+	assert!(test_a_1 < test_b_1);
+	assert!(test_a_1 < test_c_1);
+	assert!(test_a_1 < test_e_1);
+	assert_eq!(test_b_1.partial_cmp(&test_b_2), Some(Ordering::Equal));
+	assert!(test_b_1 > test_a_1);
+	assert!(test_b_1 < test_c_1);
+	assert!(test_b_1 < test_e_1);
+	assert_eq!(test_c_1.partial_cmp(&test_c_2), Some(Ordering::Equal));
+	assert!(test_c_1 > test_a_1);
+	assert!(test_c_1 > test_b_1);
+	assert!(test_c_1 < test_e_1);
+	assert_eq!(test_e_1.partial_cmp(&test_e_2), Some(Ordering::Equal));
+	assert!(test_e_1 > test_a_1);
+	assert!(test_e_1 > test_b_1);
+	assert!(test_e_1 > test_c_1);
+}
+
+#[test]
+fn repr_c_negative() {
+	#[derive_where(PartialEq, PartialOrd)]
+	#[repr(C)]
+	enum Test {
+		A = -0x8000_0000_0000_0000_isize,
+		B,
+		#[allow(dead_code)]
+		#[derive_where(incomparable)]
+		C,
+	}
+
+	let test_a_1 = Test::A;
+	let test_a_2 = Test::A;
+
+	let test_b_1 = Test::B;
+	let test_b_2 = Test::B;
+
+	assert!(test_a_1 == test_a_2);
+	assert!(test_a_1 != test_b_1);
+	assert!(test_b_1 == test_b_2);
+	assert!(test_b_1 != test_a_1);
+
+	assert_eq!(test_a_1.partial_cmp(&test_a_2), Some(Ordering::Equal));
+	assert!(test_a_1 < test_b_1);
+	assert_eq!(test_b_1.partial_cmp(&test_b_2), Some(Ordering::Equal));
+	assert!(test_b_1 > test_a_1);
+}
+
+#[test]
+fn repr_c_expr() {
+	#[derive_where(PartialEq, PartialOrd)]
+	#[repr(C)]
+	enum Test {
+		A = isize::MAX - 2,
+		B,
+		#[allow(dead_code)]
+		#[derive_where(incomparable)]
+		C,
+	}
+
+	let test_a_1 = Test::A;
+	let test_a_2 = Test::A;
+
+	let test_b_1 = Test::B;
+	let test_b_2 = Test::B;
+
+	assert!(test_a_1 == test_a_2);
+	assert!(test_a_1 != test_b_1);
+	assert!(test_b_1 == test_b_2);
+	assert!(test_b_1 != test_a_1);
+
+	assert_eq!(test_a_1.partial_cmp(&test_a_2), Some(Ordering::Equal));
+	assert!(test_a_1 < test_b_1);
+	assert_eq!(test_b_1.partial_cmp(&test_b_2), Some(Ordering::Equal));
+	assert!(test_b_1 > test_a_1);
+}
+
+#[rustversion::since(1.66)]
+mod repr_c_with_value {
+	use super::*;
+
+	#[test]
+	fn basic() {
+		#[repr(C, u8)]
+		#[derive_where(Eq, Ord, PartialEq, PartialOrd)]
+		enum Test<T> {
+			A(Wrapper<T>) = 0,
+			B,
+		}
+
+		let test_a_1 = Test::A(42.into());
+		let test_a_2 = Test::A(42.into());
+		let test_a_le = Test::A(41.into());
+		let test_a_ge = Test::A(43.into());
+
+		let test_b_1 = Test::B;
+		let test_b_2 = Test::B;
+
+		assert!(test_a_1 == test_a_2);
+		assert!(test_a_1 != test_b_1);
+		assert!(test_b_1 == test_b_2);
+		assert!(test_b_1 != test_a_1);
+
+		assert_eq!(test_a_1.cmp(&test_a_2), Ordering::Equal);
+		assert_eq!(test_a_1.cmp(&test_a_le), Ordering::Greater);
+		assert_eq!(test_a_1.cmp(&test_a_ge), Ordering::Less);
+		assert_eq!(test_a_1.cmp(&test_b_1), Ordering::Less);
+		assert_eq!(test_b_1.cmp(&test_b_2), Ordering::Equal);
+		assert_eq!(test_b_1.cmp(&test_a_1), Ordering::Greater);
+
+		assert_eq!(test_a_1.partial_cmp(&test_a_2), Some(Ordering::Equal));
+		assert!(test_a_1 < test_b_1);
+		assert!(test_a_1 > test_a_le);
+		assert!(test_a_1 < test_a_ge);
+		assert_eq!(test_b_1.partial_cmp(&test_b_2), Some(Ordering::Equal));
+		assert!(test_b_1 > test_a_1);
+	}
+
+	#[test]
+	fn reverse() {
+		#[repr(C, u8)]
+		#[derive_where(Eq, Ord, PartialEq, PartialOrd)]
+		enum Test<T> {
+			A(Wrapper<T>) = 1,
+			B = 0,
+		}
+
+		let test_a_1 = Test::A(42.into());
+		let test_a_2 = Test::A(42.into());
+		let test_a_le = Test::A(41.into());
+		let test_a_ge = Test::A(43.into());
+
+		let test_b_1 = Test::B;
+		let test_b_2 = Test::B;
+
+		assert!(test_a_1 == test_a_2);
+		assert!(test_a_1 != test_b_1);
+		assert!(test_b_1 == test_b_2);
+		assert!(test_b_1 != test_a_1);
+
+		assert_eq!(test_a_1.cmp(&test_a_2), Ordering::Equal);
+		assert_eq!(test_a_1.cmp(&test_a_le), Ordering::Greater);
+		assert_eq!(test_a_1.cmp(&test_a_ge), Ordering::Less);
+		assert_eq!(test_a_1.cmp(&test_b_1), Ordering::Greater);
+		assert_eq!(test_b_1.cmp(&test_b_2), Ordering::Equal);
+		assert_eq!(test_b_1.cmp(&test_a_1), Ordering::Less);
+
+		assert_eq!(test_a_1.partial_cmp(&test_a_2), Some(Ordering::Equal));
+		assert!(test_a_1 > test_b_1);
+		assert!(test_a_1 > test_a_le);
+		assert!(test_a_1 < test_a_ge);
+		assert_eq!(test_b_1.partial_cmp(&test_b_2), Some(Ordering::Equal));
+		assert!(test_b_1 < test_a_1);
+	}
+
+	#[test]
+	fn mix() {
+		#[repr(C, u8)]
+		#[derive_where(Eq, Ord, PartialEq, PartialOrd)]
+		enum Test<T> {
+			A(Wrapper<T>) = 1,
+			B = 0,
+			C = 2,
+		}
+
+		let test_a_1 = Test::A(42.into());
+		let test_a_2 = Test::A(42.into());
+		let test_a_le = Test::A(41.into());
+		let test_a_ge = Test::A(43.into());
+
+		let test_b_1 = Test::B;
+		let test_b_2 = Test::B;
+
+		let test_c_1 = Test::C;
+		let test_c_2 = Test::C;
+
+		assert!(test_a_1 == test_a_2);
+		assert!(test_a_1 != test_b_1);
+		assert!(test_a_1 != test_c_1);
+		assert!(test_b_1 == test_b_2);
+		assert!(test_b_1 != test_a_1);
+		assert!(test_b_1 != test_c_1);
+		assert!(test_c_1 == test_c_2);
+		assert!(test_c_1 != test_a_1);
+		assert!(test_c_1 != test_b_1);
+
+		assert_eq!(test_a_1.cmp(&test_a_2), Ordering::Equal);
+		assert_eq!(test_a_1.cmp(&test_a_le), Ordering::Greater);
+		assert_eq!(test_a_1.cmp(&test_a_ge), Ordering::Less);
+		assert_eq!(test_a_1.cmp(&test_b_1), Ordering::Greater);
+		assert_eq!(test_a_1.cmp(&test_c_1), Ordering::Less);
+		assert_eq!(test_b_1.cmp(&test_b_2), Ordering::Equal);
+		assert_eq!(test_b_1.cmp(&test_a_1), Ordering::Less);
+		assert_eq!(test_b_1.cmp(&test_c_1), Ordering::Less);
+		assert_eq!(test_c_1.cmp(&test_c_2), Ordering::Equal);
+		assert_eq!(test_c_1.cmp(&test_a_1), Ordering::Greater);
+		assert_eq!(test_c_1.cmp(&test_b_1), Ordering::Greater);
+
+		assert_eq!(test_a_1.partial_cmp(&test_a_2), Some(Ordering::Equal));
+		assert!(test_a_1 > test_a_le);
+		assert!(test_a_1 < test_a_ge);
+		assert!(test_a_1 > test_b_1);
+		assert!(test_a_1 < test_c_1);
+		assert_eq!(test_b_1.partial_cmp(&test_b_2), Some(Ordering::Equal));
+		assert!(test_b_1 < test_a_1);
+		assert!(test_b_1 < test_c_1);
+		assert_eq!(test_c_1.partial_cmp(&test_c_2), Some(Ordering::Equal));
+		assert!(test_c_1 > test_a_1);
+		assert!(test_c_1 > test_b_1);
+	}
+
+	#[test]
+	fn skip() {
+		#[repr(C, u8)]
+		#[derive_where(Eq, Ord, PartialEq, PartialOrd)]
+		enum Test<T> {
+			A(Wrapper<T>),
+			B = 3,
+			C,
+		}
+
+		let test_a_1 = Test::A(42.into());
+		let test_a_2 = Test::A(42.into());
+		let test_a_le = Test::A(41.into());
+		let test_a_ge = Test::A(43.into());
+
+		let test_b_1 = Test::B;
+		let test_b_2 = Test::B;
+
+		let test_c_1 = Test::C;
+		let test_c_2 = Test::C;
+
+		assert!(test_a_1 == test_a_2);
+		assert!(test_a_1 != test_b_1);
+		assert!(test_a_1 != test_c_1);
+		assert!(test_b_1 == test_b_2);
+		assert!(test_b_1 != test_a_1);
+		assert!(test_b_1 != test_c_1);
+		assert!(test_c_1 == test_c_2);
+		assert!(test_c_1 != test_a_1);
+		assert!(test_c_1 != test_b_1);
+
+		assert_eq!(test_a_1.cmp(&test_a_2), Ordering::Equal);
+		assert_eq!(test_a_1.cmp(&test_a_le), Ordering::Greater);
+		assert_eq!(test_a_1.cmp(&test_a_ge), Ordering::Less);
+		assert_eq!(test_a_1.cmp(&test_b_1), Ordering::Less);
+		assert_eq!(test_a_1.cmp(&test_c_1), Ordering::Less);
+		assert_eq!(test_b_1.cmp(&test_b_2), Ordering::Equal);
+		assert_eq!(test_b_1.cmp(&test_a_1), Ordering::Greater);
+		assert_eq!(test_b_1.cmp(&test_c_1), Ordering::Less);
+		assert_eq!(test_c_1.cmp(&test_c_2), Ordering::Equal);
+		assert_eq!(test_c_1.cmp(&test_a_1), Ordering::Greater);
+		assert_eq!(test_c_1.cmp(&test_b_1), Ordering::Greater);
+
+		assert_eq!(test_a_1.partial_cmp(&test_a_2), Some(Ordering::Equal));
+		assert!(test_a_1 > test_a_le);
+		assert!(test_a_1 < test_a_ge);
+		assert!(test_a_1 < test_b_1);
+		assert!(test_a_1 < test_c_1);
+		assert_eq!(test_b_1.partial_cmp(&test_b_2), Some(Ordering::Equal));
+		assert!(test_b_1 > test_a_1);
+		assert!(test_b_1 < test_c_1);
+		assert_eq!(test_c_1.partial_cmp(&test_c_2), Some(Ordering::Equal));
+		assert!(test_c_1 > test_a_1);
+		assert!(test_c_1 > test_b_1);
+	}
+
+	#[test]
+	fn negative() {
+		#[repr(C, i8)]
+		#[derive_where(Eq, Ord, PartialEq, PartialOrd)]
+		enum Test<T> {
+			A(Wrapper<T>) = -0x80_i8,
+			B,
+		}
+
+		let test_a_1 = Test::A(42.into());
+		let test_a_2 = Test::A(42.into());
+		let test_a_le = Test::A(41.into());
+		let test_a_ge = Test::A(43.into());
+
+		let test_b_1 = Test::B;
+		let test_b_2 = Test::B;
+
+		assert!(test_a_1 == test_a_2);
+		assert!(test_a_1 != test_b_1);
+		assert!(test_b_1 == test_b_2);
+		assert!(test_b_1 != test_a_1);
+
+		assert_eq!(test_a_1.cmp(&test_a_2), Ordering::Equal);
+		assert_eq!(test_a_1.cmp(&test_a_le), Ordering::Greater);
+		assert_eq!(test_a_1.cmp(&test_a_ge), Ordering::Less);
+		assert_eq!(test_a_1.cmp(&test_b_1), Ordering::Less);
+		assert_eq!(test_b_1.cmp(&test_b_2), Ordering::Equal);
+		assert_eq!(test_b_1.cmp(&test_a_1), Ordering::Greater);
+
+		assert_eq!(test_a_1.partial_cmp(&test_a_2), Some(Ordering::Equal));
+		assert!(test_a_1 < test_b_1);
+		assert!(test_a_1 > test_a_le);
+		assert!(test_a_1 < test_a_ge);
+		assert_eq!(test_b_1.partial_cmp(&test_b_2), Some(Ordering::Equal));
+		assert!(test_b_1 > test_a_1);
+	}
+
+	#[test]
+	fn expr() {
+		#[repr(C, u8)]
+		#[derive_where(Eq, Ord, PartialEq, PartialOrd)]
+		enum Test<T> {
+			A(Wrapper<T>) = u8::MAX - 1,
+			B,
+		}
+
+		let test_a_1 = Test::A(42.into());
+		let test_a_2 = Test::A(42.into());
+		let test_a_le = Test::A(41.into());
+		let test_a_ge = Test::A(43.into());
+
+		let test_b_1 = Test::B;
+		let test_b_2 = Test::B;
+
+		assert!(test_a_1 == test_a_2);
+		assert!(test_a_1 != test_b_1);
+		assert!(test_b_1 == test_b_2);
+		assert!(test_b_1 != test_a_1);
+
+		assert_eq!(test_a_1.cmp(&test_a_2), Ordering::Equal);
+		assert_eq!(test_a_1.cmp(&test_a_le), Ordering::Greater);
+		assert_eq!(test_a_1.cmp(&test_a_ge), Ordering::Less);
+		assert_eq!(test_a_1.cmp(&test_b_1), Ordering::Less);
+		assert_eq!(test_b_1.cmp(&test_b_2), Ordering::Equal);
+		assert_eq!(test_b_1.cmp(&test_a_1), Ordering::Greater);
+
+		assert_eq!(test_a_1.partial_cmp(&test_a_2), Some(Ordering::Equal));
+		assert!(test_a_1 < test_b_1);
+		assert!(test_a_1 > test_a_le);
+		assert!(test_a_1 < test_a_ge);
+		assert_eq!(test_b_1.partial_cmp(&test_b_2), Some(Ordering::Equal));
+		assert!(test_b_1 > test_a_1);
+	}
 }
 
 #[test]
 fn repr() {
-	#[repr(u8)]
+	#[derive_where(PartialEq, PartialOrd)]
+	#[repr(u64)]
+	enum Test {
+		A = 0,
+		B,
+		#[allow(dead_code)]
+		#[derive_where(incomparable)]
+		C,
+	}
+
+	let test_a_1 = Test::A;
+	let test_a_2 = Test::A;
+
+	let test_b_1 = Test::B;
+	let test_b_2 = Test::B;
+
+	assert!(test_a_1 == test_a_2);
+	assert!(test_a_1 != test_b_1);
+	assert!(test_b_1 == test_b_2);
+	assert!(test_b_1 != test_a_1);
+
+	assert_eq!(test_a_1.partial_cmp(&test_a_2), Some(Ordering::Equal));
+	assert!(test_a_1 < test_b_1);
+	assert_eq!(test_b_1.partial_cmp(&test_b_2), Some(Ordering::Equal));
+	assert!(test_b_1 > test_a_1);
+}
+
+#[test]
+fn repr_clone() {
+	#[derive_where(Clone, PartialEq, PartialOrd)]
+	#[repr(u64)]
 	enum Test {
 		A,
 		B,
+		#[allow(dead_code)]
+		#[derive_where(incomparable)]
 		C,
 	}
 
-	#[cfg(feature = "nightly")]
-	{
-		assert_eq!(0_u8, discriminant_value(&Test::A));
-		assert_eq!(1_u8, discriminant_value(&Test::B));
-		assert_eq!(2_u8, discriminant_value(&Test::C));
-	}
-	assert_eq!(0, Test::A as u8);
-	assert_eq!(1, Test::B as u8);
-	assert_eq!(2, Test::C as u8);
+	let test_a_1 = Test::A;
+	let test_a_2 = Test::A;
+
+	let test_b_1 = Test::B;
+	let test_b_2 = Test::B;
+
+	assert!(test_a_1 == test_a_2);
+	assert!(test_a_1 != test_b_1);
+	assert!(test_b_1 == test_b_2);
+	assert!(test_b_1 != test_a_1);
+
+	assert_eq!(test_a_1.partial_cmp(&test_a_2), Some(Ordering::Equal));
+	assert!(test_a_1 < test_b_1);
+	assert_eq!(test_b_1.partial_cmp(&test_b_2), Some(Ordering::Equal));
+	assert!(test_b_1 > test_a_1);
 }
 
 #[test]
-fn repr_with_discriminants() {
-	#[repr(u8)]
+fn repr_copy() {
+	#[derive_where(Clone, Copy, PartialEq, PartialOrd)]
+	#[repr(u64)]
 	enum Test {
-		A = 3,
+		A,
 		B,
+		#[allow(dead_code)]
+		#[derive_where(incomparable)]
 		C,
 	}
 
-	#[cfg(feature = "nightly")]
-	{
-		assert_eq!(3_u8, discriminant_value(&Test::A));
-		assert_eq!(4_u8, discriminant_value(&Test::B));
-		assert_eq!(5_u8, discriminant_value(&Test::C));
-	}
-	assert_eq!(3, Test::A as isize);
-	assert_eq!(4, Test::B as isize);
-	assert_eq!(5, Test::C as isize);
+	let test_a_1 = Test::A;
+	let test_a_2 = Test::A;
+
+	let test_b_1 = Test::B;
+	let test_b_2 = Test::B;
+
+	assert!(test_a_1 == test_a_2);
+	assert!(test_a_1 != test_b_1);
+	assert!(test_b_1 == test_b_2);
+	assert!(test_b_1 != test_a_1);
+
+	assert_eq!(test_a_1.partial_cmp(&test_a_2), Some(Ordering::Equal));
+	assert!(test_a_1 < test_b_1);
+	assert_eq!(test_b_1.partial_cmp(&test_b_2), Some(Ordering::Equal));
+	assert!(test_b_1 > test_a_1);
 }
 
 #[test]
-fn repr_with_values() {
-	#[repr(u8)]
+fn repr_reverse() {
+	#[derive_where(PartialEq, PartialOrd)]
+	#[repr(u64)]
 	enum Test {
-		A(u8),
+		A = 2,
+		B = 1,
+		#[allow(dead_code)]
+		#[derive_where(incomparable)]
+		C = 0,
+	}
+
+	let test_a_1 = Test::A;
+	let test_a_2 = Test::A;
+
+	let test_b_1 = Test::B;
+	let test_b_2 = Test::B;
+
+	assert!(test_a_1 == test_a_2);
+	assert!(test_a_1 != test_b_1);
+	assert!(test_b_1 == test_b_2);
+	assert!(test_b_1 != test_a_1);
+
+	assert_eq!(test_a_1.partial_cmp(&test_a_2), Some(Ordering::Equal));
+	assert!(test_a_1 > test_b_1);
+	assert_eq!(test_b_1.partial_cmp(&test_b_2), Some(Ordering::Equal));
+	assert!(test_b_1 < test_a_1);
+}
+
+#[test]
+fn repr_mix() {
+	#[derive_where(PartialEq, PartialOrd)]
+	#[repr(u64)]
+	enum Test {
+		A = 1,
+		B = 0,
+		C = 2,
+		#[allow(dead_code)]
+		#[derive_where(incomparable)]
+		D,
+	}
+
+	let test_a_1 = Test::A;
+	let test_a_2 = Test::A;
+
+	let test_b_1 = Test::B;
+	let test_b_2 = Test::B;
+
+	let test_c_1 = Test::C;
+	let test_c_2 = Test::C;
+
+	assert!(test_a_1 == test_a_2);
+	assert!(test_a_1 != test_b_1);
+	assert!(test_a_1 != test_c_1);
+	assert!(test_b_1 == test_b_2);
+	assert!(test_b_1 != test_a_1);
+	assert!(test_b_1 != test_c_1);
+	assert!(test_c_1 == test_c_2);
+	assert!(test_c_1 != test_a_1);
+	assert!(test_c_1 != test_b_1);
+
+	assert_eq!(test_a_1.partial_cmp(&test_a_2), Some(Ordering::Equal));
+	assert!(test_a_1 > test_b_1);
+	assert!(test_a_1 < test_c_1);
+	assert_eq!(test_b_1.partial_cmp(&test_b_2), Some(Ordering::Equal));
+	assert!(test_b_1 < test_a_1);
+	assert!(test_b_1 < test_c_1);
+	assert_eq!(test_c_1.partial_cmp(&test_c_2), Some(Ordering::Equal));
+	assert!(test_c_1 > test_a_1);
+	assert!(test_c_1 > test_b_1);
+}
+
+#[test]
+fn repr_skip() {
+	#[derive_where(PartialEq, PartialOrd)]
+	#[repr(u64)]
+	enum Test {
+		A,
+		B = 3,
+		C,
+		#[allow(dead_code)]
+		#[derive_where(incomparable)]
+		D,
+		E,
+	}
+
+	let test_a_1 = Test::A;
+	let test_a_2 = Test::A;
+
+	let test_b_1 = Test::B;
+	let test_b_2 = Test::B;
+
+	let test_c_1 = Test::C;
+	let test_c_2 = Test::C;
+
+	let test_e_1 = Test::E;
+	let test_e_2 = Test::E;
+
+	assert!(test_a_1 == test_a_2);
+	assert!(test_a_1 != test_b_1);
+	assert!(test_a_1 != test_c_1);
+	assert!(test_a_1 != test_e_1);
+	assert!(test_b_1 == test_b_2);
+	assert!(test_b_1 != test_a_1);
+	assert!(test_b_1 != test_c_1);
+	assert!(test_b_1 != test_e_1);
+	assert!(test_c_1 == test_c_2);
+	assert!(test_c_1 != test_a_1);
+	assert!(test_c_1 != test_b_1);
+	assert!(test_c_1 != test_e_1);
+	assert!(test_e_1 == test_e_2);
+	assert!(test_e_1 != test_a_1);
+	assert!(test_e_1 != test_b_1);
+	assert!(test_e_1 != test_c_1);
+
+	assert_eq!(test_a_1.partial_cmp(&test_a_2), Some(Ordering::Equal));
+	assert!(test_a_1 < test_b_1);
+	assert!(test_a_1 < test_c_1);
+	assert!(test_a_1 < test_e_1);
+	assert_eq!(test_b_1.partial_cmp(&test_b_2), Some(Ordering::Equal));
+	assert!(test_b_1 > test_a_1);
+	assert!(test_b_1 < test_c_1);
+	assert!(test_b_1 < test_e_1);
+	assert_eq!(test_c_1.partial_cmp(&test_c_2), Some(Ordering::Equal));
+	assert!(test_c_1 > test_a_1);
+	assert!(test_c_1 > test_b_1);
+	assert!(test_c_1 < test_e_1);
+	assert_eq!(test_e_1.partial_cmp(&test_e_2), Some(Ordering::Equal));
+	assert!(test_e_1 > test_a_1);
+	assert!(test_e_1 > test_b_1);
+	assert!(test_e_1 > test_c_1);
+}
+
+#[test]
+fn repr_negative() {
+	#[derive_where(PartialEq, PartialOrd)]
+	#[repr(i64)]
+	enum Test {
+		A = -0x8000_0000_0000_0000_i64,
 		B,
+		#[allow(dead_code)]
+		#[derive_where(incomparable)]
 		C,
 	}
 
-	#[cfg(feature = "nightly")]
-	{
-		assert_eq!(0_u8, discriminant_value(&Test::A(0)));
-		assert_eq!(1_u8, discriminant_value(&Test::B));
-		assert_eq!(2_u8, discriminant_value(&Test::C));
+	let test_a_1 = Test::A;
+	let test_a_2 = Test::A;
+
+	let test_b_1 = Test::B;
+	let test_b_2 = Test::B;
+
+	assert!(test_a_1 == test_a_2);
+	assert!(test_a_1 != test_b_1);
+	assert!(test_b_1 == test_b_2);
+	assert!(test_b_1 != test_a_1);
+
+	assert_eq!(test_a_1.partial_cmp(&test_a_2), Some(Ordering::Equal));
+	assert!(test_a_1 < test_b_1);
+	assert_eq!(test_b_1.partial_cmp(&test_b_2), Some(Ordering::Equal));
+	assert!(test_b_1 > test_a_1);
+}
+
+#[test]
+fn repr_expr() {
+	#[derive_where(PartialEq, PartialOrd)]
+	#[repr(u64)]
+	enum Test {
+		A = u64::MAX - 2,
+		B,
+		#[allow(dead_code)]
+		#[derive_where(incomparable)]
+		C,
 	}
-	assert_eq!(0, unsafe { *<*const _>::from(&Test::A(0)).cast::<u8>() });
-	assert_eq!(1, unsafe { *<*const _>::from(&Test::B).cast::<u8>() });
-	assert_eq!(2, unsafe { *<*const _>::from(&Test::C).cast::<u8>() });
+
+	let test_a_1 = Test::A;
+	let test_a_2 = Test::A;
+
+	let test_b_1 = Test::B;
+	let test_b_2 = Test::B;
+
+	assert!(test_a_1 == test_a_2);
+	assert!(test_a_1 != test_b_1);
+	assert!(test_b_1 == test_b_2);
+	assert!(test_b_1 != test_a_1);
+
+	assert_eq!(test_a_1.partial_cmp(&test_a_2), Some(Ordering::Equal));
+	assert!(test_a_1 < test_b_1);
+	assert_eq!(test_b_1.partial_cmp(&test_b_2), Some(Ordering::Equal));
+	assert!(test_b_1 > test_a_1);
 }
 
 #[rustversion::since(1.66)]
-mod repr_with_discriminants_values {
+mod repr_with_value {
+	use super::*;
+
 	#[test]
-	fn test() {
+	fn basic() {
 		#[repr(u8)]
-		enum Test {
-			A(u8) = 3,
+		#[derive_where(Eq, Ord, PartialEq, PartialOrd)]
+		enum Test<T> {
+			A(Wrapper<T>) = 0,
 			B,
-			C,
 		}
 
-		#[cfg(feature = "nightly")]
-		{
-			use std::intrinsics::discriminant_value;
-			assert_eq!(3_u8, discriminant_value(&Test::A(0)));
-			assert_eq!(4_u8, discriminant_value(&Test::B));
-			assert_eq!(5_u8, discriminant_value(&Test::C));
-		}
-		assert_eq!(3, unsafe { *<*const _>::from(&Test::A(0)).cast::<u8>() });
-		assert_eq!(4, unsafe { *<*const _>::from(&Test::B).cast::<u8>() });
-		assert_eq!(5, unsafe { *<*const _>::from(&Test::C).cast::<u8>() });
-	}
-}
+		let test_a_1 = Test::A(42.into());
+		let test_a_2 = Test::A(42.into());
+		let test_a_le = Test::A(41.into());
+		let test_a_ge = Test::A(43.into());
 
-#[test]
-fn repr_with_repr_c_with_values() {
-	#[repr(C, u8)]
-	enum Test {
-		A(u8),
-		B,
-		C,
+		let test_b_1 = Test::B;
+		let test_b_2 = Test::B;
+
+		assert!(test_a_1 == test_a_2);
+		assert!(test_a_1 != test_b_1);
+		assert!(test_b_1 == test_b_2);
+		assert!(test_b_1 != test_a_1);
+
+		assert_eq!(test_a_1.cmp(&test_a_2), Ordering::Equal);
+		assert_eq!(test_a_1.cmp(&test_a_le), Ordering::Greater);
+		assert_eq!(test_a_1.cmp(&test_a_ge), Ordering::Less);
+		assert_eq!(test_a_1.cmp(&test_b_1), Ordering::Less);
+		assert_eq!(test_b_1.cmp(&test_b_2), Ordering::Equal);
+		assert_eq!(test_b_1.cmp(&test_a_1), Ordering::Greater);
+
+		assert_eq!(test_a_1.partial_cmp(&test_a_2), Some(Ordering::Equal));
+		assert!(test_a_1 < test_b_1);
+		assert!(test_a_1 > test_a_le);
+		assert!(test_a_1 < test_a_ge);
+		assert_eq!(test_b_1.partial_cmp(&test_b_2), Some(Ordering::Equal));
+		assert!(test_b_1 > test_a_1);
 	}
 
-	#[cfg(feature = "nightly")]
-	{
-		assert_eq!(0_u8, discriminant_value(&Test::A(0)));
-		assert_eq!(1_u8, discriminant_value(&Test::B));
-		assert_eq!(2_u8, discriminant_value(&Test::C));
-	}
-	assert_eq!(0, unsafe { *<*const _>::from(&Test::A(0)).cast::<u8>() });
-	assert_eq!(1, unsafe { *<*const _>::from(&Test::B).cast::<u8>() });
-	assert_eq!(2, unsafe { *<*const _>::from(&Test::C).cast::<u8>() });
-}
-
-#[rustversion::since(1.66)]
-mod repr_with_repr_c_with_values_discriminants {
 	#[test]
-	fn test() {
-		#[repr(C, u8)]
-		enum Test {
-			A(u8) = 3,
-			B,
+	fn reverse() {
+		#[repr(u8)]
+		#[derive_where(Eq, Ord, PartialEq, PartialOrd)]
+		enum Test<T> {
+			A(Wrapper<T>) = 1,
+			B = 0,
+		}
+
+		let test_a_1 = Test::A(42.into());
+		let test_a_2 = Test::A(42.into());
+		let test_a_le = Test::A(41.into());
+		let test_a_ge = Test::A(43.into());
+
+		let test_b_1 = Test::B;
+		let test_b_2 = Test::B;
+
+		assert!(test_a_1 == test_a_2);
+		assert!(test_a_1 != test_b_1);
+		assert!(test_b_1 == test_b_2);
+		assert!(test_b_1 != test_a_1);
+
+		assert_eq!(test_a_1.cmp(&test_a_2), Ordering::Equal);
+		assert_eq!(test_a_1.cmp(&test_a_le), Ordering::Greater);
+		assert_eq!(test_a_1.cmp(&test_a_ge), Ordering::Less);
+		assert_eq!(test_a_1.cmp(&test_b_1), Ordering::Greater);
+		assert_eq!(test_b_1.cmp(&test_b_2), Ordering::Equal);
+		assert_eq!(test_b_1.cmp(&test_a_1), Ordering::Less);
+
+		assert_eq!(test_a_1.partial_cmp(&test_a_2), Some(Ordering::Equal));
+		assert!(test_a_1 > test_b_1);
+		assert!(test_a_1 > test_a_le);
+		assert!(test_a_1 < test_a_ge);
+		assert_eq!(test_b_1.partial_cmp(&test_b_2), Some(Ordering::Equal));
+		assert!(test_b_1 < test_a_1);
+	}
+
+	#[test]
+	fn mix() {
+		#[repr(u8)]
+		#[derive_where(Eq, Ord, PartialEq, PartialOrd)]
+		enum Test<T> {
+			A(Wrapper<T>) = 1,
+			B = 0,
+			C = 2,
+		}
+
+		let test_a_1 = Test::A(42.into());
+		let test_a_2 = Test::A(42.into());
+		let test_a_le = Test::A(41.into());
+		let test_a_ge = Test::A(43.into());
+
+		let test_b_1 = Test::B;
+		let test_b_2 = Test::B;
+
+		let test_c_1 = Test::C;
+		let test_c_2 = Test::C;
+
+		assert!(test_a_1 == test_a_2);
+		assert!(test_a_1 != test_b_1);
+		assert!(test_a_1 != test_c_1);
+		assert!(test_b_1 == test_b_2);
+		assert!(test_b_1 != test_a_1);
+		assert!(test_b_1 != test_c_1);
+		assert!(test_c_1 == test_c_2);
+		assert!(test_c_1 != test_a_1);
+		assert!(test_c_1 != test_b_1);
+
+		assert_eq!(test_a_1.cmp(&test_a_2), Ordering::Equal);
+		assert_eq!(test_a_1.cmp(&test_a_le), Ordering::Greater);
+		assert_eq!(test_a_1.cmp(&test_a_ge), Ordering::Less);
+		assert_eq!(test_a_1.cmp(&test_b_1), Ordering::Greater);
+		assert_eq!(test_a_1.cmp(&test_c_1), Ordering::Less);
+		assert_eq!(test_b_1.cmp(&test_b_2), Ordering::Equal);
+		assert_eq!(test_b_1.cmp(&test_a_1), Ordering::Less);
+		assert_eq!(test_b_1.cmp(&test_c_1), Ordering::Less);
+		assert_eq!(test_c_1.cmp(&test_c_2), Ordering::Equal);
+		assert_eq!(test_c_1.cmp(&test_a_1), Ordering::Greater);
+		assert_eq!(test_c_1.cmp(&test_b_1), Ordering::Greater);
+
+		assert_eq!(test_a_1.partial_cmp(&test_a_2), Some(Ordering::Equal));
+		assert!(test_a_1 > test_a_le);
+		assert!(test_a_1 < test_a_ge);
+		assert!(test_a_1 > test_b_1);
+		assert!(test_a_1 < test_c_1);
+		assert_eq!(test_b_1.partial_cmp(&test_b_2), Some(Ordering::Equal));
+		assert!(test_b_1 < test_a_1);
+		assert!(test_b_1 < test_c_1);
+		assert_eq!(test_c_1.partial_cmp(&test_c_2), Some(Ordering::Equal));
+		assert!(test_c_1 > test_a_1);
+		assert!(test_c_1 > test_b_1);
+	}
+
+	#[test]
+	fn skip() {
+		#[repr(u8)]
+		#[derive_where(Eq, Ord, PartialEq, PartialOrd)]
+		enum Test<T> {
+			A(Wrapper<T>),
+			B = 3,
 			C,
 		}
 
-		#[cfg(feature = "nightly")]
-		{
-			use std::intrinsics::discriminant_value;
-			assert_eq!(3_u8, discriminant_value(&Test::A(0)));
-			assert_eq!(4_u8, discriminant_value(&Test::B));
-			assert_eq!(5_u8, discriminant_value(&Test::C));
+		let test_a_1 = Test::A(42.into());
+		let test_a_2 = Test::A(42.into());
+		let test_a_le = Test::A(41.into());
+		let test_a_ge = Test::A(43.into());
+
+		let test_b_1 = Test::B;
+		let test_b_2 = Test::B;
+
+		let test_c_1 = Test::C;
+		let test_c_2 = Test::C;
+
+		assert!(test_a_1 == test_a_2);
+		assert!(test_a_1 != test_b_1);
+		assert!(test_a_1 != test_c_1);
+		assert!(test_b_1 == test_b_2);
+		assert!(test_b_1 != test_a_1);
+		assert!(test_b_1 != test_c_1);
+		assert!(test_c_1 == test_c_2);
+		assert!(test_c_1 != test_a_1);
+		assert!(test_c_1 != test_b_1);
+
+		assert_eq!(test_a_1.cmp(&test_a_2), Ordering::Equal);
+		assert_eq!(test_a_1.cmp(&test_a_le), Ordering::Greater);
+		assert_eq!(test_a_1.cmp(&test_a_ge), Ordering::Less);
+		assert_eq!(test_a_1.cmp(&test_b_1), Ordering::Less);
+		assert_eq!(test_a_1.cmp(&test_c_1), Ordering::Less);
+		assert_eq!(test_b_1.cmp(&test_b_2), Ordering::Equal);
+		assert_eq!(test_b_1.cmp(&test_a_1), Ordering::Greater);
+		assert_eq!(test_b_1.cmp(&test_c_1), Ordering::Less);
+		assert_eq!(test_c_1.cmp(&test_c_2), Ordering::Equal);
+		assert_eq!(test_c_1.cmp(&test_a_1), Ordering::Greater);
+		assert_eq!(test_c_1.cmp(&test_b_1), Ordering::Greater);
+
+		assert_eq!(test_a_1.partial_cmp(&test_a_2), Some(Ordering::Equal));
+		assert!(test_a_1 > test_a_le);
+		assert!(test_a_1 < test_a_ge);
+		assert!(test_a_1 < test_b_1);
+		assert!(test_a_1 < test_c_1);
+		assert_eq!(test_b_1.partial_cmp(&test_b_2), Some(Ordering::Equal));
+		assert!(test_b_1 > test_a_1);
+		assert!(test_b_1 < test_c_1);
+		assert_eq!(test_c_1.partial_cmp(&test_c_2), Some(Ordering::Equal));
+		assert!(test_c_1 > test_a_1);
+		assert!(test_c_1 > test_b_1);
+	}
+
+	#[test]
+	fn negative() {
+		#[repr(i8)]
+		#[derive_where(Eq, Ord, PartialEq, PartialOrd)]
+		enum Test<T> {
+			A(Wrapper<T>) = -0x80_i8,
+			B,
 		}
-		assert_eq!(3, unsafe { *<*const _>::from(&Test::A(0)).cast::<u8>() });
-		assert_eq!(4, unsafe { *<*const _>::from(&Test::B).cast::<u8>() });
-		assert_eq!(5, unsafe { *<*const _>::from(&Test::C).cast::<u8>() });
+
+		let test_a_1 = Test::A(42.into());
+		let test_a_2 = Test::A(42.into());
+		let test_a_le = Test::A(41.into());
+		let test_a_ge = Test::A(43.into());
+
+		let test_b_1 = Test::B;
+		let test_b_2 = Test::B;
+
+		assert!(test_a_1 == test_a_2);
+		assert!(test_a_1 != test_b_1);
+		assert!(test_b_1 == test_b_2);
+		assert!(test_b_1 != test_a_1);
+
+		assert_eq!(test_a_1.cmp(&test_a_2), Ordering::Equal);
+		assert_eq!(test_a_1.cmp(&test_a_le), Ordering::Greater);
+		assert_eq!(test_a_1.cmp(&test_a_ge), Ordering::Less);
+		assert_eq!(test_a_1.cmp(&test_b_1), Ordering::Less);
+		assert_eq!(test_b_1.cmp(&test_b_2), Ordering::Equal);
+		assert_eq!(test_b_1.cmp(&test_a_1), Ordering::Greater);
+
+		assert_eq!(test_a_1.partial_cmp(&test_a_2), Some(Ordering::Equal));
+		assert!(test_a_1 < test_b_1);
+		assert!(test_a_1 > test_a_le);
+		assert!(test_a_1 < test_a_ge);
+		assert_eq!(test_b_1.partial_cmp(&test_b_2), Some(Ordering::Equal));
+		assert!(test_b_1 > test_a_1);
+	}
+
+	#[test]
+	fn expr() {
+		#[repr(u8)]
+		#[derive_where(Eq, Ord, PartialEq, PartialOrd)]
+		enum Test<T> {
+			A(Wrapper<T>) = u8::MAX - 1,
+			B,
+		}
+
+		let test_a_1 = Test::A(42.into());
+		let test_a_2 = Test::A(42.into());
+		let test_a_le = Test::A(41.into());
+		let test_a_ge = Test::A(43.into());
+
+		let test_b_1 = Test::B;
+		let test_b_2 = Test::B;
+
+		assert!(test_a_1 == test_a_2);
+		assert!(test_a_1 != test_b_1);
+		assert!(test_b_1 == test_b_2);
+		assert!(test_b_1 != test_a_1);
+
+		assert_eq!(test_a_1.cmp(&test_a_2), Ordering::Equal);
+		assert_eq!(test_a_1.cmp(&test_a_le), Ordering::Greater);
+		assert_eq!(test_a_1.cmp(&test_a_ge), Ordering::Less);
+		assert_eq!(test_a_1.cmp(&test_b_1), Ordering::Less);
+		assert_eq!(test_b_1.cmp(&test_b_2), Ordering::Equal);
+		assert_eq!(test_b_1.cmp(&test_a_1), Ordering::Greater);
+
+		assert_eq!(test_a_1.partial_cmp(&test_a_2), Some(Ordering::Equal));
+		assert!(test_a_1 < test_b_1);
+		assert!(test_a_1 > test_a_le);
+		assert!(test_a_1 < test_a_ge);
+		assert_eq!(test_b_1.partial_cmp(&test_b_2), Some(Ordering::Equal));
+		assert!(test_b_1 > test_a_1);
 	}
 }

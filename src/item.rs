@@ -1,10 +1,8 @@
 //! Intermediate representation of item data.
 
-use proc_macro2::TokenStream;
-use quote::{quote, ToTokens};
-use syn::{
-	punctuated::Punctuated, spanned::Spanned, Attribute, Ident, Meta, Result, Token, Variant,
-};
+use proc_macro2::{Ident, Span, TokenStream, TokenTree};
+use quote::ToTokens;
+use syn::{punctuated::Punctuated, spanned::Spanned, Attribute, Meta, Result, Token, Variant};
 
 use crate::{Data, Error, Incomparable, Trait};
 
@@ -96,19 +94,24 @@ impl Item<'_> {
 }
 
 /// Type of discriminant used.
+#[derive(Clone, Copy)]
 #[cfg_attr(test, derive(Debug))]
 pub enum Discriminant {
 	/// The enum has only a single variant.
 	Single,
-	/// The enum uses the default representation but has a non-unit variant or
-	/// an enum with a C representation without an integer representation.
-	Unknown,
-	/// The enum uses the default representation and has only unit variants.
-	UnitDefault,
+	/// The enum uses the default or C representation and has only unit
+	/// variants.
+	Unit {
+		/// `true` if this is using the C representation.
+		c: bool,
+	},
+	/// The enum uses the default or C representation but has a non-unit
+	/// variant.
+	Data,
 	/// The enum uses a non-default representation and has only unit variants.
 	UnitRepr(Representation),
 	/// The enum uses a non-default representation and has a non-unit variant.
-	Repr(Representation),
+	DataRepr(Representation),
 }
 
 impl Discriminant {
@@ -138,7 +141,7 @@ impl Discriminant {
 						}
 					}
 				} else {
-					return Err(Error::repr_parse(attr.span()));
+					unreachable!("found invalid `repr` attribute")
 				}
 			}
 		}
@@ -149,17 +152,26 @@ impl Discriminant {
 			if is_unit {
 				Self::UnitRepr(repr)
 			} else {
-				Self::Repr(repr)
+				Self::DataRepr(repr)
 			}
-		} else if is_unit && !is_c {
-			Self::UnitDefault
+		} else if is_unit {
+			Self::Unit { c: is_c }
 		} else {
-			Self::Unknown
+			let discriminant = variants
+				.iter()
+				.find_map(|variant| variant.discriminant.as_ref());
+
+			if let Some(discriminant) = discriminant {
+				return Err(Error::repr_discriminant_invalid(discriminant.1.span()));
+			}
+
+			Self::Data
 		})
 	}
 }
 
 /// The type used to represent an enum.
+#[derive(Clone, Copy)]
 #[cfg_attr(test, derive(Debug))]
 pub enum Representation {
 	/// [`u8`].
@@ -219,23 +231,30 @@ impl Representation {
 			return None;
 		})
 	}
+
+	/// Convert this [`Representation`] to a [`TokenStream`].
+	pub fn to_token(self) -> TokenStream {
+		let ident = match self {
+			Representation::U8 => "u8",
+			Representation::U16 => "u16",
+			Representation::U32 => "u32",
+			Representation::U64 => "u64",
+			Representation::U128 => "u128",
+			Representation::USize => "usize",
+			Representation::I8 => "i8",
+			Representation::I16 => "i16",
+			Representation::I32 => "i32",
+			Representation::I64 => "i64",
+			Representation::I128 => "i128",
+			Representation::ISize => "isize",
+		};
+
+		TokenTree::from(Ident::new(ident, Span::call_site())).into()
+	}
 }
 
 impl ToTokens for Representation {
 	fn to_tokens(&self, tokens: &mut TokenStream) {
-		match self {
-			Representation::U8 => tokens.extend(quote! { u8 }),
-			Representation::U16 => tokens.extend(quote! { u16 }),
-			Representation::U32 => tokens.extend(quote! { u32 }),
-			Representation::U64 => tokens.extend(quote! { u64 }),
-			Representation::U128 => tokens.extend(quote! { u128 }),
-			Representation::USize => tokens.extend(quote! { usize }),
-			Representation::I8 => tokens.extend(quote! { i8 }),
-			Representation::I16 => tokens.extend(quote! { i16 }),
-			Representation::I32 => tokens.extend(quote! { i32 }),
-			Representation::I64 => tokens.extend(quote! { i64 }),
-			Representation::I128 => tokens.extend(quote! { i128 }),
-			Representation::ISize => tokens.extend(quote! { isize }),
-		}
+		tokens.extend(self.to_token());
 	}
 }

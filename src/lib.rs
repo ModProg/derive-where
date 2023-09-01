@@ -313,6 +313,13 @@
 //!
 //! Unions only support [`Clone`] and [`Copy`].
 //!
+//! [`PartialOrd`] and [`Ord`] need to determine the discriminant type to
+//! function correctly. Unfortunately, according to the specification, the C
+//! representation without an integer representation doesn't have a
+//! platform-independent discriminant type. Therefor a check is inserted to
+//! ascertain that discriminants of enums with a C representation have the
+//! [`isize`] type, which is currently the case for all known platforms.
+//!
 //! ## `no_std` support
 //!
 //! `no_std` support is provided by default.
@@ -321,12 +328,9 @@
 //!
 //! - `nightly`: Implements [`Ord`] and [`PartialOrd`] with the help of
 //!   [`core::intrinsics::discriminant_value`], which is what Rust does by
-//!   default too. Without this feature [`transmute`](core::mem::transmute) is
-//!   used to convert [`Discriminant`](core::mem::Discriminant) to a [`i32`],
-//!   which is the underlying type.
+//!   default too. This requires a nightly version of the Rust compiler.
 //! - `safe`: `safe`: Uses only safe ways to access the discriminant of the enum
-//!   for [`Ord`] and [`PartialOrd`]. This is much slower, but might be
-//!   preferred if you don't trust derive-where. It also replaces all cases of
+//!   for [`Ord`] and [`PartialOrd`]. It also replaces all cases of
 //!   [`core::hint::unreachable_unchecked`] in [`Ord`], [`PartialEq`] and
 //!   [`PartialOrd`], which is what std uses, with [`unreachable`].
 //! - `zeroize`: Allows deriving [`Zeroize`] and [`zeroize`][method@zeroize] on
@@ -395,11 +399,12 @@ mod util;
 
 use std::{borrow::Cow, iter};
 
+use input::SplitGenerics;
 use proc_macro2::TokenStream;
 use quote::{quote, quote_spanned, ToTokens};
 use syn::{
 	spanned::Spanned, Attribute, DataEnum, DataStruct, DataUnion, DeriveInput, Expr, ExprLit,
-	ExprPath, Fields, FieldsNamed, FieldsUnnamed, Generics, Lit, Meta, Path, Result, Variant,
+	ExprPath, Fields, FieldsNamed, FieldsUnnamed, Lit, Meta, Path, Result, Variant,
 };
 use util::MetaListExt;
 
@@ -593,7 +598,7 @@ pub fn derive_where_actual(input: proc_macro::TokenStream) -> proc_macro::TokenS
 		}) => derive_wheres
 			.iter()
 			.flat_map(|derive_where| iter::repeat(derive_where).zip(&derive_where.traits))
-			.map(|(derive_where, trait_)| generate_impl(derive_where, trait_, &item, generics))
+			.map(|(derive_where, trait_)| generate_impl(derive_where, trait_, &item, &generics))
 			.collect::<TokenStream>()
 			.into(),
 		Err(error) => error.into_compile_error().into(),
@@ -623,18 +628,22 @@ fn generate_impl(
 	derive_where: &DeriveWhere,
 	trait_: &DeriveTrait,
 	item: &Item,
-	generics: &Generics,
+	generics: &SplitGenerics,
 ) -> TokenStream {
-	let (impl_generics, type_generics, where_clause) = generics.split_for_impl();
+	let SplitGenerics {
+		imp,
+		ty,
+		where_clause,
+	} = generics;
 	let mut where_clause = where_clause.map(Cow::Borrowed);
 	derive_where.where_clause(&mut where_clause, trait_, item);
 
-	let body = generate_body(derive_where, &derive_where.traits, trait_, item);
+	let body = generate_body(derive_where, &derive_where.traits, trait_, item, generics);
 
 	let ident = item.ident();
 	let path = trait_.impl_path(trait_);
 	let mut output = quote! {
-		impl #impl_generics #path for #ident #type_generics
+		impl #imp #path for #ident #ty
 		#where_clause
 		{
 			#body
@@ -643,7 +652,7 @@ fn generate_impl(
 
 	if let Some((path, body)) = trait_.additional_impl(trait_) {
 		output.extend(quote! {
-			impl #impl_generics #path for #ident #type_generics
+			impl #imp #path for #ident #ty
 			#where_clause
 			{
 				#body
@@ -660,13 +669,14 @@ fn generate_body(
 	traits: &[DeriveTrait],
 	trait_: &DeriveTrait,
 	item: &Item,
+	generics: &SplitGenerics<'_>,
 ) -> TokenStream {
 	let any_bound = !derive_where.generics.is_empty();
 
 	match &item {
 		Item::Item(data) => {
 			let body = trait_.build_body(any_bound, traits, trait_, data);
-			trait_.build_signature(any_bound, item, traits, trait_, &body)
+			trait_.build_signature(any_bound, item, generics, traits, trait_, &body)
 		}
 		Item::Enum { variants, .. } => {
 			let body: TokenStream = variants
@@ -674,7 +684,7 @@ fn generate_body(
 				.map(|data| trait_.build_body(any_bound, traits, trait_, data))
 				.collect();
 
-			trait_.build_signature(any_bound, item, traits, trait_, &body)
+			trait_.build_signature(any_bound, item, generics, traits, trait_, &body)
 		}
 	}
 }

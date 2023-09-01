@@ -4,7 +4,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 
 use super::common_ord::build_incomparable_pattern;
-use crate::{Data, DeriveTrait, Item, SimpleType, TraitImpl};
+use crate::{Data, DeriveTrait, Item, SimpleType, SplitGenerics, TraitImpl};
 
 /// Dummy-struct implement [`Trait`](crate::Trait) for
 /// [`PartialEq`](trait@std::cmp::PartialEq).
@@ -23,6 +23,7 @@ impl TraitImpl for PartialEq {
 		&self,
 		_any_bound: bool,
 		item: &Item,
+		_generics: &SplitGenerics<'_>,
 		_traits: &[DeriveTrait],
 		trait_: &DeriveTrait,
 		body: &TokenStream,

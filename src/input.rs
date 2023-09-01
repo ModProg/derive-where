@@ -1,7 +1,7 @@
 //! Parses [`DeriveInput`] into something more useful.
 
 use proc_macro2::Span;
-use syn::{DeriveInput, GenericParam, Generics, Result};
+use syn::{DeriveInput, GenericParam, Generics, ImplGenerics, Result, TypeGenerics, WhereClause};
 
 #[cfg(feature = "zeroize")]
 use crate::DeriveTrait;
@@ -12,7 +12,7 @@ pub struct Input<'a> {
 	/// `derive_where` attributes on the item.
 	pub derive_wheres: Vec<DeriveWhere>,
 	/// Generics necessary to define for an `impl`.
-	pub generics: &'a Generics,
+	pub generics: SplitGenerics<'a>,
 	/// Fields or variants of this item.
 	pub item: Item<'a>,
 }
@@ -194,10 +194,35 @@ impl<'a> Input<'a> {
 			}
 		}
 
+		let generics = SplitGenerics::new(generics);
+
 		Ok(Self {
 			derive_wheres,
 			generics,
 			item,
 		})
+	}
+}
+
+/// Stores output of [`Generics::split_for_impl()`].
+pub struct SplitGenerics<'a> {
+	/// Necessary generic definitions.
+	pub imp: ImplGenerics<'a>,
+	/// Generics on the type itself.
+	pub ty: TypeGenerics<'a>,
+	/// `where` clause.
+	pub where_clause: Option<&'a WhereClause>,
+}
+
+impl<'a> SplitGenerics<'a> {
+	/// Creates a [`SplitGenerics`] from [`Generics`].
+	fn new(generics: &'a Generics) -> Self {
+		let (imp, ty, where_clause) = generics.split_for_impl();
+
+		SplitGenerics {
+			imp,
+			ty,
+			where_clause,
+		}
 	}
 }

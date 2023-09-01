@@ -94,25 +94,22 @@ fn variant_empty() -> Result<()> {
 #[test]
 fn variants_empty() -> Result<()> {
 	#[cfg(feature = "nightly")]
-	let discriminant = quote! {
-		let __self_disc = ::core::intrinsics::discriminant_value(self);
-		let __other_disc = ::core::intrinsics::discriminant_value(__other);
-	};
-	#[cfg(not(feature = "nightly"))]
-	let discriminant = quote! {
-		let __self_disc = ::core::mem::discriminant(self);
-		let __other_disc = ::core::mem::discriminant(__other);
-	};
-	#[cfg(feature = "nightly")]
 	let ord = quote! {
-		::core::cmp::Ord::cmp(&__self_disc, &__other_disc)
+		::core::cmp::Ord::cmp(
+			&::core::intrinsics::discriminant_value(self),
+			&::core::intrinsics::discriminant_value(__other),
+		)
 	};
 	#[cfg(not(feature = "nightly"))]
 	let ord = quote! {
-		match self {
-			Test::A(ref __field_0) => ::core::cmp::Ordering::Less,
-			Test::B(ref __field_0) => ::core::cmp::Ordering::Greater,
+		fn __discriminant<T>(__this: &Test<T>) -> isize {
+			match __this {
+				Test::A(ref __field_0) => 0,
+				Test::B(ref __field_0) => 1
+			}
 		}
+
+		::core::cmp::Ord::cmp(&__discriminant(self), &__discriminant(__other))
 	};
 
 	test_derive(
@@ -129,13 +126,7 @@ fn variants_empty() -> Result<()> {
 			impl<T> ::core::cmp::Ord for Test<T> {
 				#[inline]
 				fn cmp(&self, __other: &Self) -> ::core::cmp::Ordering {
-					#discriminant
-
-					if __self_disc == __other_disc {
-						::core::cmp::Ordering::Equal
-					} else {
-						#ord
-					}
+					#ord
 				}
 			}
 		},
@@ -160,10 +151,14 @@ fn variants_partly_empty() -> Result<()> {
 	};
 	#[cfg(not(feature = "nightly"))]
 	let ord = quote! {
-		match self {
-			Test::A(ref __field_0) => ::core::cmp::Ordering::Less,
-			Test::B(ref __field_0, ref __field_1) => ::core::cmp::Ordering::Greater,
+		fn __discriminant<T>(__this: &Test<T>) -> isize {
+			match __this {
+				Test::A(ref __field_0) => 0,
+				Test::B(ref __field_0, ref __field_1) => 1
+			}
 		}
+
+		::core::cmp::Ord::cmp(&__discriminant(self), &__discriminant(__other))
 	};
 
 	test_derive(

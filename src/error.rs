@@ -212,14 +212,19 @@ impl Error {
 		syn::Error::new(span, "duplicate trait with the same bound")
 	}
 
-	/// `repr` attribute that isn't a meta list.
-	pub fn repr_parse(span: Span) -> syn::Error {
-		syn::Error::new(span, "unable to parse `repr` attribute")
-	}
-
 	/// Unknown `repr`.
 	pub fn repr_unknown(span: Span) -> syn::Error {
 		syn::Error::new(span, "found unknown representation")
+	}
+
+	/// Invalid enum with non-empty variants and custom discriminants without an
+	/// integer representation.
+	pub fn repr_discriminant_invalid(span: Span) -> syn::Error {
+		syn::Error::new(
+			span,
+			"enums with non-empty variants and custom discriminants require a integer \
+			 representation",
+		)
 	}
 
 	/// Unsupported default option if [`Default`] isn't implemented.

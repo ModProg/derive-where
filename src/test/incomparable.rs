@@ -55,11 +55,17 @@ fn variants() -> Result<()> {
 							_ => ::core::option::Option::Some(::core::cmp::Ordering::Equal),
 						}
 					} else {
-						match self {
-							Test::A => ::core::option::Option::Some(::core::cmp::Ordering::Less),
-							Test::C(ref __field_0) => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
-							_ => unreachable!("incomparable variants should have already returned"),
+						fn __discriminant(__this: &Test) -> isize {
+							match __this {
+								Test::A => 0,
+								Test::B(ref __field_0) => 1,
+								Test::C(ref __field_0) => 2,
+								Test::D => 3,
+								Test::E { test: ref __field_test } => 4
+							}
 						}
+
+						::core::cmp::PartialOrd::partial_cmp(&__discriminant(self), &__discriminant(__other))
 					}
 				}
 			}

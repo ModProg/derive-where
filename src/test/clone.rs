@@ -8,7 +8,9 @@ fn struct_() -> Result<()> {
 	test_derive(
 		quote! {
 			#[derive_where(Clone)]
-			struct Test<T> { field: std::marker::PhantomData<T> }
+			struct Test<T> {
+				field: std::marker::PhantomData<T>,
+			}
 		},
 		quote! {
 			impl<T> ::core::clone::Clone for Test<T> {
