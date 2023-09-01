@@ -109,10 +109,14 @@ fn variants_empty() -> Result<()> {
 	};
 	#[cfg(not(feature = "nightly"))]
 	let ord = quote! {
-		match self {
-			Test::A(ref __field_0) => ::core::cmp::Ordering::Less,
-			Test::B(ref __field_0) => ::core::cmp::Ordering::Greater,
+		fn __discriminant<T>(__this: &Test<T>) -> isize {
+			match __this {
+				Test::A(ref __field_0) => 0,
+				Test::B(ref __field_0) => 1
+			}
 		}
+
+		::core::cmp::Ord::cmp(&__discriminant(self), &__discriminant(__other))
 	};
 
 	test_derive(
@@ -160,10 +164,14 @@ fn variants_partly_empty() -> Result<()> {
 	};
 	#[cfg(not(feature = "nightly"))]
 	let ord = quote! {
-		match self {
-			Test::A(ref __field_0) => ::core::cmp::Ordering::Less,
-			Test::B(ref __field_0, ref __field_1) => ::core::cmp::Ordering::Greater,
+		fn __discriminant<T>(__this: &Test<T>) -> isize {
+			match __this {
+				Test::A(ref __field_0) => 0,
+				Test::B(ref __field_0, ref __field_1) => 1
+			}
 		}
+
+		::core::cmp::Ord::cmp(&__discriminant(self), &__discriminant(__other))
 	};
 
 	test_derive(

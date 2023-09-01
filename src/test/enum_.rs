@@ -75,7 +75,9 @@ fn one_data() -> Result<()> {
 	test_derive(
 		quote! {
 			#[derive_where(PartialEq, PartialOrd)]
-			enum Test<T> { A(std::marker::PhantomData<T>) }
+			enum Test<T> {
+				A(std::marker::PhantomData<T>),
+			}
 		},
 		quote! {
 			impl<T> ::core::cmp::PartialEq for Test<T> {
@@ -126,16 +128,23 @@ fn two_data() -> Result<()> {
 	};
 	#[cfg(not(feature = "nightly"))]
 	let partial_ord = quote! {
-		match self {
-			Test::A(ref __field_0) => ::core::option::Option::Some(::core::cmp::Ordering::Less),
-			Test::B(ref __field_0) => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
+		fn __discriminant<T>(__this: &Test<T>) -> isize {
+			match __this {
+				Test::A(ref __field_0) => 0,
+				Test::B(ref __field_0) => 1
+			}
 		}
+
+		::core::cmp::PartialOrd::partial_cmp(&__discriminant(self), &__discriminant(__other))
 	};
 
 	test_derive(
 		quote! {
 			#[derive_where(PartialEq, PartialOrd)]
-			enum Test<T> { A(std::marker::PhantomData<T>), B(std::marker::PhantomData<T>) }
+			enum Test<T> {
+				A(std::marker::PhantomData<T>),
+				B(std::marker::PhantomData<T>),
+			}
 		},
 		quote! {
 			impl<T> ::core::cmp::PartialEq for Test<T> {
@@ -201,16 +210,23 @@ fn unit() -> Result<()> {
 	};
 	#[cfg(not(feature = "nightly"))]
 	let partial_ord = quote! {
-		match self {
-			Test::A(ref __field_0) => ::core::option::Option::Some(::core::cmp::Ordering::Less),
-			Test::B => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
+		fn __discriminant<T>(__this: &Test<T>) -> isize {
+			match __this {
+				Test::A(ref __field_0) => 0,
+				Test::B => 1
+			}
 		}
+
+		::core::cmp::PartialOrd::partial_cmp(&__discriminant(self), &__discriminant(__other))
 	};
 
 	test_derive(
 		quote! {
 			#[derive_where(PartialEq, PartialOrd)]
-			enum Test<T> { A(std::marker::PhantomData<T>), B }
+			enum Test<T> {
+				A(std::marker::PhantomData<T>),
+				B,
+			}
 		},
 		quote! {
 			impl<T> ::core::cmp::PartialEq for Test<T> {
@@ -269,16 +285,23 @@ fn struct_unit() -> Result<()> {
 	};
 	#[cfg(not(feature = "nightly"))]
 	let partial_ord = quote! {
-		match self {
-			Test::A(ref __field_0) => ::core::option::Option::Some(::core::cmp::Ordering::Less),
-			Test::B { } => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
+		fn __discriminant<T>(__this: &Test<T>) -> isize {
+			match __this {
+				Test::A(ref __field_0) => 0,
+				Test::B { } => 1
+			}
 		}
+
+		::core::cmp::PartialOrd::partial_cmp(&__discriminant(self), &__discriminant(__other))
 	};
 
 	test_derive(
 		quote! {
 			#[derive_where(PartialEq, PartialOrd)]
-			enum Test<T> { A(std::marker::PhantomData<T>), B { } }
+			enum Test<T> {
+				A(std::marker::PhantomData<T>),
+				B { },
+			}
 		},
 		quote! {
 			impl<T> ::core::cmp::PartialEq for Test<T> {
@@ -337,16 +360,23 @@ fn tuple_unit() -> Result<()> {
 	};
 	#[cfg(not(feature = "nightly"))]
 	let partial_ord = quote! {
-		match self {
-			Test::A(ref __field_0) => ::core::option::Option::Some(::core::cmp::Ordering::Less),
-			Test::B() => ::core::option::Option::Some(::core::cmp::Ordering::Greater),
+		fn __discriminant<T>(__this: &Test<T>) -> isize {
+			match __this {
+				Test::A(ref __field_0) => 0,
+				Test::B() => 1
+			}
 		}
+
+		::core::cmp::PartialOrd::partial_cmp(&__discriminant(self), &__discriminant(__other))
 	};
 
 	test_derive(
 		quote! {
 			#[derive_where(PartialEq, PartialOrd)]
-			enum Test<T> { A(std::marker::PhantomData<T>), B() }
+			enum Test<T> {
+				A(std::marker::PhantomData<T>),
+				B(),
+			}
 		},
 		quote! {
 			impl<T> ::core::cmp::PartialEq for Test<T> {
