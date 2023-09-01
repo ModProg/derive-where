@@ -86,7 +86,7 @@ fn mix() -> Result<()> {
 				Test::A => 1,
 				Test::B => 0,
 				Test::C => 2,
-				Test::D => 3
+				Test::D => (2) + 1
 			}
 		}
 
@@ -147,8 +147,8 @@ fn skip() -> Result<()> {
 			match __this {
 				Test::A => 0,
 				Test::B => 3,
-				Test::C => 4,
-				Test::E => 5
+				Test::C => (3) + 1,
+				Test::E => (3) + 2
 			}
 		}
 
@@ -413,7 +413,7 @@ fn repr_mix() -> Result<()> {
 				Test::A => 1,
 				Test::B => 0,
 				Test::C => 2,
-				Test::D => 3
+				Test::D => (2) + 1
 			}
 		}
 
@@ -482,8 +482,8 @@ fn repr_skip() -> Result<()> {
 			match __this {
 				Test::A => 0,
 				Test::B => 3,
-				Test::C => 4,
-				Test::E => 5
+				Test::C => (3) + 1,
+				Test::E => (3) + 2
 			}
 		}
 
@@ -524,7 +524,7 @@ fn repr_skip() -> Result<()> {
 }
 
 #[test]
-fn repr_negative() -> Result<()> {
+fn repr_expr() -> Result<()> {
 	#[cfg(feature = "nightly")]
 	let discriminant = quote! {
 		let __self_disc = ::core::intrinsics::discriminant_value(self);
@@ -542,17 +542,17 @@ fn repr_negative() -> Result<()> {
 	#[cfg(not(any(feature = "nightly", feature = "safe")))]
 	let partial_ord = quote! {
 		::core::cmp::PartialOrd::partial_cmp(
-			&unsafe { *<*const _>::from(self).cast::<i64>() },
-			&unsafe { *<*const _>::from(__other).cast::<i64>() },
+			&unsafe { *<*const _>::from(self).cast::<u64>() },
+			&unsafe { *<*const _>::from(__other).cast::<u64>() },
 		)
 	};
 	#[cfg(all(not(feature = "nightly"), feature = "safe"))]
 	let partial_ord = quote! {
-		fn __discriminant(__this: &Test) -> i64 {
+		fn __discriminant(__this: &Test) -> u64 {
 			match __this {
-				Test::A => -0x8000_0000_0000_0000_i64,
-				Test::B => (-0x8000_0000_0000_0000_i64) + 1,
-				Test::C => (-0x8000_0000_0000_0000_i64) + 2
+				Test::A => u64::MAX - 2,
+				Test::B => (u64::MAX - 2) + 1,
+				Test::C => (u64::MAX - 2) + 2
 			}
 		}
 
@@ -562,9 +562,9 @@ fn repr_negative() -> Result<()> {
 	test_derive(
 		quote! {
 			#[derive_where(PartialOrd)]
-			#[repr(i64)]
+			#[repr(u64)]
 			enum Test {
-				A = -0x8000_0000_0000_0000_i64,
+				A = u64::MAX - 2,
 				B,
 				#[derive_where(incomparable)]
 				C,

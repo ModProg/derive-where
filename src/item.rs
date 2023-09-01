@@ -153,6 +153,9 @@ impl Discriminant {
 		} else if is_unit && !is_c {
 			Self::UnitDefault
 		} else {
+			debug_assert!(variants
+				.iter()
+				.all(|variant| variant.discriminant.is_none()));
 			Self::Unknown
 		})
 	}

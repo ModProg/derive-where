@@ -145,25 +145,13 @@ pub fn build_ord_signature(
 								}
 							} else {
 								build_discriminant_order(
-									None,
-									item,
-									generics,
-									*discriminant,
-									variants,
-									&path,
-									&method,
+									None, item, generics, variants, &path, &method,
 								)
 							}
 						}
-						Discriminant::Unknown => build_discriminant_order(
-							None,
-							item,
-							generics,
-							*discriminant,
-							variants,
-							&path,
-							&method,
-						),
+						Discriminant::Unknown => {
+							build_discriminant_order(None, item, generics, variants, &path, &method)
+						}
 						#[cfg(feature = "safe")]
 						Discriminant::UnitRepr(repr) => {
 							if traits.iter().any(|trait_| trait_ == Trait::Copy) {
@@ -185,7 +173,6 @@ pub fn build_ord_signature(
 									Some(*repr),
 									item,
 									generics,
-									*discriminant,
 									variants,
 									&path,
 									&method,
@@ -206,7 +193,6 @@ pub fn build_ord_signature(
 							Some(*repr),
 							item,
 							generics,
-							*discriminant,
 							variants,
 							&path,
 							&method,
@@ -249,7 +235,6 @@ fn build_discriminant_order(
 	repr: Option<Representation>,
 	item: &Item,
 	generics: &SplitGenerics<'_>,
-	discriminant: Discriminant,
 	variants: &[Data<'_>],
 	path: &Path,
 	method: &TokenStream,
@@ -257,88 +242,43 @@ fn build_discriminant_order(
 	use std::{borrow::Cow, ops::Deref};
 
 	use proc_macro2::Span;
-	use syn::{parse_quote, Expr, ExprLit, Lit, LitInt};
+	use syn::{parse_quote, Expr, ExprLit, LitInt};
 
 	let mut discriminants = Vec::<Cow<Expr>>::with_capacity(variants.len());
-	let mut has_non_isize = false;
-	let mut last_expression: Option<(usize, usize)> = None;
+	let mut last_expression: Option<(Option<usize>, usize)> = None;
 
 	for variant in variants {
 		let discriminant = if let Some(discriminant) = variant.discriminant {
-			if !has_non_isize
-				&& !matches!(
-					discriminant,
-					Expr::Lit(ExprLit {
-						lit: Lit::Int(_),
-						..
-					})
-				) {
-				has_non_isize = true;
-			}
-
+			last_expression = Some((Some(discriminants.len()), 0));
 			Cow::Borrowed(discriminant)
-		} else if let Some(discriminant) = discriminants.last().map(Deref::deref) {
-			let discriminant = if let Expr::Lit(ExprLit {
-				lit: Lit::Int(int), ..
-			}) = discriminant
-			{
-				let int = if let Ok(int) = int.base10_parse::<i128>() {
-					let int = int + 1;
-
-					if !has_non_isize {
-						#[cfg(target_pointer_width = "16")]
-						let max = i128::from(i16::MAX);
-						#[cfg(target_pointer_width = "32")]
-						let max = i128::from(i32::MAX);
-						#[cfg(target_pointer_width = "64")]
-						let max = i128::from(i64::MAX);
-						#[cfg(not(any(
-							target_pointer_width = "16",
-							target_pointer_width = "32",
-							target_pointer_width = "64"
-						)))]
-						let max = unreachable!("128-bit targets aren't supported");
-
-						if int > max {
-							has_non_isize = true;
-						}
-					}
-
-					int.to_string()
-				} else if let Ok(int) = int.base10_parse::<u128>() {
-					// If we couldn't parse it to a `i128`, then it can't fit in a `isize` we
-					// support anyway.
-					has_non_isize = true;
-
-					(int + 1).to_string()
-				} else {
-					unreachable!("found unparsable integer literal")
-				};
-
-				ExprLit {
-					attrs: Vec::new(),
-					lit: LitInt::new(&int, Span::call_site()).into(),
+		} else {
+			let discriminant = match &mut last_expression {
+				Some((Some(expr_index), counter)) => {
+					let expr = &discriminants[*expr_index];
+					*counter += 1;
+					let counter = LitInt::new(&counter.to_string(), Span::call_site());
+					parse_quote! { (#expr) + #counter }
 				}
-				.into()
-			} else if let Some((expr_index, counter)) = &mut last_expression {
-				let expr = &discriminants[*expr_index];
-				*counter += 1;
-				let counter = LitInt::new(&counter.to_string(), Span::call_site());
-				parse_quote! { (#expr) + #counter }
-			} else {
-				last_expression = Some((discriminants.len() - 1, 1));
-				parse_quote! { (#discriminant) + 1 }
+				Some((None, counter)) => {
+					*counter += 1;
+
+					ExprLit {
+						attrs: Vec::new(),
+						lit: LitInt::new(&counter.to_string(), Span::call_site()).into(),
+					}
+					.into()
+				}
+				None => {
+					last_expression = Some((None, 0));
+					ExprLit {
+						attrs: Vec::new(),
+						lit: LitInt::new("0", Span::call_site()).into(),
+					}
+					.into()
+				}
 			};
 
 			Cow::Owned(discriminant)
-		} else {
-			Cow::Owned(
-				ExprLit {
-					attrs: Vec::new(),
-					lit: LitInt::new("0", Span::call_site()).into(),
-				}
-				.into(),
-			)
 		};
 
 		discriminants.push(discriminant);
@@ -356,15 +296,9 @@ fn build_discriminant_order(
 			}
 		});
 
-	let repr = repr.map(Representation::to_token).unwrap_or_else(|| {
-		if has_non_isize && matches!(discriminant, Discriminant::Unknown) {
-			quote! { impl #path }
-		} else {
-			// `isize` is currently used by Rust as the default representation when none is
-			// defined. This isn't stable, which is why we check for it.
-			Representation::ISize.to_token()
-		}
-	});
+	// `isize` is currently used by Rust as the default representation when none is
+	// defined.
+	let repr = repr.unwrap_or(Representation::ISize).to_token();
 
 	let item = item.ident();
 	let SplitGenerics {
