@@ -313,6 +313,13 @@
 //!
 //! Unions only support [`Clone`] and [`Copy`].
 //!
+//! [`PartialOrd`] and [`Ord`] need to determine the discriminant type to
+//! function correctly. Unfortunately, according to the specification, the C
+//! representation without an integer representation doesn't have a
+//! platform-independent discriminant type. Therefor a check is inserted to
+//! ascertain that discriminants of enums with a C representation have the
+//! [`isize`] type, which is currently the case for all known platforms.
+//!
 //! ## `no_std` support
 //!
 //! `no_std` support is provided by default.
@@ -321,12 +328,9 @@
 //!
 //! - `nightly`: Implements [`Ord`] and [`PartialOrd`] with the help of
 //!   [`core::intrinsics::discriminant_value`], which is what Rust does by
-//!   default too. Without this feature [`transmute`](core::mem::transmute) is
-//!   used to convert [`Discriminant`](core::mem::Discriminant) to a [`i32`],
-//!   which is the underlying type.
+//!   default too. This requires a nightly version of the Rust compiler.
 //! - `safe`: `safe`: Uses only safe ways to access the discriminant of the enum
-//!   for [`Ord`] and [`PartialOrd`]. This is much slower, but might be
-//!   preferred if you don't trust derive-where. It also replaces all cases of
+//!   for [`Ord`] and [`PartialOrd`]. It also replaces all cases of
 //!   [`core::hint::unreachable_unchecked`] in [`Ord`], [`PartialEq`] and
 //!   [`PartialOrd`], which is what std uses, with [`unreachable`].
 //! - `zeroize`: Allows deriving [`Zeroize`] and [`zeroize`][method@zeroize] on
