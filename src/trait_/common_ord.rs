@@ -3,15 +3,16 @@
 use proc_macro2::TokenStream;
 use quote::quote;
 #[cfg(not(feature = "nightly"))]
-use syn::PatOr;
+use syn::Path;
 
-use crate::{Data, DeriveTrait, Item, SimpleType};
+use crate::{Data, DeriveTrait, Item, Representation, SimpleType, SplitGenerics};
 #[cfg(not(feature = "nightly"))]
 use crate::{Discriminant, Trait};
 
 /// Build signature for [`PartialOrd`] and [`Ord`].
 pub fn build_ord_signature(
 	item: &Item,
+	#[cfg_attr(feature = "nightly", allow(unused_variables))] generics: &SplitGenerics<'_>,
 	#[cfg_attr(feature = "nightly", allow(unused_variables))] traits: &[DeriveTrait],
 	trait_: &DeriveTrait,
 	body: &TokenStream,
@@ -143,11 +144,13 @@ pub fn build_ord_signature(
 									)
 								}
 							} else {
-								build_recursive_order(trait_, variants, &incomparable)
+								build_discriminant_order(
+									None, item, generics, variants, &path, &method,
+								)
 							}
 						}
 						Discriminant::Unknown => {
-							build_recursive_order(trait_, variants, &incomparable)
+							build_discriminant_order(None, item, generics, variants, &path, &method)
 						}
 						#[cfg(feature = "safe")]
 						Discriminant::UnitRepr(repr) => {
@@ -166,7 +169,14 @@ pub fn build_ord_signature(
 									)
 								}
 							} else {
-								build_recursive_order(trait_, variants, &incomparable)
+								build_discriminant_order(
+									Some(*repr),
+									item,
+									generics,
+									variants,
+									&path,
+									&method,
+								)
 							}
 						}
 						#[cfg(not(feature = "safe"))]
@@ -179,7 +189,14 @@ pub fn build_ord_signature(
 							}
 						}
 						#[cfg(feature = "safe")]
-						Discriminant::Repr(_) => build_recursive_order(trait_, variants, &incomparable),
+						Discriminant::Repr(repr) => build_discriminant_order(
+							Some(*repr),
+							item,
+							generics,
+							variants,
+							&path,
+							&method,
+						),
 					};
 
 					quote! {
@@ -214,79 +231,128 @@ pub fn build_ord_signature(
 
 /// Builds order comparison recursively for all variants.
 #[cfg(not(feature = "nightly"))]
-fn build_recursive_order(
-	trait_: &DeriveTrait,
+fn build_discriminant_order(
+	repr: Option<Representation>,
+	item: &Item,
+	generics: &SplitGenerics<'_>,
 	variants: &[Data<'_>],
-	incomparable: &TokenStream,
+	path: &Path,
+	method: &TokenStream,
 ) -> TokenStream {
-	let mut less = quote! { ::core::cmp::Ordering::Less };
-	let mut greater = quote! { ::core::cmp::Ordering::Greater };
+	use std::{borrow::Cow, ops::Deref};
 
-	// Add `Option` to `Ordering` if we are implementing `PartialOrd`.
-	if let DeriveTrait::PartialOrd = trait_ {
-		less = quote! { ::core::option::Option::Some(#less) };
-		greater = quote! { ::core::option::Option::Some(#greater) };
-	}
+	use proc_macro2::Span;
+	use syn::{parse_quote, Expr, ExprLit, Lit, LitInt};
 
-	let mut different = Vec::with_capacity(variants.len());
-	let variants: Vec<_> = variants.iter().filter(|v| !v.is_incomparable()).collect();
+	let mut discriminants = Vec::<Cow<Expr>>::with_capacity(variants.len());
+	let mut has_non_isize = false;
 
-	// Build separate `match` arms to compare different variants to each
-	// other. The index for these variants is used to determine which
-	// `Ordering` to return.
-	for (index, variant) in variants.iter().enumerate() {
-		let pattern = &variant.self_pattern();
+	for variant in variants {
+		let discriminant = if let Some(discriminant) = variant.discriminant {
+			if !has_non_isize
+				&& !matches!(
+					discriminant,
+					Expr::Lit(ExprLit {
+						lit: Lit::Int(_),
+						..
+					})
+				) {
+				has_non_isize = true;
+			}
 
-		// The first variant is always `Less` then everything.
-		if index == 0 {
-			different.push(quote! {
-				#pattern => #less,
-			})
-		}
-		// The last variant is always `Greater` then everything.
-		else if index == variants.len() - 1 {
-			different.push(quote! {
-				#pattern => #greater,
-			})
-		}
-		// Any variant between the first and last.
-		else {
-			// Collect all variants that are `Less`.
-			let cases = variants
-				.iter()
-				.enumerate()
-				.filter(|(index_other, _)| *index_other < index)
-				.map(|(_, variant_other)| variant_other.other_pattern_skip().clone())
-				.collect();
+			Cow::Borrowed(discriminant)
+		} else if let Some(discriminant) = discriminants.last().map(Deref::deref) {
+			let discriminant = if let Expr::Lit(ExprLit {
+				lit: Lit::Int(int), ..
+			}) = discriminant
+			{
+				let int = if let Ok(int) = int.base10_parse::<i128>() {
+					let int = int + 1;
 
-			// Build one match arm pattern with all variants that are `Greater`.
-			let pattern_less = PatOr {
-				attrs: Vec::new(),
-				leading_vert: None,
-				cases,
+					if !has_non_isize {
+						if let Ok(max) = i128::try_from(isize::MAX) {
+							if int > max {
+								has_non_isize = true;
+							}
+						}
+					}
+
+					int.to_string()
+				} else if let Ok(int) = int.base10_parse::<u128>() {
+					let int = int + 1;
+
+					if !has_non_isize {
+						if let Ok(max) = u128::try_from(isize::MAX) {
+							if int > max {
+								has_non_isize = true;
+							}
+						}
+					}
+
+					int.to_string()
+				} else {
+					unreachable!("found unparsable integer literal")
+				};
+
+				ExprLit {
+					attrs: Vec::new(),
+					lit: LitInt::new(&int, Span::call_site()).into(),
+				}
+				.into()
+			} else {
+				parse_quote! { (#discriminant) + 1 }
 			};
 
-			// All other variants are `Less`.
-			different.push(quote! {
-				#pattern => match __other {
-					#pattern_less => #greater,
-					_ => #less,
-				},
-			});
-		}
+			Cow::Owned(discriminant)
+		} else {
+			Cow::Owned(
+				ExprLit {
+					attrs: Vec::new(),
+					lit: LitInt::new("0", Span::call_site()).into(),
+				}
+				.into(),
+			)
+		};
+
+		discriminants.push(discriminant);
 	}
 
-	let rest = if incomparable.is_empty() {
-		quote!()
-	} else {
-		quote!(_ => unreachable!("incomparable variants should have already returned"),)
-	};
+	let variants = variants
+		.iter()
+		.zip(discriminants)
+		.map(|(variant, discriminant)| {
+			let pattern = variant.self_pattern();
+			let discriminant = discriminant.deref();
 
-	quote! {
-		match self {
-			#(#different)*
-			#rest
+			quote! {
+				#pattern => #discriminant
+			}
+		});
+
+	let repr = repr.map(Representation::to_token).unwrap_or_else(|| {
+		if has_non_isize {
+			quote! { impl #path }
+		} else {
+			// `isize` is currently used by Rust as the default representation when none is
+			// defined. This isn't stable, which is why we check for it.
+			Representation::ISize.to_token()
 		}
+	});
+
+	let item = item.ident();
+	let SplitGenerics {
+		r#impl,
+		ty,
+		r#where,
+	} = generics;
+	quote! {
+		fn __discriminant #r#impl(__this: &#item #ty) -> #repr #r#where {
+			match __this {
+				#(#variants),*
+			}
+		}
+
+		#path::#method(&__discriminant(self), &__discriminant(__other))
 	}
 }
 

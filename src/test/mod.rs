@@ -47,6 +47,6 @@ fn derive_where_internal(input: TokenStream) -> Result<TokenStream> {
 	Ok(derive_wheres
 		.iter()
 		.flat_map(|derive_where| iter::repeat(derive_where).zip(&derive_where.traits))
-		.map(|(derive_where, trait_)| generate_impl(derive_where, trait_, &item, generics))
+		.map(|(derive_where, trait_)| generate_impl(derive_where, trait_, &item, &generics))
 		.collect())
 }

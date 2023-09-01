@@ -7,7 +7,7 @@ use syn::{
 	Token,
 };
 
-use crate::{util, Data, DeriveTrait, Error, Item, SimpleType, TraitImpl};
+use crate::{util, Data, DeriveTrait, Error, Item, SimpleType, SplitGenerics, TraitImpl};
 
 /// Dummy-struct implement [`Trait`](crate::Trait) for [`ZeroizeOnDrop`](https://docs.rs/zeroize/latest/zeroize/trait.ZeroizeOnDrop.html) .
 pub struct ZeroizeOnDrop;
@@ -87,6 +87,7 @@ impl TraitImpl for ZeroizeOnDrop {
 		&self,
 		_any_bound: bool,
 		item: &Item,
+		_generics: &SplitGenerics<'_>,
 		_traits: &[DeriveTrait],
 		trait_: &DeriveTrait,
 		body: &TokenStream,

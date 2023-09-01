@@ -4,7 +4,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 
 use super::common_ord;
-use crate::{Data, DeriveTrait, Item, SimpleType, TraitImpl};
+use crate::{Data, DeriveTrait, Item, SimpleType, SplitGenerics, TraitImpl};
 
 /// Dummy-struct implement [`Trait`](crate::Trait) for
 /// [`Ord`](trait@std::cmp::Ord).
@@ -23,11 +23,12 @@ impl TraitImpl for Ord {
 		&self,
 		_any_bound: bool,
 		item: &Item,
+		generics: &SplitGenerics<'_>,
 		traits: &[DeriveTrait],
 		trait_: &DeriveTrait,
 		body: &TokenStream,
 	) -> TokenStream {
-		let body = common_ord::build_ord_signature(item, traits, trait_, body);
+		let body = common_ord::build_ord_signature(item, generics, traits, trait_, body);
 
 		quote! {
 			#[inline]

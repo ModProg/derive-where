@@ -4,7 +4,7 @@ mod field;
 mod fields;
 
 use proc_macro2::Span;
-use syn::{FieldsNamed, Ident, Pat, PatPath, Path, Result, Variant};
+use syn::{Expr, FieldsNamed, Ident, Pat, PatPath, Path, Result, Variant};
 
 pub use self::{
 	field::{Field, Member},
@@ -27,6 +27,8 @@ pub struct Data<'a> {
 	pub path: Path,
 	/// [Type](DataType) of this struct, union or variant.
 	pub type_: DataType<'a>,
+	/// Discriminant of this variant.
+	pub discriminant: Option<&'a Expr>,
 }
 
 /// Type of this data.
@@ -98,6 +100,7 @@ impl<'a> Data<'a> {
 						ident,
 						path,
 						type_: DataType::Struct(fields),
+						discriminant: None,
 					})
 				}
 			}
@@ -114,6 +117,7 @@ impl<'a> Data<'a> {
 						ident,
 						path,
 						type_: DataType::Tuple(fields),
+						discriminant: None,
 					})
 				}
 			}
@@ -127,6 +131,7 @@ impl<'a> Data<'a> {
 					qself: None,
 					path,
 				})),
+				discriminant: None,
 			}),
 			syn::Fields::Unit => Err(Error::item_empty(span)),
 		}
@@ -153,6 +158,7 @@ impl<'a> Data<'a> {
 				ident,
 				path,
 				type_: DataType::Union(fields),
+				discriminant: None,
 			})
 		}
 	}
@@ -185,6 +191,7 @@ impl<'a> Data<'a> {
 						default,
 						type_: VariantType::Struct(fields),
 					},
+					discriminant: variant.discriminant.as_ref().map(|(_, expr)| expr),
 				})
 			}
 			syn::Fields::Unnamed(fields) => {
@@ -200,6 +207,7 @@ impl<'a> Data<'a> {
 						default,
 						type_: VariantType::Tuple(fields),
 					},
+					discriminant: variant.discriminant.as_ref().map(|(_, expr)| expr),
 				})
 			}
 			syn::Fields::Unit => {
@@ -218,6 +226,7 @@ impl<'a> Data<'a> {
 						default,
 						type_: VariantType::Unit(pattern),
 					},
+					discriminant: None,
 				})
 			}
 		}
@@ -250,15 +259,6 @@ impl<'a> Data<'a> {
 	pub fn self_pattern(&self) -> &Pat {
 		match self.fields() {
 			Either::Left(fields) => &fields.self_pattern,
-			Either::Right(pattern) => pattern,
-		}
-	}
-
-	/// Returns the destructuring `other` pattern of this [`Data`].
-	#[cfg(not(feature = "nightly"))]
-	pub fn other_pattern_skip(&self) -> &Pat {
-		match self.fields() {
-			Either::Left(fields) => &fields.other_pattern_skip,
 			Either::Right(pattern) => pattern,
 		}
 	}

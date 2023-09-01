@@ -395,11 +395,12 @@ mod util;
 
 use std::{borrow::Cow, iter};
 
+use input::SplitGenerics;
 use proc_macro2::TokenStream;
 use quote::{quote, quote_spanned, ToTokens};
 use syn::{
 	spanned::Spanned, Attribute, DataEnum, DataStruct, DataUnion, DeriveInput, Expr, ExprLit,
-	ExprPath, Fields, FieldsNamed, FieldsUnnamed, Generics, Lit, Meta, Path, Result, Variant,
+	ExprPath, Fields, FieldsNamed, FieldsUnnamed, Lit, Meta, Path, Result, Variant,
 };
 use util::MetaListExt;
 
@@ -413,7 +414,7 @@ use self::{
 	data::{Data, DataType, Field, SimpleType},
 	error::Error,
 	input::Input,
-	item::{Discriminant, Item},
+	item::{Discriminant, Item, Representation},
 	trait_::{Trait, TraitImpl},
 	util::Either,
 };
@@ -593,7 +594,7 @@ pub fn derive_where_actual(input: proc_macro::TokenStream) -> proc_macro::TokenS
 		}) => derive_wheres
 			.iter()
 			.flat_map(|derive_where| iter::repeat(derive_where).zip(&derive_where.traits))
-			.map(|(derive_where, trait_)| generate_impl(derive_where, trait_, &item, generics))
+			.map(|(derive_where, trait_)| generate_impl(derive_where, trait_, &item, &generics))
 			.collect::<TokenStream>()
 			.into(),
 		Err(error) => error.into_compile_error().into(),
@@ -623,18 +624,22 @@ fn generate_impl(
 	derive_where: &DeriveWhere,
 	trait_: &DeriveTrait,
 	item: &Item,
-	generics: &Generics,
+	generics: &SplitGenerics,
 ) -> TokenStream {
-	let (impl_generics, type_generics, where_clause) = generics.split_for_impl();
-	let mut where_clause = where_clause.map(Cow::Borrowed);
+	let SplitGenerics {
+		r#impl,
+		ty,
+		r#where,
+	} = generics;
+	let mut where_clause = r#where.map(Cow::Borrowed);
 	derive_where.where_clause(&mut where_clause, trait_, item);
 
-	let body = generate_body(derive_where, &derive_where.traits, trait_, item);
+	let body = generate_body(derive_where, &derive_where.traits, trait_, item, generics);
 
 	let ident = item.ident();
 	let path = trait_.impl_path(trait_);
 	let mut output = quote! {
-		impl #impl_generics #path for #ident #type_generics
+		impl #r#impl #path for #ident #ty
 		#where_clause
 		{
 			#body
@@ -643,7 +648,7 @@ fn generate_impl(
 
 	if let Some((path, body)) = trait_.additional_impl(trait_) {
 		output.extend(quote! {
-			impl #impl_generics #path for #ident #type_generics
+			impl #r#impl #path for #ident #ty
 			#where_clause
 			{
 				#body
@@ -660,13 +665,14 @@ fn generate_body(
 	traits: &[DeriveTrait],
 	trait_: &DeriveTrait,
 	item: &Item,
+	generics: &SplitGenerics<'_>,
 ) -> TokenStream {
 	let any_bound = !derive_where.generics.is_empty();
 
 	match &item {
 		Item::Item(data) => {
 			let body = trait_.build_body(any_bound, traits, trait_, data);
-			trait_.build_signature(any_bound, item, traits, trait_, &body)
+			trait_.build_signature(any_bound, item, generics, traits, trait_, &body)
 		}
 		Item::Enum { variants, .. } => {
 			let body: TokenStream = variants
@@ -674,7 +680,7 @@ fn generate_body(
 				.map(|data| trait_.build_body(any_bound, traits, trait_, data))
 				.collect();
 
-			trait_.build_signature(any_bound, item, traits, trait_, &body)
+			trait_.build_signature(any_bound, item, generics, traits, trait_, &body)
 		}
 	}
 }

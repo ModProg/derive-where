@@ -3,7 +3,7 @@
 use proc_macro2::TokenStream;
 use quote::quote;
 
-use crate::{Data, DataType, DeriveTrait, Item, SimpleType, TraitImpl};
+use crate::{Data, DataType, DeriveTrait, Item, SimpleType, SplitGenerics, TraitImpl};
 
 /// Dummy-struct implement [`Trait`](crate::Trait) for
 /// [`Hash`](trait@std::hash::Hash).
@@ -22,6 +22,7 @@ impl TraitImpl for Hash {
 		&self,
 		_any_bound: bool,
 		_item: &Item,
+		_generics: &SplitGenerics<'_>,
 		_traits: &[DeriveTrait],
 		_trait_: &DeriveTrait,
 		body: &TokenStream,

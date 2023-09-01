@@ -4,7 +4,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 
 use super::common_ord;
-use crate::{Data, DeriveTrait, Item, SimpleType, Trait, TraitImpl};
+use crate::{Data, DeriveTrait, Item, SimpleType, SplitGenerics, Trait, TraitImpl};
 
 /// Dummy-struct implement [`Trait`] for
 /// [`PartialOrd`](trait@std::cmp::PartialOrd).
@@ -23,6 +23,7 @@ impl TraitImpl for PartialOrd {
 		&self,
 		any_bound: bool,
 		item: &Item,
+		generics: &SplitGenerics<'_>,
 		traits: &[DeriveTrait],
 		trait_: &DeriveTrait,
 		body: &TokenStream,
@@ -32,7 +33,7 @@ impl TraitImpl for PartialOrd {
 				::core::option::Option::Some(::core::cmp::Ord::cmp(self, __other))
 			}
 		} else {
-			common_ord::build_ord_signature(item, traits, trait_, body)
+			common_ord::build_ord_signature(item, generics, traits, trait_, body)
 		};
 
 		quote! {

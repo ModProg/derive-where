@@ -4,7 +4,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{TraitBound, TraitBoundModifier, TypeParamBound};
 
-use crate::{Data, DataType, DeriveTrait, Item, SimpleType, Trait, TraitImpl};
+use crate::{Data, DataType, DeriveTrait, Item, SimpleType, SplitGenerics, Trait, TraitImpl};
 
 /// Dummy-struct implement [`Trait`] for [`Clone`](trait@std::clone::Clone).
 pub struct Clone;
@@ -44,6 +44,7 @@ impl TraitImpl for Clone {
 		&self,
 		_any_bound: bool,
 		item: &Item,
+		_generics: &SplitGenerics<'_>,
 		traits: &[DeriveTrait],
 		_trait_: &DeriveTrait,
 		body: &TokenStream,
