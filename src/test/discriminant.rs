@@ -387,6 +387,54 @@ fn repr_c() -> Result<()> {
 }
 
 #[test]
+fn repr_c_without_discriminant() -> Result<()> {
+	#[cfg(feature = "nightly")]
+	let partial_ord = quote! {
+		::core::cmp::PartialOrd::partial_cmp(
+			&::core::intrinsics::discriminant_value(self),
+			&::core::intrinsics::discriminant_value(__other),
+		)
+	};
+	#[cfg(not(feature = "nightly"))]
+	let partial_ord = quote! {
+		fn __discriminant(__this: &Test) -> isize {
+			match __this {
+				Test::A => 0,
+				Test::B => 1,
+				Test::C => 2
+			}
+		}
+
+		::core::cmp::PartialOrd::partial_cmp(&__discriminant(self), &__discriminant(__other))
+	};
+
+	test_derive(
+		quote! {
+			#[derive_where(PartialOrd)]
+			#[repr(C)]
+			enum Test {
+				A,
+				B,
+				#[derive_where(incomparable)]
+				C,
+			}
+		},
+		quote! {
+			impl ::core::cmp::PartialOrd for Test {
+				#[inline]
+				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
+					if ::core::matches!(self, Test::C) || ::core::matches!(__other, Test::C) {
+						return ::core::option::Option::None;
+					}
+
+					#partial_ord
+				}
+			}
+		},
+	)
+}
+
+#[test]
 fn repr_c_clone() -> Result<()> {
 	#[cfg(feature = "nightly")]
 	let partial_ord = quote! {
@@ -441,6 +489,57 @@ fn repr_c_clone() -> Result<()> {
 }
 
 #[test]
+fn repr_c_clone_without_discriminant() -> Result<()> {
+	#[cfg(feature = "nightly")]
+	let partial_ord = quote! {
+		::core::cmp::PartialOrd::partial_cmp(
+			&::core::intrinsics::discriminant_value(self),
+			&::core::intrinsics::discriminant_value(__other),
+		)
+	};
+	#[cfg(not(feature = "nightly"))]
+	let partial_ord = quote! {
+		::core::cmp::PartialOrd::partial_cmp(&(::core::clone::Clone::clone(self) as isize), &(::core::clone::Clone::clone(__other) as isize))
+	};
+
+	test_derive(
+		quote! {
+			#[derive_where(Clone, PartialOrd)]
+			#[repr(C)]
+			enum Test {
+				A,
+				B,
+				#[derive_where(incomparable)]
+				C,
+			}
+		},
+		quote! {
+			impl ::core::clone::Clone for Test {
+				#[inline]
+				fn clone(&self) -> Self {
+					match self {
+						Test::A => Test::A,
+						Test::B => Test::B,
+						Test::C => Test::C,
+					}
+				}
+			}
+
+			impl ::core::cmp::PartialOrd for Test {
+				#[inline]
+				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
+					if ::core::matches!(self, Test::C) || ::core::matches!(__other, Test::C) {
+						return ::core::option::Option::None;
+					}
+
+					#partial_ord
+				}
+			}
+		},
+	)
+}
+
+#[test]
 fn repr_c_copy() -> Result<()> {
 	#[cfg(feature = "nightly")]
 	let partial_ord = quote! {
@@ -463,6 +562,48 @@ fn repr_c_copy() -> Result<()> {
 			#[repr(C)]
 			enum Test {
 				A = 0,
+				B,
+				#[derive_where(incomparable)]
+				C,
+			}
+		},
+		quote! {
+			impl ::core::marker::Copy for Test { }
+
+			impl ::core::cmp::PartialOrd for Test {
+				#[inline]
+				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
+					if ::core::matches!(self, Test::C) || ::core::matches!(__other, Test::C) {
+						return ::core::option::Option::None;
+					}
+
+					#partial_ord
+				}
+			}
+		},
+	)
+}
+
+#[test]
+fn repr_c_copy_without_discriminant() -> Result<()> {
+	#[cfg(feature = "nightly")]
+	let partial_ord = quote! {
+		::core::cmp::PartialOrd::partial_cmp(
+			&::core::intrinsics::discriminant_value(self),
+			&::core::intrinsics::discriminant_value(__other),
+		)
+	};
+	#[cfg(not(feature = "nightly"))]
+	let partial_ord = quote! {
+		::core::cmp::PartialOrd::partial_cmp(&(*self as isize), &(*__other as isize))
+	};
+
+	test_derive(
+		quote! {
+			#[derive_where(Copy, PartialOrd)]
+			#[repr(C)]
+			enum Test {
+				A,
 				B,
 				#[derive_where(incomparable)]
 				C,
@@ -1111,14 +1252,7 @@ fn repr_clone() -> Result<()> {
 			&::core::intrinsics::discriminant_value(__other),
 		)
 	};
-	#[cfg(not(any(feature = "nightly", feature = "safe")))]
-	let partial_ord = quote! {
-		::core::cmp::PartialOrd::partial_cmp(
-			&unsafe { *<*const _>::from(self).cast::<u64>() },
-			&unsafe { *<*const _>::from(__other).cast::<u64>() },
-		)
-	};
-	#[cfg(all(not(feature = "nightly"), feature = "safe"))]
+	#[cfg(not(feature = "nightly"))]
 	let partial_ord = quote! {
 		::core::cmp::PartialOrd::partial_cmp(&(::core::clone::Clone::clone(self) as u64), &(::core::clone::Clone::clone(__other) as u64))
 	};
@@ -1169,14 +1303,7 @@ fn repr_copy() -> Result<()> {
 			&::core::intrinsics::discriminant_value(__other),
 		)
 	};
-	#[cfg(not(any(feature = "nightly", feature = "safe")))]
-	let partial_ord = quote! {
-		::core::cmp::PartialOrd::partial_cmp(
-			&unsafe { *<*const _>::from(self).cast::<u64>() },
-			&unsafe { *<*const _>::from(__other).cast::<u64>() },
-		)
-	};
-	#[cfg(all(not(feature = "nightly"), feature = "safe"))]
+	#[cfg(not(feature = "nightly"))]
 	let partial_ord = quote! {
 		::core::cmp::PartialOrd::partial_cmp(&(*self as u64), &(*__other as u64))
 	};
