@@ -140,7 +140,12 @@ pub fn build_ord_signature(
 							unreachable!("we should only generate this code with multiple variants")
 						}
 						Discriminant::Unit { c } => {
-							let validate_c = c.then(|| {
+							// C validation is only needed if custom discriminants are defined.
+							let validate_c = (*c
+								&& variants
+									.iter()
+									.any(|variant| variant.discriminant.is_some()))
+							.then(|| {
 								quote! {
 									#[repr(C)]
 									enum EnsureReprCIsIsize {
@@ -171,7 +176,6 @@ pub fn build_ord_signature(
 						Discriminant::Data => build_discriminant_order(
 							None, None, item, generics, variants, &path, &method,
 						),
-						#[cfg(feature = "safe")]
 						Discriminant::UnitRepr(repr) => {
 							if traits.iter().any(|trait_| trait_ == Trait::Copy) {
 								quote! {
@@ -183,7 +187,8 @@ pub fn build_ord_signature(
 									#path::#method(&(#clone::clone(self) as #repr), &(#clone::clone(__other) as #repr))
 								}
 							} else {
-								build_discriminant_order(
+								#[cfg(feature = "safe")]
+								let body_else = build_discriminant_order(
 									Some(*repr),
 									None,
 									item,
@@ -191,11 +196,20 @@ pub fn build_ord_signature(
 									variants,
 									&path,
 									&method,
-								)
+								);
+								#[cfg(not(feature = "safe"))]
+								let body_else = quote! {
+									#path::#method(
+										&unsafe { *<*const _>::from(self).cast::<#repr>() },
+										&unsafe { *<*const _>::from(__other).cast::<#repr>() },
+									)
+								};
+
+								body_else
 							}
 						}
 						#[cfg(not(feature = "safe"))]
-						Discriminant::UnitRepr(repr) | Discriminant::DataRepr(repr) => {
+						Discriminant::DataRepr(repr) => {
 							quote! {
 								#path::#method(
 									&unsafe { *<*const _>::from(self).cast::<#repr>() },
