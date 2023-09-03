@@ -10,8 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Use safe casting in `PartialOrd` and `Ord` implementations in more cases when
   possible.
-- Avoid unnecessarily validating the discriminant type of enums with C
-  representations in some cases.
+- Avoid unnecessarily validating the default discriminant type in some cases.
+- Apply default enum discriminant type validation to all representations and
+  make it cross-edition safe.
 
 ## [1.2.4] - 2023-09-01
 

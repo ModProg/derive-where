@@ -99,18 +99,13 @@ impl Item<'_> {
 pub enum Discriminant {
 	/// The enum has only a single variant.
 	Single,
-	/// The enum uses the default or C representation and has only unit
-	/// variants.
-	Unit {
-		/// `true` if this is using the C representation.
-		c: bool,
-	},
-	/// The enum uses the default or C representation but has a non-unit
-	/// variant.
+	/// The enum has only unit variants.
+	Unit,
+	/// The enum has a non-unit variant.
 	Data,
-	/// The enum uses a non-default representation and has only unit variants.
+	/// The enum has only unit variants.
 	UnitRepr(Representation),
-	/// The enum uses a non-default representation and has a non-unit variant.
+	/// The enum has a non-unit variant.
 	DataRepr(Representation),
 }
 
@@ -122,7 +117,6 @@ impl Discriminant {
 		}
 
 		let mut has_repr = None;
-		let mut is_c = false;
 
 		for attr in attrs {
 			if attr.path().is_ident("repr") {
@@ -131,12 +125,10 @@ impl Discriminant {
 						list.parse_args_with(Punctuated::<Ident, Token![,]>::parse_terminated)?;
 
 					for ident in list {
-						if ident == "C" {
-							is_c = true;
-						} else if let Some(repr) = Representation::parse(&ident) {
+						if let Some(repr) = Representation::parse(&ident) {
 							has_repr = Some(repr);
 							break;
-						} else if ident != "Rust" && ident != "align" {
+						} else if ident != "C" && ident != "Rust" && ident != "align" {
 							return Err(Error::repr_unknown(ident.span()));
 						}
 					}
@@ -155,7 +147,7 @@ impl Discriminant {
 				Self::DataRepr(repr)
 			}
 		} else if is_unit {
-			Self::Unit { c: is_c }
+			Self::Unit
 		} else {
 			let discriminant = variants
 				.iter()
