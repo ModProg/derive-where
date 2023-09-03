@@ -380,10 +380,17 @@ fn build_discriminant_comparison(
 		.zip(discriminants)
 		.map(|(variant, discriminant)| {
 			let pattern = variant.self_pattern();
-			let discriminant = discriminant.deref();
 
-			quote! {
-				#pattern => #discriminant
+			if validate_c.is_some() {
+				let discriminant = format_ident!("__ENSURE_REPR_C_IS_ISIZE_{}", variant.ident);
+
+				quote! {
+					#pattern => #discriminant
+				}
+			} else {
+				quote! {
+					#pattern => #discriminant
+				}
 			}
 		});
 
@@ -399,9 +406,9 @@ fn build_discriminant_comparison(
 	} = generics;
 
 	quote! {
-		#validate_c
-
 		const fn __discriminant #imp(__this: &#item #ty) -> #repr #where_clause {
+			#validate_c
+
 			match __this {
 				#(#variants),*
 			}
