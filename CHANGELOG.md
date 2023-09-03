@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   possible.
 - Avoid unnecessarily validating the discriminant type of enums with C
   representations in some cases.
+- Make sure to validate that enums with C representation use `isize`
+  discriminants even in the case of an edition change.
 
 ## [1.2.4] - 2023-09-01
 

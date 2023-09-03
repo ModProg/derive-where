@@ -1,9 +1,16 @@
 //! Common implementation help for [`PartialOrd`] and [`Ord`].
 
+#[cfg(not(feature = "nightly"))]
+use std::{borrow::Cow, ops::Deref};
+
 use proc_macro2::TokenStream;
+#[cfg(not(feature = "nightly"))]
+use proc_macro2::{Literal, Span};
+#[cfg(not(feature = "nightly"))]
+use quote::format_ident;
 use quote::quote;
 #[cfg(not(feature = "nightly"))]
-use syn::Path;
+use syn::{parse_quote, Expr, ExprLit, LitInt, Path};
 
 #[cfg(not(feature = "nightly"))]
 use crate::{item::Representation, Discriminant, Trait};
@@ -140,17 +147,32 @@ pub fn build_ord_signature(
 							unreachable!("we should only generate this code with multiple variants")
 						}
 						Discriminant::Unit { c } => {
+							let mut discriminants = None;
+
 							// C validation is only needed if custom discriminants are defined.
 							let validate_c = (*c
 								&& variants
 									.iter()
 									.any(|variant| variant.discriminant.is_some()))
 							.then(|| {
+								let discriminants =
+									discriminants.insert(build_discriminants(variants));
+								let discriminants = discriminants.iter().zip(variants).map(
+									|(discriminant, variant)| {
+										let name = format_ident!(
+											"__ENSURE_REPR_C_IS_ISIZE_{}",
+											variant.ident
+										);
+										let discriminant = discriminant.deref();
+
+										quote! {
+											const #name: isize = #discriminant;
+										}
+									},
+								);
+
 								quote! {
-									#[repr(C)]
-									enum EnsureReprCIsIsize {
-									   Test = 0_isize
-									}
+									#(#discriminants)*
 								}
 							});
 
@@ -168,14 +190,33 @@ pub fn build_ord_signature(
 									#path::#method(&(#clone::clone(self) as isize), &(#clone::clone(__other) as isize))
 								}
 							} else {
-								build_discriminant_order(
-									None, validate_c, item, generics, variants, &path, &method,
+								let discriminants = discriminants
+									.get_or_insert_with(|| build_discriminants(variants));
+								build_discriminant_comparison(
+									None,
+									validate_c,
+									item,
+									generics,
+									variants,
+									discriminants,
+									&path,
+									&method,
 								)
 							}
 						}
-						Discriminant::Data => build_discriminant_order(
-							None, None, item, generics, variants, &path, &method,
-						),
+						Discriminant::Data => {
+							let discriminants = build_discriminants(variants);
+							build_discriminant_comparison(
+								None,
+								None,
+								item,
+								generics,
+								variants,
+								&discriminants,
+								&path,
+								&method,
+							)
+						}
 						Discriminant::UnitRepr(repr) => {
 							if traits.iter().any(|trait_| trait_ == Trait::Copy) {
 								quote! {
@@ -188,15 +229,19 @@ pub fn build_ord_signature(
 								}
 							} else {
 								#[cfg(feature = "safe")]
-								let body_else = build_discriminant_order(
-									Some(*repr),
-									None,
-									item,
-									generics,
-									variants,
-									&path,
-									&method,
-								);
+								let body_else = {
+									let discriminants = build_discriminants(variants);
+									build_discriminant_comparison(
+										Some(*repr),
+										None,
+										item,
+										generics,
+										variants,
+										&discriminants,
+										&path,
+										&method,
+									)
+								};
 								#[cfg(not(feature = "safe"))]
 								let body_else = quote! {
 									#path::#method(
@@ -218,15 +263,19 @@ pub fn build_ord_signature(
 							}
 						}
 						#[cfg(feature = "safe")]
-						Discriminant::DataRepr(repr) => build_discriminant_order(
-							Some(*repr),
-							None,
-							item,
-							generics,
-							variants,
-							&path,
-							&method,
-						),
+						Discriminant::DataRepr(repr) => {
+							let discriminants = build_discriminants(variants);
+							build_discriminant_comparison(
+								Some(*repr),
+								None,
+								item,
+								generics,
+								variants,
+								&discriminants,
+								&path,
+								&method,
+							)
+						}
 					};
 
 					if let Some(body_equal) = body_equal {
@@ -267,22 +316,9 @@ pub fn build_ord_signature(
 	}
 }
 
-/// Builds order comparison recursively for all variants.
+/// Builds list of discriminant values for all variants.
 #[cfg(not(feature = "nightly"))]
-fn build_discriminant_order(
-	repr: Option<Representation>,
-	validate_c: Option<TokenStream>,
-	item: &Item,
-	generics: &SplitGenerics<'_>,
-	variants: &[Data<'_>],
-	path: &Path,
-	method: &TokenStream,
-) -> TokenStream {
-	use std::{borrow::Cow, ops::Deref};
-
-	use proc_macro2::{Literal, Span};
-	use syn::{parse_quote, Expr, ExprLit, LitInt};
-
+fn build_discriminants<'a>(variants: &'a [Data<'_>]) -> Vec<Cow<'a, Expr>> {
 	let mut discriminants = Vec::<Cow<Expr>>::with_capacity(variants.len());
 	let mut last_expression: Option<(Option<usize>, usize)> = None;
 
@@ -323,6 +359,22 @@ fn build_discriminant_order(
 		discriminants.push(discriminant);
 	}
 
+	discriminants
+}
+
+/// Uses list of discriminant values to compare variants.
+#[cfg(not(feature = "nightly"))]
+#[allow(clippy::too_many_arguments)]
+fn build_discriminant_comparison(
+	repr: Option<Representation>,
+	validate_c: Option<TokenStream>,
+	item: &Item,
+	generics: &SplitGenerics<'_>,
+	variants: &[Data<'_>],
+	discriminants: &[Cow<'_, Expr>],
+	path: &Path,
+	method: &TokenStream,
+) -> TokenStream {
 	let variants = variants
 		.iter()
 		.zip(discriminants)
@@ -361,18 +413,16 @@ fn build_discriminant_order(
 
 /// Build `match` arms for [`PartialOrd`] and [`Ord`].
 pub fn build_ord_body(trait_: &DeriveTrait, data: &Data) -> TokenStream {
-	use DeriveTrait::*;
-
 	let path = trait_.path();
 	let mut equal = quote! { ::core::cmp::Ordering::Equal };
 
 	// Add `Option` to `Ordering` if we are implementing `PartialOrd`.
 	let method = match trait_ {
-		PartialOrd => {
+		DeriveTrait::PartialOrd => {
 			equal = quote! { ::core::option::Option::Some(#equal) };
 			quote! { partial_cmp }
 		}
-		Ord => quote! { cmp },
+		DeriveTrait::Ord => quote! { cmp },
 		_ => unreachable!("unsupported trait in `build_ord`"),
 	};
 

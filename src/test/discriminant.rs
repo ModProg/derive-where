@@ -346,8 +346,9 @@ fn repr_c() -> Result<()> {
 	};
 	#[cfg(not(feature = "nightly"))]
 	let partial_ord = quote! {
-		#[repr(C)]
-		enum EnsureReprCIsIsize { Test = 0_isize }
+		const __ENSURE_REPR_C_IS_ISIZE_A: isize = 0;
+		const __ENSURE_REPR_C_IS_ISIZE_B: isize = (0) + 1;
+		const __ENSURE_REPR_C_IS_ISIZE_C: isize = (0) + 2;
 
 		const fn __discriminant(__this: &Test) -> isize {
 			match __this {
@@ -445,8 +446,9 @@ fn repr_c_clone() -> Result<()> {
 	};
 	#[cfg(not(feature = "nightly"))]
 	let partial_ord = quote! {
-		#[repr(C)]
-		enum EnsureReprCIsIsize { Test = 0_isize }
+		const __ENSURE_REPR_C_IS_ISIZE_A: isize = 0;
+		const __ENSURE_REPR_C_IS_ISIZE_B: isize = (0) + 1;
+		const __ENSURE_REPR_C_IS_ISIZE_C: isize = (0) + 2;
 
 		::core::cmp::PartialOrd::partial_cmp(&(::core::clone::Clone::clone(self) as isize), &(::core::clone::Clone::clone(__other) as isize))
 	};
@@ -550,8 +552,9 @@ fn repr_c_copy() -> Result<()> {
 	};
 	#[cfg(not(feature = "nightly"))]
 	let partial_ord = quote! {
-		#[repr(C)]
-		enum EnsureReprCIsIsize { Test = 0_isize }
+		const __ENSURE_REPR_C_IS_ISIZE_A: isize = 0;
+		const __ENSURE_REPR_C_IS_ISIZE_B: isize = (0) + 1;
+		const __ENSURE_REPR_C_IS_ISIZE_C: isize = (0) + 2;
 
 		::core::cmp::PartialOrd::partial_cmp(&(*self as isize), &(*__other as isize))
 	};
@@ -637,8 +640,9 @@ fn repr_c_reverse() -> Result<()> {
 	};
 	#[cfg(not(feature = "nightly"))]
 	let partial_ord = quote! {
-		#[repr(C)]
-		enum EnsureReprCIsIsize { Test = 0_isize }
+		const __ENSURE_REPR_C_IS_ISIZE_A: isize = 2;
+		const __ENSURE_REPR_C_IS_ISIZE_B: isize = 1;
+		const __ENSURE_REPR_C_IS_ISIZE_C: isize = 0;
 
 		const fn __discriminant(__this: &Test) -> isize {
 			match __this {
@@ -688,8 +692,10 @@ fn repr_c_mix() -> Result<()> {
 	};
 	#[cfg(not(feature = "nightly"))]
 	let partial_ord = quote! {
-		#[repr(C)]
-		enum EnsureReprCIsIsize { Test = 0_isize }
+		const __ENSURE_REPR_C_IS_ISIZE_A: isize = 1;
+		const __ENSURE_REPR_C_IS_ISIZE_B: isize = 0;
+		const __ENSURE_REPR_C_IS_ISIZE_C: isize = 2;
+		const __ENSURE_REPR_C_IS_ISIZE_D: isize = (2) + 1;
 
 		const fn __discriminant(__this: &Test) -> isize {
 			match __this {
@@ -741,8 +747,11 @@ fn repr_c_skip() -> Result<()> {
 	};
 	#[cfg(not(feature = "nightly"))]
 	let partial_ord = quote! {
-		#[repr(C)]
-		enum EnsureReprCIsIsize { Test = 0_isize }
+		const __ENSURE_REPR_C_IS_ISIZE_A: isize = 0;
+		const __ENSURE_REPR_C_IS_ISIZE_B: isize = 3;
+		const __ENSURE_REPR_C_IS_ISIZE_C: isize = (3) + 1;
+		const __ENSURE_REPR_C_IS_ISIZE_D: isize = (3) + 2;
+		const __ENSURE_REPR_C_IS_ISIZE_E: isize = (3) + 3;
 
 		const fn __discriminant(__this: &Test) -> isize {
 			match __this {
@@ -796,14 +805,15 @@ fn repr_c_expr() -> Result<()> {
 	};
 	#[cfg(not(feature = "nightly"))]
 	let partial_ord = quote! {
-		#[repr(C)]
-		enum EnsureReprCIsIsize { Test = 0_isize }
+		const __ENSURE_REPR_C_IS_ISIZE_A: isize = isize::MAX - 2;
+		const __ENSURE_REPR_C_IS_ISIZE_B: isize = (isize::MAX - 2) + 1;
+		const __ENSURE_REPR_C_IS_ISIZE_C: isize = (isize::MAX - 2) + 2;
 
 		const fn __discriminant(__this: &Test) -> isize {
 			match __this {
-				Test::A => u64::MAX - 2,
-				Test::B => (u64::MAX - 2) + 1,
-				Test::C => (u64::MAX - 2) + 2
+				Test::A => isize::MAX - 2,
+				Test::B => (isize::MAX - 2) + 1,
+				Test::C => (isize::MAX - 2) + 2
 			}
 		}
 
@@ -815,7 +825,7 @@ fn repr_c_expr() -> Result<()> {
 			#[derive_where(PartialOrd)]
 			#[repr(C)]
 			enum Test {
-				A = u64::MAX - 2,
+				A = isize::MAX - 2,
 				B,
 				#[derive_where(incomparable)]
 				C,
