@@ -197,7 +197,7 @@ fn enum_() -> Result<()> {
 	};
 	#[cfg(not(feature = "nightly"))]
 	let ord = quote! {
-		fn __discriminant<T>(__this: &Test<T>) -> isize {
+		const fn __discriminant<T>(__this: &Test<T>) -> isize {
 			match __this {
 				Test::A { field: ref __field_field } => 0,
 				Test::B { } => 1,

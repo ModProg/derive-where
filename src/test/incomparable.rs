@@ -55,7 +55,7 @@ fn variants() -> Result<()> {
 							_ => ::core::option::Option::Some(::core::cmp::Ordering::Equal),
 						}
 					} else {
-						fn __discriminant(__this: &Test) -> isize {
+						const fn __discriminant(__this: &Test) -> isize {
 							match __this {
 								Test::A => 0,
 								Test::B(ref __field_0) => 1,

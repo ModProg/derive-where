@@ -349,7 +349,7 @@ fn build_discriminant_order(
 	quote! {
 		#validate_c
 
-		fn __discriminant #imp(__this: &#item #ty) -> #repr #where_clause {
+		const fn __discriminant #imp(__this: &#item #ty) -> #repr #where_clause {
 			match __this {
 				#(#variants),*
 			}
