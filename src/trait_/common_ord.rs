@@ -146,23 +146,20 @@ pub fn build_ord_signature(
 						Discriminant::Single => {
 							unreachable!("we should only generate this code with multiple variants")
 						}
-						Discriminant::Unit { c } => {
+						Discriminant::Unit => {
 							let mut discriminants = None;
 
-							// C validation is only needed if custom discriminants are defined.
-							let validate_c = (*c
-								&& variants
-									.iter()
-									.any(|variant| variant.discriminant.is_some()))
+							// Validation is only needed if custom discriminants are defined.
+							let validate = (variants
+								.iter()
+								.any(|variant| variant.discriminant.is_some()))
 							.then(|| {
 								let discriminants =
 									discriminants.insert(build_discriminants(variants));
 								let discriminants = discriminants.iter().zip(variants).map(
 									|(discriminant, variant)| {
-										let name = format_ident!(
-											"__ENSURE_REPR_C_IS_ISIZE_{}",
-											variant.ident
-										);
+										let name =
+											format_ident!("__VALIDATE_ISIZE_{}", variant.ident);
 										let discriminant = discriminant.deref();
 
 										quote! {
@@ -178,14 +175,14 @@ pub fn build_ord_signature(
 
 							if traits.iter().any(|trait_| trait_ == Trait::Copy) {
 								quote! {
-									#validate_c
+									#validate
 
 									#path::#method(&(*self as isize), &(*__other as isize))
 								}
 							} else if traits.iter().any(|trait_| trait_ == Trait::Clone) {
 								let clone = DeriveTrait::Clone.path();
 								quote! {
-									#validate_c
+									#validate
 
 									#path::#method(&(#clone::clone(self) as isize), &(#clone::clone(__other) as isize))
 								}
@@ -194,7 +191,7 @@ pub fn build_ord_signature(
 									.get_or_insert_with(|| build_discriminants(variants));
 								build_discriminant_comparison(
 									None,
-									validate_c,
+									validate,
 									item,
 									generics,
 									variants,
@@ -367,7 +364,7 @@ fn build_discriminants<'a>(variants: &'a [Data<'_>]) -> Vec<Cow<'a, Expr>> {
 #[allow(clippy::too_many_arguments)]
 fn build_discriminant_comparison(
 	repr: Option<Representation>,
-	validate_c: Option<TokenStream>,
+	validate: Option<TokenStream>,
 	item: &Item,
 	generics: &SplitGenerics<'_>,
 	variants: &[Data<'_>],
@@ -381,8 +378,8 @@ fn build_discriminant_comparison(
 		.map(|(variant, discriminant)| {
 			let pattern = variant.self_pattern();
 
-			if validate_c.is_some() {
-				let discriminant = format_ident!("__ENSURE_REPR_C_IS_ISIZE_{}", variant.ident);
+			if validate.is_some() {
+				let discriminant = format_ident!("__VALIDATE_ISIZE_{}", variant.ident);
 
 				quote! {
 					#pattern => #discriminant
@@ -407,7 +404,7 @@ fn build_discriminant_comparison(
 
 	quote! {
 		const fn __discriminant #imp(__this: &#item #ty) -> #repr #where_clause {
-			#validate_c
+			#validate
 
 			match __this {
 				#(#variants),*

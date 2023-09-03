@@ -275,11 +275,9 @@ supported.
 Unions only support [`Clone`] and [`Copy`].
 
 [`PartialOrd`] and [`Ord`] need to determine the discriminant type to
-function correctly. Unfortunately, according to the specification, the C
-representation without an integer representation doesn't have a
-platform-independent discriminant type. Therefor a check is inserted to
-ascertain that discriminants of enums with a C representation have the
-[`isize`] type, which is currently the case for all known platforms.
+function correctly. To protect against a potential future change to the
+default discriminant type, some compile-time validation is inserted to
+ascertain that the type remains `isize`.
 
 ### `no_std` support
 
