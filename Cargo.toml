@@ -15,7 +15,7 @@ name = "derive-where"
 readme = "README.md"
 repository = "https://github.com/ModProg/derive-where"
 rust-version = "1.57"
-version = "1.2.4"
+version = "1.2.5"
 
 [lib]
 proc-macro = true

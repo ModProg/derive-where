@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.2.5] - 2023-09-03
 
 ### Changed
 - Use safe casting in `PartialOrd` and `Ord` implementations in more cases when
@@ -24,7 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   implementations. Safe methods used with the `safe` crate feature don't use
   recursive matches anymore, significantly improving the performance.
 
-## [1.2.3] - 2023-08-23
+## [1.2.3] - 2023-08-23 [YANKED]
 
 ### Fixed
 - Don't use `Ord` in `PartialOrd` implementations if using any bounds.
@@ -37,12 +37,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - `PartialOrd` implementations now use `Ord` if applicable.
 
-## [1.2.1] - 2023-04-14
+## [1.2.1] - 2023-04-14 [YANKED]
 
 ### Fixed
 - Correctly handle raw identifiers in named fields.
 
-## [1.2.0] - 2023-03-19
+## [1.2.0] - 2023-03-19 [YANKED]
 
 ### Changed
 - Updated `syn` to v2.
@@ -52,13 +52,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The `crate` attribute now takes a bare path instead of a path inside a string
   literal.
 
-## [1.1.0] - 2023-02-06
+## [1.1.0] - 2023-02-06 [YANKED]
 
 ### Added
 - `incomparable` variant and item attribute for `PartialEq` and `PartialOrd`
   derives, yielding false on all comparisons but `!=`.
 
-## [1.0.0] - 2022-07-16
+## [1.0.0] - 2022-07-16 [YANKED]
 - No changes.
 
 ## [1.0.0-rc.3] - 2022-03-21
@@ -88,7 +88,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Initial release.
 
-[unreleased]: https://github.com/ModProg/derive-where/compare/v1.2.4...HEAD
+[unreleased]: https://github.com/ModProg/derive-where/compare/v1.2.5...HEAD
+[1.2.5]: https://github.com/ModProg/derive-where/compare/v1.2.4...v1.2.5
 [1.2.4]: https://github.com/ModProg/derive-where/compare/v1.2.3...v1.2.4
 [1.2.3]: https://github.com/ModProg/derive-where/compare/v1.2.2...v1.2.3
 [1.2.2]: https://github.com/ModProg/derive-where/compare/v1.2.1...v1.2.2
