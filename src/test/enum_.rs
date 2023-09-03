@@ -128,7 +128,7 @@ fn two_data() -> Result<()> {
 	};
 	#[cfg(not(feature = "nightly"))]
 	let partial_ord = quote! {
-		fn __discriminant<T>(__this: &Test<T>) -> isize {
+		const fn __discriminant<T>(__this: &Test<T>) -> isize {
 			match __this {
 				Test::A(ref __field_0) => 0,
 				Test::B(ref __field_0) => 1
@@ -210,7 +210,7 @@ fn unit() -> Result<()> {
 	};
 	#[cfg(not(feature = "nightly"))]
 	let partial_ord = quote! {
-		fn __discriminant<T>(__this: &Test<T>) -> isize {
+		const fn __discriminant<T>(__this: &Test<T>) -> isize {
 			match __this {
 				Test::A(ref __field_0) => 0,
 				Test::B => 1
@@ -285,7 +285,7 @@ fn struct_unit() -> Result<()> {
 	};
 	#[cfg(not(feature = "nightly"))]
 	let partial_ord = quote! {
-		fn __discriminant<T>(__this: &Test<T>) -> isize {
+		const fn __discriminant<T>(__this: &Test<T>) -> isize {
 			match __this {
 				Test::A(ref __field_0) => 0,
 				Test::B { } => 1
@@ -360,7 +360,7 @@ fn tuple_unit() -> Result<()> {
 	};
 	#[cfg(not(feature = "nightly"))]
 	let partial_ord = quote! {
-		fn __discriminant<T>(__this: &Test<T>) -> isize {
+		const fn __discriminant<T>(__this: &Test<T>) -> isize {
 			match __this {
 				Test::A(ref __field_0) => 0,
 				Test::B() => 1

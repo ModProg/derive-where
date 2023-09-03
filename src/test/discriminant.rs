@@ -14,7 +14,7 @@ fn default() -> Result<()> {
 	};
 	#[cfg(not(feature = "nightly"))]
 	let partial_ord = quote! {
-		fn __discriminant(__this: &Test) -> isize {
+		const fn __discriminant(__this: &Test) -> isize {
 			match __this {
 				Test::A => 0,
 				Test::B => (0) + 1,
@@ -152,7 +152,7 @@ fn default_reverse() -> Result<()> {
 	};
 	#[cfg(not(feature = "nightly"))]
 	let partial_ord = quote! {
-		fn __discriminant(__this: &Test) -> isize {
+		const fn __discriminant(__this: &Test) -> isize {
 			match __this {
 				Test::A => 2,
 				Test::B => 1,
@@ -199,7 +199,7 @@ fn default_mix() -> Result<()> {
 	};
 	#[cfg(not(feature = "nightly"))]
 	let partial_ord = quote! {
-		fn __discriminant(__this: &Test) -> isize {
+		const fn __discriminant(__this: &Test) -> isize {
 			match __this {
 				Test::A => 1,
 				Test::B => 0,
@@ -248,7 +248,7 @@ fn default_skip() -> Result<()> {
 	};
 	#[cfg(not(feature = "nightly"))]
 	let partial_ord = quote! {
-		fn __discriminant(__this: &Test) -> isize {
+		const fn __discriminant(__this: &Test) -> isize {
 			match __this {
 				Test::A => 0,
 				Test::B => 3,
@@ -299,7 +299,7 @@ fn default_expr() -> Result<()> {
 	};
 	#[cfg(not(feature = "nightly"))]
 	let partial_ord = quote! {
-		fn __discriminant(__this: &Test) -> isize {
+		const fn __discriminant(__this: &Test) -> isize {
 			match __this {
 				Test::A => isize::MAX - 2,
 				Test::B => (isize::MAX - 2) + 1,
@@ -349,7 +349,7 @@ fn repr_c() -> Result<()> {
 		#[repr(C)]
 		enum EnsureReprCIsIsize { Test = 0_isize }
 
-		fn __discriminant(__this: &Test) -> isize {
+		const fn __discriminant(__this: &Test) -> isize {
 			match __this {
 				Test::A => 0,
 				Test::B => (0) + 1,
@@ -397,7 +397,7 @@ fn repr_c_without_discriminant() -> Result<()> {
 	};
 	#[cfg(not(feature = "nightly"))]
 	let partial_ord = quote! {
-		fn __discriminant(__this: &Test) -> isize {
+		const fn __discriminant(__this: &Test) -> isize {
 			match __this {
 				Test::A => 0,
 				Test::B => 1,
@@ -640,7 +640,7 @@ fn repr_c_reverse() -> Result<()> {
 		#[repr(C)]
 		enum EnsureReprCIsIsize { Test = 0_isize }
 
-		fn __discriminant(__this: &Test) -> isize {
+		const fn __discriminant(__this: &Test) -> isize {
 			match __this {
 				Test::A => 2,
 				Test::B => 1,
@@ -691,7 +691,7 @@ fn repr_c_mix() -> Result<()> {
 		#[repr(C)]
 		enum EnsureReprCIsIsize { Test = 0_isize }
 
-		fn __discriminant(__this: &Test) -> isize {
+		const fn __discriminant(__this: &Test) -> isize {
 			match __this {
 				Test::A => 1,
 				Test::B => 0,
@@ -744,7 +744,7 @@ fn repr_c_skip() -> Result<()> {
 		#[repr(C)]
 		enum EnsureReprCIsIsize { Test = 0_isize }
 
-		fn __discriminant(__this: &Test) -> isize {
+		const fn __discriminant(__this: &Test) -> isize {
 			match __this {
 				Test::A => 0,
 				Test::B => 3,
@@ -799,7 +799,7 @@ fn repr_c_expr() -> Result<()> {
 		#[repr(C)]
 		enum EnsureReprCIsIsize { Test = 0_isize }
 
-		fn __discriminant(__this: &Test) -> isize {
+		const fn __discriminant(__this: &Test) -> isize {
 			match __this {
 				Test::A => u64::MAX - 2,
 				Test::B => (u64::MAX - 2) + 1,
@@ -861,7 +861,7 @@ fn repr_c_with_value() -> Result<()> {
 	};
 	#[cfg(all(not(feature = "nightly"), feature = "safe"))]
 	let partial_ord = quote! {
-		fn __discriminant<T>(__this: &Test<T>) -> u8 {
+		const fn __discriminant<T>(__this: &Test<T>) -> u8 {
 			match __this {
 				Test::A(ref __field_0) => 0,
 				Test::B => (0) + 1,
@@ -931,7 +931,7 @@ fn repr_c_with_value_reverse() -> Result<()> {
 	};
 	#[cfg(all(not(feature = "nightly"), feature = "safe"))]
 	let partial_ord = quote! {
-		fn __discriminant<T>(__this: &Test<T>) -> u8 {
+		const fn __discriminant<T>(__this: &Test<T>) -> u8 {
 			match __this {
 				Test::A(ref __field_0) => 2,
 				Test::B => 1,
@@ -1001,7 +1001,7 @@ fn repr_c_with_value_mix() -> Result<()> {
 	};
 	#[cfg(all(not(feature = "nightly"), feature = "safe"))]
 	let partial_ord = quote! {
-		fn __discriminant<T>(__this: &Test<T>) -> u8 {
+		const fn __discriminant<T>(__this: &Test<T>) -> u8 {
 			match __this {
 				Test::A(ref __field_0) => 1,
 				Test::B => 0,
@@ -1071,7 +1071,7 @@ fn repr_c_with_value_skip() -> Result<()> {
 	};
 	#[cfg(all(not(feature = "nightly"), feature = "safe"))]
 	let partial_ord = quote! {
-		fn __discriminant<T>(__this: &Test<T>) -> u8 {
+		const fn __discriminant<T>(__this: &Test<T>) -> u8 {
 			match __this {
 				Test::A(ref __field_0) => 0,
 				Test::B => 3,
@@ -1143,7 +1143,7 @@ fn repr_c_with_value_expr() -> Result<()> {
 	};
 	#[cfg(all(not(feature = "nightly"), feature = "safe"))]
 	let partial_ord = quote! {
-		fn __discriminant<T>(__this: &Test<T>) -> u8 {
+		const fn __discriminant<T>(__this: &Test<T>) -> u8 {
 			match __this {
 				Test::A(ref __field_0) => isize::MAX - 2,
 				Test::B => (isize::MAX - 2) + 1,
@@ -1206,7 +1206,7 @@ fn repr() -> Result<()> {
 	};
 	#[cfg(all(not(feature = "nightly"), feature = "safe"))]
 	let partial_ord = quote! {
-		fn __discriminant(__this: &Test) -> u64 {
+		const fn __discriminant(__this: &Test) -> u64 {
 			match __this {
 				Test::A => 0,
 				Test::B => (0) + 1,
@@ -1354,7 +1354,7 @@ fn repr_reverse() -> Result<()> {
 	};
 	#[cfg(all(not(feature = "nightly"), feature = "safe"))]
 	let partial_ord = quote! {
-		fn __discriminant(__this: &Test) -> u64 {
+		const fn __discriminant(__this: &Test) -> u64 {
 			match __this {
 				Test::A => 2,
 				Test::B => 1,
@@ -1409,7 +1409,7 @@ fn repr_mix() -> Result<()> {
 	};
 	#[cfg(all(not(feature = "nightly"), feature = "safe"))]
 	let partial_ord = quote! {
-		fn __discriminant(__this: &Test) -> u64 {
+		const fn __discriminant(__this: &Test) -> u64 {
 			match __this {
 				Test::A => 1,
 				Test::B => 0,
@@ -1466,7 +1466,7 @@ fn repr_skip() -> Result<()> {
 	};
 	#[cfg(all(not(feature = "nightly"), feature = "safe"))]
 	let partial_ord = quote! {
-		fn __discriminant(__this: &Test) -> u64 {
+		const fn __discriminant(__this: &Test) -> u64 {
 			match __this {
 				Test::A => 0,
 				Test::B => 3,
@@ -1525,7 +1525,7 @@ fn repr_expr() -> Result<()> {
 	};
 	#[cfg(all(not(feature = "nightly"), feature = "safe"))]
 	let partial_ord = quote! {
-		fn __discriminant(__this: &Test) -> u64 {
+		const fn __discriminant(__this: &Test) -> u64 {
 			match __this {
 				Test::A => u64::MAX - 2,
 				Test::B => (u64::MAX - 2) + 1,
@@ -1587,7 +1587,7 @@ fn repr_with_value() -> Result<()> {
 	};
 	#[cfg(all(not(feature = "nightly"), feature = "safe"))]
 	let partial_ord = quote! {
-		fn __discriminant<T>(__this: &Test<T>) -> u8 {
+		const fn __discriminant<T>(__this: &Test<T>) -> u8 {
 			match __this {
 				Test::A(ref __field_0) => 0,
 				Test::B => (0) + 1,
@@ -1657,7 +1657,7 @@ fn repr_with_value_reverse() -> Result<()> {
 	};
 	#[cfg(all(not(feature = "nightly"), feature = "safe"))]
 	let partial_ord = quote! {
-		fn __discriminant<T>(__this: &Test<T>) -> u8 {
+		const fn __discriminant<T>(__this: &Test<T>) -> u8 {
 			match __this {
 				Test::A(ref __field_0) => 2,
 				Test::B => 1,
@@ -1727,7 +1727,7 @@ fn repr_with_value_mix() -> Result<()> {
 	};
 	#[cfg(all(not(feature = "nightly"), feature = "safe"))]
 	let partial_ord = quote! {
-		fn __discriminant<T>(__this: &Test<T>) -> u8 {
+		const fn __discriminant<T>(__this: &Test<T>) -> u8 {
 			match __this {
 				Test::A(ref __field_0) => 1,
 				Test::B => 0,
@@ -1797,7 +1797,7 @@ fn repr_with_value_skip() -> Result<()> {
 	};
 	#[cfg(all(not(feature = "nightly"), feature = "safe"))]
 	let partial_ord = quote! {
-		fn __discriminant<T>(__this: &Test<T>) -> u8 {
+		const fn __discriminant<T>(__this: &Test<T>) -> u8 {
 			match __this {
 				Test::A(ref __field_0) => 0,
 				Test::B => 3,
@@ -1869,7 +1869,7 @@ fn repr_with_value_expr() -> Result<()> {
 	};
 	#[cfg(all(not(feature = "nightly"), feature = "safe"))]
 	let partial_ord = quote! {
-		fn __discriminant<T>(__this: &Test<T>) -> u8 {
+		const fn __discriminant<T>(__this: &Test<T>) -> u8 {
 			match __this {
 				Test::A(ref __field_0) => isize::MAX - 2,
 				Test::B => (isize::MAX - 2) + 1,
