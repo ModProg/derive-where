@@ -14,7 +14,7 @@ jobs:
           rustup toolchain install nightly --profile minimal --component rustfmt --allow-downgrade
           rustup default nightly
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Run Rustfmt
         run:
           cargo fmt --check
@@ -36,6 +36,6 @@ jobs:
       - name: Install Taplo
         run: cargo install taplo-cli
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Run Taplo
         run: taplo fmt --check
