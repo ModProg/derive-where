@@ -20,6 +20,6 @@ jobs:
       - name: Install cargo-audit
         run: cargo install cargo-audit
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Run Audit
         run: cargo audit -D warnings
