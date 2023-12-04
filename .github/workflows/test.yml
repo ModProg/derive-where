@@ -41,6 +41,10 @@ jobs:
           rustup default ${{ matrix.rust }}
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Pin `zeroize` for MSRV
+        if: matrix.rust == '1.57.0'
+        run:
+          cargo update -p zeroize --precise 1.6.0
       - name: Build
         run:
           cargo build --workspace ${{ matrix.features }}
@@ -89,6 +93,10 @@ jobs:
           rustup default ${{ matrix.rust }}
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Pin `zeroize` for MSRV
+        if: matrix.rust == '1.57.0'
+        run:
+          cargo update -p zeroize --precise 1.6.0
       - name: Build
         run:
           cargo build --target thumbv6m-none-eabi ${{ matrix.features }} -p ensure-no-std
