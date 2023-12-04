@@ -15,7 +15,7 @@ pub use self::{
 	default::Default,
 	field::FieldAttr,
 	incomparable::Incomparable,
-	item::{DeriveTrait, DeriveWhere, Generic, ItemAttr},
+	item::{DeriveTrait, DeriveWhere, ItemAttr},
 	skip::{Skip, SkipGroup},
 	variant::VariantAttr,
 };
