@@ -4,7 +4,22 @@ use std::marker::PhantomData;
 
 use derive_where::derive_where;
 
-use self::util::AssertClone;
+use self::util::{AssertClone, AssertCopy};
+
+#[test]
+fn bound() {
+	#[derive_where(Clone, Copy; T)]
+	struct Test<T, U>(T, std::marker::PhantomData<U>);
+
+	let test_1 = Test(42, PhantomData::<()>);
+
+	let _ = AssertClone(&test_1);
+	let _ = AssertCopy(&test_1);
+
+	#[allow(clippy::clone_on_copy)]
+	let test_clone = test_1.clone();
+	assert_eq!(test_clone.0, 42);
+}
 
 #[test]
 fn custom_generic() {
