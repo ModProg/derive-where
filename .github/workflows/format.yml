@@ -1,6 +1,16 @@
 name: Format
 
-on: [push, pull_request]
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref_name }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
 
 jobs:
   rustfmt:
@@ -9,15 +19,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Update Rust
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install Rust nightly
         run: |
           rustup toolchain install nightly --profile minimal --component rustfmt --allow-downgrade
           rustup default nightly
-      - name: Checkout
-        uses: actions/checkout@v4
       - name: Run Rustfmt
-        run:
-          cargo fmt --check
+        run: cargo fmt --check
 
   taplo:
     name: Taplo
@@ -25,17 +34,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Cache Taplo
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/.crates.toml
-            ~/.cargo/.crates2.json
-            ~/.cargo/bin/taplo
-          key: taplo
-      - name: Install Taplo
-        run: cargo install taplo-cli
       - name: Checkout
         uses: actions/checkout@v4
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: taplo-cli
       - name: Run Taplo
         run: taplo fmt --check
