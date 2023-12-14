@@ -17,6 +17,7 @@ fn ignore_foreign_attribute() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl<T> ::core::default::Default for Test<T>
 			where T: ::core::default::Default
 			{

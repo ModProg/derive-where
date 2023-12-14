@@ -11,6 +11,7 @@ fn basic() -> Result<()> {
 			struct Test<T>(std::marker::PhantomData<T>);
 		},
 		quote! {
+			#[automatically_derived]
 			impl<T> ::zeroize::Zeroize for Test<T> {
 				fn zeroize(&mut self) {
 					use ::zeroize::Zeroize;
@@ -35,6 +36,7 @@ fn drop() -> Result<()> {
 		},
 		#[cfg(not(feature = "zeroize-on-drop"))]
 		quote! {
+			#[automatically_derived]
 			impl<T, U> ::core::ops::Drop for Test<T, U>
 			where T: ::zeroize::ZeroizeOnDrop
 			{
@@ -45,6 +47,7 @@ fn drop() -> Result<()> {
 		},
 		#[cfg(feature = "zeroize-on-drop")]
 		quote! {
+			#[automatically_derived]
 			impl<T, U> ::core::ops::Drop for Test<T, U>
 			where T: ::zeroize::ZeroizeOnDrop
 			{
@@ -61,6 +64,7 @@ fn drop() -> Result<()> {
 				}
 			}
 
+			#[automatically_derived]
 			impl<T, U> ::zeroize::ZeroizeOnDrop for Test<T, U>
 			where T: ::zeroize::ZeroizeOnDrop
 			{ }
@@ -72,6 +76,7 @@ fn drop() -> Result<()> {
 fn both() -> Result<()> {
 	#[cfg(not(feature = "zeroize-on-drop"))]
 	let drop = quote! {
+		#[automatically_derived]
 		impl<T, U> ::core::ops::Drop for Test<T, U>
 		where T: ::zeroize::ZeroizeOnDrop
 		{
@@ -82,6 +87,7 @@ fn both() -> Result<()> {
 	};
 	#[cfg(feature = "zeroize-on-drop")]
 	let drop = quote! {
+		#[automatically_derived]
 		impl<T, U> ::core::ops::Drop for Test<T, U>
 		where T: ::zeroize::ZeroizeOnDrop
 		{
@@ -98,6 +104,7 @@ fn both() -> Result<()> {
 			}
 		}
 
+		#[automatically_derived]
 		impl<T, U> ::zeroize::ZeroizeOnDrop for Test<T, U>
 		where T: ::zeroize::ZeroizeOnDrop
 		{ }
@@ -109,6 +116,7 @@ fn both() -> Result<()> {
 			struct Test<T, U>(T, std::marker::PhantomData<U>);
 		},
 		quote! {
+			#[automatically_derived]
 			impl<T, U> ::zeroize::Zeroize for Test<T, U>
 			where T: ::zeroize::Zeroize
 			{
@@ -137,6 +145,7 @@ fn crate_() -> Result<()> {
 			struct Test<T>(T);
 		},
 		quote! {
+			#[automatically_derived]
 			impl<T> zeroize_::Zeroize for Test<T>
 			where T: zeroize_::Zeroize
 			{
@@ -163,6 +172,7 @@ fn crate_drop() -> Result<()> {
 		},
 		#[cfg(not(feature = "zeroize-on-drop"))]
 		quote! {
+			#[automatically_derived]
 			impl<T> ::core::ops::Drop for Test<T>
 			where T: zeroize_::ZeroizeOnDrop
 			{
@@ -173,6 +183,7 @@ fn crate_drop() -> Result<()> {
 		},
 		#[cfg(feature = "zeroize-on-drop")]
 		quote! {
+			#[automatically_derived]
 			impl<T> ::core::ops::Drop for Test<T>
 			where T: zeroize_::ZeroizeOnDrop
 			{
@@ -188,6 +199,7 @@ fn crate_drop() -> Result<()> {
 				}
 			}
 
+			#[automatically_derived]
 			impl<T> zeroize_::ZeroizeOnDrop for Test<T>
 			where T: zeroize_::ZeroizeOnDrop
 			{ }
@@ -203,6 +215,7 @@ fn fqs() -> Result<()> {
 			struct Test<T>(#[derive_where(Zeroize(fqs))] std::marker::PhantomData<T>);
 		},
 		quote! {
+			#[automatically_derived]
 			impl<T> ::zeroize::Zeroize for Test<T> {
 				fn zeroize(&mut self) {
 					use ::zeroize::Zeroize;

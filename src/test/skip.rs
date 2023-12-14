@@ -12,6 +12,7 @@ fn struct_inner() -> Result<()> {
 			struct Test<T>(std::marker::PhantomData<T>);
 		},
 		quote! {
+			#[automatically_derived]
 			impl<T> ::core::fmt::Debug for Test<T> {
 				fn fmt(&self, __f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
 					match self {
@@ -37,6 +38,7 @@ fn enum_inner() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl<T> ::core::fmt::Debug for Test<T> {
 				fn fmt(&self, __f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
 					match self {
@@ -60,6 +62,7 @@ fn struct_empty() -> Result<()> {
 			struct Test<T>(std::marker::PhantomData<T>);
 		},
 		quote! {
+			#[automatically_derived]
 			impl<T> ::core::cmp::Ord for Test<T> {
 				#[inline]
 				fn cmp(&self, __other: &Self) -> ::core::cmp::Ordering {
@@ -81,6 +84,7 @@ fn variant_empty() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl<T> ::core::cmp::Ord for Test<T> {
 				#[inline]
 				fn cmp(&self, __other: &Self) -> ::core::cmp::Ordering {
@@ -123,6 +127,7 @@ fn variants_empty() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl<T> ::core::cmp::Ord for Test<T> {
 				#[inline]
 				fn cmp(&self, __other: &Self) -> ::core::cmp::Ordering {
@@ -171,6 +176,7 @@ fn variants_partly_empty() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl<T> ::core::cmp::Ord for Test<T> {
 				#[inline]
 				fn cmp(&self, __other: &Self) -> ::core::cmp::Ordering {

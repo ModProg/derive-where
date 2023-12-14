@@ -641,6 +641,7 @@ fn generate_impl(
 	let ident = item.ident();
 	let path = trait_.impl_path(trait_);
 	let mut output = quote! {
+		#[automatically_derived]
 		impl #imp #path for #ident #ty
 		#where_clause
 		{
@@ -650,6 +651,7 @@ fn generate_impl(
 
 	if let Some((path, body)) = trait_.additional_impl(trait_) {
 		output.extend(quote! {
+			#[automatically_derived]
 			impl #imp #path for #ident #ty
 			#where_clause
 			{
