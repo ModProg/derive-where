@@ -1,29 +1,44 @@
 name: Spellcheck
 
-on: [push, pull_request]
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref_name }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
 
 jobs:
-  rustfmt:
+  spellcheck:
     name: Spellcheck
 
     runs-on: ubuntu-latest
 
     steps:
-      - name: Cache cargo-spellcheck
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/.crates.toml
-            ~/.cargo/.crates2.json
-            ~/.cargo/bin/cargo-spellcheck
-          key: cargo-spellcheck
-      - name: Install libclang-dev
-        run: sudo apt-get install libclang-dev
-      - name: Install cargo-spellcheck
-        run: cargo install cargo-spellcheck --locked
       - name: Checkout
         uses: actions/checkout@v4
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-spellcheck
       - name: Run Spellcheck
-        run: cargo spellcheck check -m 1 2>/dev/null
-      - name: Run Spellcheck on CHANGELOG.md
-        run: cargo spellcheck check -m 1 CHANGELOG.md 2>/dev/null
+        run: |
+          cargo spellcheck check -m 1
+          cargo spellcheck check -m 1 CHANGELOG.md
+
+  typos:
+    name: Typos
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: typos-cli
+      - name: Run Typos
+        run: typos

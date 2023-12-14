@@ -1,18 +1,30 @@
 name: Test
 
-on: [push, pull_request]
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref_name }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
 
 jobs:
   build-test:
-    name: Build + Test
+    name: Build & Test
+
+    runs-on: ubuntu-latest
 
     strategy:
       fail-fast: false
       matrix:
         rust:
-          - 1.57.0
-          - stable
-          - nightly
+          - { version: 1.57.0, msrv: true }
+          - { version: stable, msrv: false }
+          - { version: nightly, msrv: false }
         features:
           - ""
           - --features safe
@@ -21,28 +33,26 @@ jobs:
           - --features safe,zeroize
           - --features safe,zeroize-on-drop
         include:
-          - rust: nightly
+          - rust: { version: nightly, msrv: false }
             features: --features nightly
-          - rust: nightly
+          - rust: { version: nightly, msrv: false }
             features: --features safe,nightly
-          - rust: nightly
+          - rust: { version: nightly, msrv: false }
             features: --features nightly,zeroize
-          - rust: nightly
+          - rust: { version: nightly, msrv: false }
             features: --features nightly,zeroize-on-drop
-          - rust: nightly
+          - rust: { version: nightly, msrv: false }
             features: --all-features
 
-    runs-on: ubuntu-latest
-
     steps:
-      - name: Update Rust
-        run: |
-          rustup toolchain install ${{ matrix.rust }} --profile minimal --allow-downgrade
-          rustup default ${{ matrix.rust }}
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Install Rust
+        run: |
+          rustup toolchain install ${{ matrix.rust.version }} --profile minimal --allow-downgrade
+          rustup default ${{ matrix.rust.version }}
       - name: Pin `zeroize` for MSRV
-        if: matrix.rust == '1.57.0'
+        if: matrix.rust.msrv
         run:
           cargo update -p zeroize --precise 1.6.0
       - name: Build
@@ -58,13 +68,15 @@ jobs:
   no-std-build:
     name: no_std Build
 
+    runs-on: ubuntu-latest
+
     strategy:
       fail-fast: false
       matrix:
         rust:
-          - 1.57.0
-          - stable
-          - nightly
+          - { version: 1.57.0, msrv: true }
+          - { version: stable, msrv: false }
+          - { version: nightly, msrv: false }
         features:
           - ""
           - --features safe
@@ -73,28 +85,26 @@ jobs:
           - --features safe,zeroize
           - --features safe,zeroize-on-drop
         include:
-          - rust: nightly
+          - rust: { version: nightly, msrv: false }
             features: --features nightly
-          - rust: nightly
+          - rust: { version: nightly, msrv: false }
             features: --features safe,nightly
-          - rust: nightly
+          - rust: { version: nightly, msrv: false }
             features: --features nightly,zeroize
-          - rust: nightly
+          - rust: { version: nightly, msrv: false }
             features: --features nightly,zeroize-on-drop
-          - rust: nightly
+          - rust: { version: nightly, msrv: false }
             features: --all-features
 
-    runs-on: ubuntu-latest
-
     steps:
-      - name: Update Rust
-        run: |
-          rustup toolchain install ${{ matrix.rust }} --target thumbv6m-none-eabi --profile minimal --allow-downgrade
-          rustup default ${{ matrix.rust }}
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Install Rust
+        run: |
+          rustup toolchain install ${{ matrix.rust.version }} --target thumbv6m-none-eabi --profile minimal --allow-downgrade
+          rustup default ${{ matrix.rust.version }}
       - name: Pin `zeroize` for MSRV
-        if: matrix.rust == '1.57.0'
+        if: matrix.rust.msrv
         run:
           cargo update -p zeroize --precise 1.6.0
       - name: Build
@@ -103,6 +113,8 @@ jobs:
 
   minimal-versions:
     name: Minimal Versions
+
+    runs-on: ubuntu-latest
 
     strategy:
       fail-fast: false
@@ -113,18 +125,16 @@ jobs:
           - version: stable
             features: safe,zeroize-on-drop
 
-    runs-on: ubuntu-latest
-
     steps:
-      - name: Update Rust
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install Rust
         run: |
           rustup toolchain install ${{ matrix.rust.version }} --profile minimal --allow-downgrade
           rustup default ${{ matrix.rust.version }}
       - name: Install nightly Rust
         run:
           rustup toolchain install nightly --profile minimal --allow-downgrade
-      - name: Checkout
-        uses: actions/checkout@v4
       - name: Build
         working-directory: test-crates/minimal-versions
         run: |

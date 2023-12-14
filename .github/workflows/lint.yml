@@ -1,10 +1,22 @@
 name: Lint
 
-on: [push, pull_request]
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref_name }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
 
 jobs:
   clippy-rustdoc:
-    name: Clippy + Rustdoc
+    name: Clippy & Rustdoc
+
+    runs-on: ubuntu-latest
 
     strategy:
       fail-fast: false
@@ -33,15 +45,13 @@ jobs:
           - channel: nightly
             features: --all-features
 
-    runs-on: ubuntu-latest
-
     steps:
-      - name: Update Rust
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install Rust
         run: |
           rustup toolchain install ${{ matrix.channel }} --profile minimal --component clippy --allow-downgrade
           rustup default ${{ matrix.channel }}
-      - name: Checkout
-        uses: actions/checkout@v4
       - name: Run Clippy
         run:
           cargo clippy --all-targets --workspace ${{ matrix.features }} -- -D warnings

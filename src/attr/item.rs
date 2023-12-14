@@ -78,7 +78,7 @@ impl ItemAttr {
 								.push(DeriveWhere::from_attr(span, data, attr)?),
 						}
 					}
-					// Anything list that isn't using `,` as seperator, is because we expect
+					// Anything list that isn't using `,` as separator, is because we expect
 					// `A, B; C`.
 					else {
 						self_
@@ -198,7 +198,7 @@ impl DeriveWhere {
 
 						// If we found a semi-colon, start parsing generics.
 						if !input.is_empty() {
-							// `parse_teminated` parses everything left, which should end the
+							// `parse_terminated` parses everything left, which should end the
 							// while-loop.
 							// Not checking for duplicates here, as even Rust doesn't give a warning
 							// for those: `where T: Clone, T: Clone` produces no error or warning.
