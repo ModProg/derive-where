@@ -200,3 +200,73 @@ fn bound() -> Result<()> {
 		},
 	)
 }
+
+#[test]
+fn no_bound() -> Result<()> {
+	test_derive(
+		quote! {
+			#[derive_where(Ord, PartialOrd)]
+			struct Test<T>(std::marker::PhantomData<T>);
+		},
+		quote! {
+			#[automatically_derived]
+			impl<T> ::core::cmp::Ord for Test<T> {
+				#[inline]
+				fn cmp(&self, __other: &Self) -> ::core::cmp::Ordering {
+					match (self, __other) {
+						(Test(ref __field_0), Test(ref __other_field_0)) =>
+							match ::core::cmp::Ord::cmp(__field_0, __other_field_0) {
+								::core::cmp::Ordering::Equal => ::core::cmp::Ordering::Equal,
+								__cmp => __cmp,
+							},
+					}
+				}
+			}
+
+			#[automatically_derived]
+			impl<T> ::core::cmp::PartialOrd for Test<T> {
+				#[inline]
+				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
+					::core::option::Option::Some(::core::cmp::Ord::cmp(self, __other))
+				}
+			}
+		},
+	)
+}
+
+#[test]
+fn custom_bound() -> Result<()> {
+	test_derive(
+		quote! {
+			#[derive_where(Ord, PartialOrd; T: TestTrait)]
+			struct Test<T>(std::marker::PhantomData<T>);
+		},
+		quote! {
+			#[automatically_derived]
+			impl<T> ::core::cmp::Ord for Test<T>
+			where T: TestTrait
+			{
+				#[inline]
+				fn cmp(&self, __other: &Self) -> ::core::cmp::Ordering {
+					match (self, __other) {
+						(Test(ref __field_0), Test(ref __other_field_0)) =>
+							match ::core::cmp::Ord::cmp(__field_0, __other_field_0) {
+								::core::cmp::Ordering::Equal => ::core::cmp::Ordering::Equal,
+								__cmp => __cmp,
+							},
+					}
+				}
+			}
+
+			#[automatically_derived]
+			impl<T> ::core::cmp::PartialOrd for Test<T>
+			where T: TestTrait
+			{
+				#[inline]
+				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
+					::core::option::Option::Some(::core::cmp::Ord::cmp(self, __other))
+				}
+			}
+		},
+	)
+}

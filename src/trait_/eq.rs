@@ -3,7 +3,7 @@
 use proc_macro2::TokenStream;
 use quote::quote;
 
-use crate::{Data, DeriveTrait, Item, SplitGenerics, TraitImpl};
+use crate::{Data, DeriveTrait, DeriveWhere, Item, SplitGenerics, TraitImpl};
 
 /// Dummy-struct implement [`Trait`](crate::Trait) for
 /// [`Eq`](trait@std::cmp::Eq).
@@ -20,10 +20,9 @@ impl TraitImpl for Eq {
 
 	fn build_signature(
 		&self,
-		_any_bound: bool,
+		_derive_where: &DeriveWhere,
 		_item: &Item,
 		_generics: &SplitGenerics<'_>,
-		_traits: &[DeriveTrait],
 		_trait_: &DeriveTrait,
 		body: &TokenStream,
 	) -> TokenStream {
@@ -39,8 +38,7 @@ impl TraitImpl for Eq {
 
 	fn build_body(
 		&self,
-		_any_bound: bool,
-		_traits: &[DeriveTrait],
+		_derive_where: &DeriveWhere,
 		trait_: &DeriveTrait,
 		data: &Data,
 	) -> TokenStream {

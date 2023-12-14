@@ -4,7 +4,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 
 use super::common_ord;
-use crate::{Data, DeriveTrait, Item, SimpleType, SplitGenerics, Trait, TraitImpl};
+use crate::{Data, DeriveTrait, DeriveWhere, Item, SimpleType, SplitGenerics, Trait, TraitImpl};
 
 /// Dummy-struct implement [`Trait`] for
 /// [`PartialOrd`](trait@std::cmp::PartialOrd).
@@ -21,19 +21,20 @@ impl TraitImpl for PartialOrd {
 
 	fn build_signature(
 		&self,
-		any_bound: bool,
+		derive_where: &DeriveWhere,
 		item: &Item,
 		generics: &SplitGenerics<'_>,
-		traits: &[DeriveTrait],
 		trait_: &DeriveTrait,
 		body: &TokenStream,
 	) -> TokenStream {
-		let body = if !any_bound && traits.iter().any(|trait_| trait_ == Trait::Ord) {
+		let body = if (derive_where.generics.is_empty() || derive_where.any_custom_bound())
+			&& derive_where.contains(Trait::Ord)
+		{
 			quote! {
 				::core::option::Option::Some(::core::cmp::Ord::cmp(self, __other))
 			}
 		} else {
-			common_ord::build_ord_signature(item, generics, traits, trait_, body)
+			common_ord::build_ord_signature(item, generics, derive_where, trait_, body)
 		};
 
 		quote! {
@@ -46,14 +47,14 @@ impl TraitImpl for PartialOrd {
 
 	fn build_body(
 		&self,
-		any_bound: bool,
-		traits: &[DeriveTrait],
+		derive_where: &DeriveWhere,
 		trait_: &DeriveTrait,
 		data: &Data,
 	) -> TokenStream {
 		if data.is_empty(**trait_)
 			|| data.is_incomparable()
-			|| (!any_bound && traits.iter().any(|trait_| trait_ == Trait::Ord))
+			|| ((derive_where.generics.is_empty() || derive_where.any_custom_bound())
+				&& derive_where.contains(Trait::Ord))
 		{
 			TokenStream::new()
 		} else {

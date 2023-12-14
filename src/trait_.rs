@@ -18,7 +18,7 @@ mod zeroize_on_drop;
 use proc_macro2::{Span, TokenStream};
 use syn::{punctuated::Punctuated, spanned::Spanned, Meta, Path, Result, Token, TypeParamBound};
 
-use crate::{Data, DeriveTrait, Error, Item, SplitGenerics};
+use crate::{Data, DeriveTrait, DeriveWhere, Error, Item, SplitGenerics};
 
 /// Type implementing [`TraitImpl`] for every trait.
 #[derive(Clone, Copy, Eq, PartialEq)]
@@ -133,26 +133,23 @@ impl TraitImpl for Trait {
 
 	fn build_signature(
 		&self,
-		any_bound: bool,
+		derive_where: &DeriveWhere,
 		item: &Item,
 		generics: &SplitGenerics<'_>,
-		traits: &[DeriveTrait],
 		trait_: &DeriveTrait,
 		body: &TokenStream,
 	) -> TokenStream {
 		self.implementation()
-			.build_signature(any_bound, item, generics, traits, trait_, body)
+			.build_signature(derive_where, item, generics, trait_, body)
 	}
 
 	fn build_body(
 		&self,
-		any_bound: bool,
-		traits: &[DeriveTrait],
+		derive_where: &DeriveWhere,
 		trait_: &DeriveTrait,
 		data: &Data,
 	) -> TokenStream {
-		self.implementation()
-			.build_body(any_bound, traits, trait_, data)
+		self.implementation().build_body(derive_where, trait_, data)
 	}
 }
 
@@ -199,10 +196,9 @@ pub trait TraitImpl {
 	/// Build method signature for this [`Trait`].
 	fn build_signature(
 		&self,
-		_any_bound: bool,
+		_derive_where: &DeriveWhere,
 		_item: &Item,
 		_generics: &SplitGenerics<'_>,
-		_traits: &[DeriveTrait],
 		_trait_: &DeriveTrait,
 		_body: &TokenStream,
 	) -> TokenStream {
@@ -212,8 +208,7 @@ pub trait TraitImpl {
 	/// Build method body for this [`Trait`].
 	fn build_body(
 		&self,
-		_any_bound: bool,
-		_traits: &[DeriveTrait],
+		_derive_where: &DeriveWhere,
 		_trait_: &DeriveTrait,
 		_data: &Data,
 	) -> TokenStream {

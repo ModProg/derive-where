@@ -4,7 +4,9 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{TraitBound, TraitBoundModifier, TypeParamBound};
 
-use crate::{Data, DataType, DeriveTrait, Item, SimpleType, SplitGenerics, Trait, TraitImpl};
+use crate::{
+	Data, DataType, DeriveTrait, DeriveWhere, Item, SimpleType, SplitGenerics, Trait, TraitImpl,
+};
 
 /// Dummy-struct implement [`Trait`] for [`Clone`](trait@std::clone::Clone).
 pub struct Clone;
@@ -42,15 +44,16 @@ impl TraitImpl for Clone {
 
 	fn build_signature(
 		&self,
-		any_bound: bool,
+		derive_where: &DeriveWhere,
 		item: &Item,
 		_generics: &SplitGenerics<'_>,
-		traits: &[DeriveTrait],
 		_trait_: &DeriveTrait,
 		body: &TokenStream,
 	) -> TokenStream {
 		// Special implementation for items also implementing `Copy`.
-		if !any_bound && traits.iter().any(|trait_| trait_ == Trait::Copy) {
+		if (derive_where.generics.is_empty() || derive_where.any_custom_bound())
+			&& derive_where.contains(Trait::Copy)
+		{
 			return quote! {
 				#[inline]
 				fn clone(&self) -> Self { *self }
@@ -85,12 +88,13 @@ impl TraitImpl for Clone {
 
 	fn build_body(
 		&self,
-		any_bound: bool,
-		traits: &[DeriveTrait],
+		derive_where: &DeriveWhere,
 		trait_: &DeriveTrait,
 		data: &Data,
 	) -> TokenStream {
-		if !any_bound && traits.iter().any(|trait_| trait_ == Trait::Copy) {
+		if (derive_where.generics.is_empty() || derive_where.any_custom_bound())
+			&& derive_where.contains(Trait::Copy)
+		{
 			return TokenStream::new();
 		}
 
