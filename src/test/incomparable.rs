@@ -20,6 +20,7 @@ fn variants() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl ::core::cmp::PartialEq for Test {
 				#[inline]
 				fn eq(&self, __other: &Self) -> bool {
@@ -34,6 +35,8 @@ fn variants() -> Result<()> {
 					}
 				}
 			}
+
+			#[automatically_derived]
 			impl ::core::cmp::PartialOrd for Test {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -85,6 +88,7 @@ fn enum_empty_and_empty_incomparable_variants() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl ::core::cmp::PartialEq for Test {
 				#[inline]
 				fn eq(&self, __other: &Self) -> bool {
@@ -98,6 +102,8 @@ fn enum_empty_and_empty_incomparable_variants() -> Result<()> {
 					}
 				}
 			}
+
+			#[automatically_derived]
 			impl ::core::cmp::PartialOrd for Test {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -124,6 +130,7 @@ fn enum_empty_and_non_empty_incomparable_variants() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl ::core::cmp::PartialEq for Test {
 				#[inline]
 				fn eq(&self, __other: &Self) -> bool {
@@ -137,6 +144,8 @@ fn enum_empty_and_non_empty_incomparable_variants() -> Result<()> {
 					}
 				}
 			}
+
+			#[automatically_derived]
 			impl ::core::cmp::PartialOrd for Test {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -165,6 +174,7 @@ fn enum_empty_and_multiple_incomparable_variants() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl ::core::cmp::PartialEq for Test {
 				#[inline]
 				fn eq(&self, __other: &Self) -> bool {
@@ -178,6 +188,8 @@ fn enum_empty_and_multiple_incomparable_variants() -> Result<()> {
 					}
 				}
 			}
+
+			#[automatically_derived]
 			impl ::core::cmp::PartialOrd for Test {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -207,6 +219,7 @@ fn enum_skipped_and_incomparable_variant() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl ::core::cmp::PartialEq for Test {
 				#[inline]
 				fn eq(&self, __other: &Self) -> bool {
@@ -220,6 +233,8 @@ fn enum_skipped_and_incomparable_variant() -> Result<()> {
 					}
 				}
 			}
+
+			#[automatically_derived]
 			impl ::core::cmp::PartialOrd for Test {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -246,6 +261,7 @@ fn enum_non_empty_and_incomparable_variant() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl ::core::cmp::PartialEq for Test {
 				#[inline]
 				fn eq(&self, __other: &Self) -> bool {
@@ -261,6 +277,8 @@ fn enum_non_empty_and_incomparable_variant() -> Result<()> {
 					}
 				}
 			}
+
+			#[automatically_derived]
 			impl ::core::cmp::PartialOrd for Test {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -295,6 +313,7 @@ fn enum_incomparable_and_skipped_variant() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl ::core::cmp::PartialEq for Test {
 				#[inline]
 				fn eq(&self, __other: &Self) -> bool {
@@ -308,6 +327,8 @@ fn enum_incomparable_and_skipped_variant() -> Result<()> {
 					}
 				}
 			}
+
+			#[automatically_derived]
 			impl ::core::cmp::PartialOrd for Test {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -331,12 +352,15 @@ fn items() -> Result<()> {
 			enum Test{}
 		},
 		quote! {
+			#[automatically_derived]
 			impl ::core::cmp::PartialEq for Test {
 				#[inline]
 				fn eq(&self, __other: &Self) -> bool {
 					false
 				}
 			}
+
+			#[automatically_derived]
 			impl ::core::cmp::PartialOrd for Test {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -352,12 +376,15 @@ fn items() -> Result<()> {
 			struct Test;
 		},
 		quote! {
+			#[automatically_derived]
 			impl ::core::cmp::PartialEq for Test {
 				#[inline]
 				fn eq(&self, __other: &Self) -> bool {
 					false
 				}
 			}
+
+			#[automatically_derived]
 			impl ::core::cmp::PartialOrd for Test {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {

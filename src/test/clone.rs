@@ -13,6 +13,7 @@ fn struct_() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl<T> ::core::clone::Clone for Test<T> {
 				#[inline]
 				fn clone(&self) -> Self {
@@ -33,6 +34,7 @@ fn tuple() -> Result<()> {
 			struct Test<T>(std::marker::PhantomData<T>);
 		},
 		quote! {
+			#[automatically_derived]
 			impl<T> ::core::clone::Clone for Test<T> {
 				#[inline]
 				fn clone(&self) -> Self {
@@ -59,6 +61,7 @@ fn enum_() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl<T> ::core::clone::Clone for Test<T> {
 				#[inline]
 				fn clone(&self) -> Self {
@@ -86,6 +89,7 @@ fn union_() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl<T> ::core::clone::Clone for Test<T> {
 				#[inline]
 				fn clone(&self) -> Self {

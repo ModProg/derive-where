@@ -13,6 +13,7 @@ fn struct_() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl<T> ::core::clone::Clone for Test<T> {
 				#[inline]
 				fn clone(&self) -> Self {
@@ -20,9 +21,11 @@ fn struct_() -> Result<()> {
 				}
 			}
 
+			#[automatically_derived]
 			impl<T> ::core::marker::Copy for Test<T>
 			{ }
 
+			#[automatically_derived]
 			impl<T> ::core::fmt::Debug for Test<T> {
 				fn fmt(&self, __f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
 					match self {
@@ -35,12 +38,14 @@ fn struct_() -> Result<()> {
 				}
 			}
 
+			#[automatically_derived]
 			impl<T> ::core::default::Default for Test<T> {
 				fn default() -> Self {
 					Test { field: ::core::default::Default::default() }
 				}
 			}
 
+			#[automatically_derived]
 			impl<T> ::core::cmp::Eq for Test<T> {
 				#[inline]
 				fn assert_receiver_is_total_eq(&self) {
@@ -51,6 +56,7 @@ fn struct_() -> Result<()> {
 				}
 			}
 
+			#[automatically_derived]
 			impl<T> ::core::hash::Hash for Test<T> {
 				fn hash<__H: ::core::hash::Hasher>(&self, __state: &mut __H) {
 					match self {
@@ -59,6 +65,7 @@ fn struct_() -> Result<()> {
 				}
 			}
 
+			#[automatically_derived]
 			impl<T> ::core::cmp::Ord for Test<T> {
 				#[inline]
 				fn cmp(&self, __other: &Self) -> ::core::cmp::Ordering {
@@ -72,6 +79,7 @@ fn struct_() -> Result<()> {
 				}
 			}
 
+			#[automatically_derived]
 			impl<T> ::core::cmp::PartialEq for Test<T> {
 				#[inline]
 				fn eq(&self, __other: &Self) -> bool {
@@ -82,6 +90,7 @@ fn struct_() -> Result<()> {
 				}
 			}
 
+			#[automatically_derived]
 			impl<T> ::core::cmp::PartialOrd for Test<T> {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -100,6 +109,7 @@ fn tuple() -> Result<()> {
 			struct Test<T>(std::marker::PhantomData<T>);
 		},
 		quote! {
+			#[automatically_derived]
 			impl<T> ::core::clone::Clone for Test<T> {
 				#[inline]
 				fn clone(&self) -> Self {
@@ -107,9 +117,11 @@ fn tuple() -> Result<()> {
 				}
 			}
 
+			#[automatically_derived]
 			impl<T> ::core::marker::Copy for Test<T>
 			{ }
 
+			#[automatically_derived]
 			impl<T> ::core::fmt::Debug for Test<T> {
 				fn fmt(&self, __f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
 					match self {
@@ -122,12 +134,14 @@ fn tuple() -> Result<()> {
 				}
 			}
 
+			#[automatically_derived]
 			impl<T> ::core::default::Default for Test<T> {
 				fn default() -> Self {
 					Test(::core::default::Default::default())
 				}
 			}
 
+			#[automatically_derived]
 			impl<T> ::core::cmp::Eq for Test<T> {
 				#[inline]
 				fn assert_receiver_is_total_eq(&self) {
@@ -138,6 +152,7 @@ fn tuple() -> Result<()> {
 				}
 			}
 
+			#[automatically_derived]
 			impl<T> ::core::hash::Hash for Test<T> {
 				fn hash<__H: ::core::hash::Hasher>(&self, __state: &mut __H) {
 					match self {
@@ -146,6 +161,7 @@ fn tuple() -> Result<()> {
 				}
 			}
 
+			#[automatically_derived]
 			impl<T> ::core::cmp::Ord for Test<T> {
 				#[inline]
 				fn cmp(&self, __other: &Self) -> ::core::cmp::Ordering {
@@ -159,6 +175,7 @@ fn tuple() -> Result<()> {
 				}
 			}
 
+			#[automatically_derived]
 			impl<T> ::core::cmp::PartialEq for Test<T> {
 				#[inline]
 				fn eq(&self, __other: &Self) -> bool {
@@ -169,6 +186,7 @@ fn tuple() -> Result<()> {
 				}
 			}
 
+			#[automatically_derived]
 			impl<T> ::core::cmp::PartialOrd for Test<T> {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -223,6 +241,7 @@ fn enum_() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl<T> ::core::clone::Clone for Test<T> {
 				#[inline]
 				fn clone(&self) -> Self {
@@ -230,9 +249,11 @@ fn enum_() -> Result<()> {
 				}
 			}
 
+			#[automatically_derived]
 			impl<T> ::core::marker::Copy for Test<T>
 			{ }
 
+			#[automatically_derived]
 			impl<T> ::core::fmt::Debug for Test<T> {
 				fn fmt(&self, __f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
 					match self {
@@ -259,12 +280,14 @@ fn enum_() -> Result<()> {
 				}
 			}
 
+			#[automatically_derived]
 			impl<T> ::core::default::Default for Test<T> {
 				fn default() -> Self {
 					Test::E
 				}
 			}
 
+			#[automatically_derived]
 			impl<T> ::core::cmp::Eq for Test<T> {
 				#[inline]
 				fn assert_receiver_is_total_eq(&self) {
@@ -276,6 +299,7 @@ fn enum_() -> Result<()> {
 				}
 			}
 
+			#[automatically_derived]
 			impl<T> ::core::hash::Hash for Test<T> {
 				fn hash<__H: ::core::hash::Hasher>(&self, __state: &mut __H) {
 					match self {
@@ -300,6 +324,7 @@ fn enum_() -> Result<()> {
 				}
 			}
 
+			#[automatically_derived]
 			impl<T> ::core::cmp::Ord for Test<T> {
 				#[inline]
 				fn cmp(&self, __other: &Self) -> ::core::cmp::Ordering {
@@ -325,6 +350,7 @@ fn enum_() -> Result<()> {
 				}
 			}
 
+			#[automatically_derived]
 			impl<T> ::core::cmp::PartialEq for Test<T> {
 				#[inline]
 				fn eq(&self, __other: &Self) -> bool {
@@ -342,6 +368,7 @@ fn enum_() -> Result<()> {
 				}
 			}
 
+			#[automatically_derived]
 			impl<T> ::core::cmp::PartialOrd for Test<T> {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -363,6 +390,7 @@ fn union_() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl<T> ::core::clone::Clone for Test<T> {
 				#[inline]
 				fn clone(&self) -> Self {
@@ -370,6 +398,7 @@ fn union_() -> Result<()> {
 				}
 			}
 
+			#[automatically_derived]
 			impl<T> ::core::marker::Copy for Test<T>
 			{ }
 		},

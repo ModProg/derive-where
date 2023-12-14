@@ -11,6 +11,7 @@ fn bound() -> Result<()> {
 			struct Test<T, U>(T, std::marker::PhantomData<U>);
 		},
 		quote! {
+			#[automatically_derived]
 			impl<T, U> ::core::clone::Clone for Test<T, U>
 			where T: ::core::clone::Clone
 			{
@@ -33,6 +34,7 @@ fn bound_multiple() -> Result<()> {
 			struct Test<T, U, V>((T, U), std::marker::PhantomData<V>);
 		},
 		quote! {
+			#[automatically_derived]
 			impl<T, U, V> ::core::clone::Clone for Test<T, U, V>
 			where
 				T: ::core::clone::Clone,
@@ -57,6 +59,7 @@ fn custom_bound() -> Result<()> {
 			struct Test<T>(T);
 		},
 		quote! {
+			#[automatically_derived]
 			impl<T> ::core::clone::Clone for Test<T>
 			where T: Copy
 			{
@@ -79,6 +82,7 @@ fn where_() -> Result<()> {
 			struct Test<T, U>(T, std::marker::PhantomData<U>) where T: std::fmt::Debug;
 		},
 		quote! {
+			#[automatically_derived]
 			impl<T, U> ::core::clone::Clone for Test<T, U>
 			where
 				T: std::fmt::Debug,
@@ -103,6 +107,7 @@ fn associated_type() -> Result<()> {
 			struct Test<T>(<T as std::ops::Deref>::Target);
 		},
 		quote! {
+			#[automatically_derived]
 			impl<T> ::core::clone::Clone for Test<T>
 			where <T as std::ops::Deref>::Target: ::core::clone::Clone
 			{
@@ -125,6 +130,7 @@ fn associated_type_custom_bound() -> Result<()> {
 			struct Test<T>(<T as std::ops::Deref>::Target);
 		},
 		quote! {
+			#[automatically_derived]
 			impl<T> ::core::clone::Clone for Test<T>
 			where <T as std::ops::Deref>::Target: Copy
 			{
@@ -147,6 +153,7 @@ fn check_trait_bounds() -> Result<()> {
 			struct Test<T, U>(T, std::marker::PhantomData<U>);
 		},
 		quote! {
+			#[automatically_derived]
 			impl<T, U> ::core::clone::Clone for Test<T, U>
 			where T: ::core::clone::Clone
 			{
@@ -158,10 +165,12 @@ fn check_trait_bounds() -> Result<()> {
 				}
 			}
 
+			#[automatically_derived]
 			impl<T, U> ::core::marker::Copy for Test<T, U>
 			where T: ::core::marker::Copy
 			{ }
 
+			#[automatically_derived]
 			impl<T, U> ::core::fmt::Debug for Test<T, U>
 			where T: ::core::fmt::Debug
 			{
@@ -177,6 +186,7 @@ fn check_trait_bounds() -> Result<()> {
 				}
 			}
 
+			#[automatically_derived]
 			impl<T, U> ::core::default::Default for Test<T, U>
 			where T: ::core::default::Default
 			{
@@ -185,6 +195,7 @@ fn check_trait_bounds() -> Result<()> {
 				}
 			}
 
+			#[automatically_derived]
 			impl<T, U> ::core::cmp::Eq for Test<T, U>
 			where T: ::core::cmp::Eq
 			{
@@ -198,6 +209,7 @@ fn check_trait_bounds() -> Result<()> {
 				}
 			}
 
+			#[automatically_derived]
 			impl<T, U> ::core::hash::Hash for Test<T, U>
 			where T: ::core::hash::Hash
 			{
@@ -211,6 +223,7 @@ fn check_trait_bounds() -> Result<()> {
 				}
 			}
 
+			#[automatically_derived]
 			impl<T, U> ::core::cmp::Ord for Test<T, U>
 			where T: ::core::cmp::Ord
 			{
@@ -229,6 +242,7 @@ fn check_trait_bounds() -> Result<()> {
 				}
 			}
 
+			#[automatically_derived]
 			impl<T, U> ::core::cmp::PartialEq for Test<T, U>
 			where T: ::core::cmp::PartialEq
 			{
@@ -243,6 +257,7 @@ fn check_trait_bounds() -> Result<()> {
 				}
 			}
 
+			#[automatically_derived]
 			impl<T, U> ::core::cmp::PartialOrd for Test<T, U>
 			where T: ::core::cmp::PartialOrd
 			{
@@ -272,6 +287,7 @@ fn check_multiple_trait_bounds() -> Result<()> {
 			struct Test<T, U, V>(T, std::marker::PhantomData<(U, V)>);
 		},
 		quote! {
+			#[automatically_derived]
 			impl<T, U, V> ::core::clone::Clone for Test<T, U, V>
 			where
 				T: ::core::clone::Clone,
@@ -285,12 +301,14 @@ fn check_multiple_trait_bounds() -> Result<()> {
 				}
 			}
 
+			#[automatically_derived]
 			impl<T, U, V> ::core::marker::Copy for Test<T, U, V>
 			where
 				T: ::core::marker::Copy,
 				U: ::core::marker::Copy
 			{ }
 
+			#[automatically_derived]
 			impl<T, U, V> ::core::fmt::Debug for Test<T, U, V>
 			where
 				T: ::core::fmt::Debug,
@@ -308,6 +326,7 @@ fn check_multiple_trait_bounds() -> Result<()> {
 				}
 			}
 
+			#[automatically_derived]
 			impl<T, U, V> ::core::default::Default for Test<T, U, V>
 			where
 				T: ::core::default::Default,
@@ -318,6 +337,7 @@ fn check_multiple_trait_bounds() -> Result<()> {
 				}
 			}
 
+			#[automatically_derived]
 			impl<T, U, V> ::core::cmp::Eq for Test<T, U, V>
 			where
 				T: ::core::cmp::Eq,
@@ -333,6 +353,7 @@ fn check_multiple_trait_bounds() -> Result<()> {
 				}
 			}
 
+			#[automatically_derived]
 			impl<T, U, V> ::core::hash::Hash for Test<T, U, V>
 			where
 				T: ::core::hash::Hash,
@@ -348,6 +369,7 @@ fn check_multiple_trait_bounds() -> Result<()> {
 				}
 			}
 
+			#[automatically_derived]
 			impl<T, U, V> ::core::cmp::Ord for Test<T, U, V>
 			where
 				T: ::core::cmp::Ord,
@@ -368,6 +390,7 @@ fn check_multiple_trait_bounds() -> Result<()> {
 				}
 			}
 
+			#[automatically_derived]
 			impl<T, U, V> ::core::cmp::PartialEq for Test<T, U, V>
 			where
 				T: ::core::cmp::PartialEq,
@@ -384,6 +407,7 @@ fn check_multiple_trait_bounds() -> Result<()> {
 				}
 			}
 
+			#[automatically_derived]
 			impl<T, U, V> ::core::cmp::PartialOrd for Test<T, U, V>
 			where
 				T: ::core::cmp::PartialOrd,

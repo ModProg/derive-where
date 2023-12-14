@@ -40,6 +40,7 @@ fn default() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl ::core::cmp::PartialOrd for Test {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -83,6 +84,7 @@ fn default_clone() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl ::core::clone::Clone for Test {
 				#[inline]
 				fn clone(&self) -> Self {
@@ -94,6 +96,7 @@ fn default_clone() -> Result<()> {
 				}
 			}
 
+			#[automatically_derived]
 			impl ::core::cmp::PartialOrd for Test {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -137,8 +140,10 @@ fn default_copy() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl ::core::marker::Copy for Test { }
 
+			#[automatically_derived]
 			impl ::core::cmp::PartialOrd for Test {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -190,6 +195,7 @@ fn default_reverse() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl ::core::cmp::PartialOrd for Test {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -244,6 +250,7 @@ fn default_mix() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl ::core::cmp::PartialOrd for Test {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -301,6 +308,7 @@ fn default_skip() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl ::core::cmp::PartialOrd for Test {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -352,6 +360,7 @@ fn default_expr() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl ::core::cmp::PartialOrd for Test {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -404,6 +413,7 @@ fn repr_c() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl ::core::cmp::PartialOrd for Test {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -452,6 +462,7 @@ fn repr_c_without_discriminant() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl ::core::cmp::PartialOrd for Test {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -496,6 +507,7 @@ fn repr_c_clone() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl ::core::clone::Clone for Test {
 				#[inline]
 				fn clone(&self) -> Self {
@@ -507,6 +519,7 @@ fn repr_c_clone() -> Result<()> {
 				}
 			}
 
+			#[automatically_derived]
 			impl ::core::cmp::PartialOrd for Test {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -547,6 +560,7 @@ fn repr_c_clone_without_discriminant() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl ::core::clone::Clone for Test {
 				#[inline]
 				fn clone(&self) -> Self {
@@ -558,6 +572,7 @@ fn repr_c_clone_without_discriminant() -> Result<()> {
 				}
 			}
 
+			#[automatically_derived]
 			impl ::core::cmp::PartialOrd for Test {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -602,8 +617,10 @@ fn repr_c_copy() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl ::core::marker::Copy for Test { }
 
+			#[automatically_derived]
 			impl ::core::cmp::PartialOrd for Test {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -644,8 +661,10 @@ fn repr_c_copy_without_discriminant() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl ::core::marker::Copy for Test { }
 
+			#[automatically_derived]
 			impl ::core::cmp::PartialOrd for Test {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -698,6 +717,7 @@ fn repr_c_reverse() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl ::core::cmp::PartialOrd for Test {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -753,6 +773,7 @@ fn repr_c_mix() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl ::core::cmp::PartialOrd for Test {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -811,6 +832,7 @@ fn repr_c_skip() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl ::core::cmp::PartialOrd for Test {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -863,6 +885,7 @@ fn repr_c_expr() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl ::core::cmp::PartialOrd for Test {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -924,6 +947,7 @@ fn repr_c_with_value() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl<T> ::core::cmp::PartialOrd for Test<T> {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -994,6 +1018,7 @@ fn repr_c_with_value_reverse() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl<T> ::core::cmp::PartialOrd for Test<T> {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -1064,6 +1089,7 @@ fn repr_c_with_value_mix() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl<T> ::core::cmp::PartialOrd for Test<T> {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -1136,6 +1162,7 @@ fn repr_c_with_value_skip() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl<T> ::core::cmp::PartialOrd for Test<T> {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -1206,6 +1233,7 @@ fn repr_c_with_value_expr() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl<T> ::core::cmp::PartialOrd for Test<T> {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -1270,6 +1298,7 @@ fn repr() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl ::core::cmp::PartialOrd for Test {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -1310,6 +1339,7 @@ fn repr_clone() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl ::core::clone::Clone for Test {
 				#[inline]
 				fn clone(&self) -> Self {
@@ -1321,6 +1351,7 @@ fn repr_clone() -> Result<()> {
 				}
 			}
 
+			#[automatically_derived]
 			impl ::core::cmp::PartialOrd for Test {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -1361,8 +1392,10 @@ fn repr_copy() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl ::core::marker::Copy for Test { }
 
+			#[automatically_derived]
 			impl ::core::cmp::PartialOrd for Test {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -1418,6 +1451,7 @@ fn repr_reverse() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl ::core::cmp::PartialOrd for Test {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -1475,6 +1509,7 @@ fn repr_mix() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl ::core::cmp::PartialOrd for Test {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -1534,6 +1569,7 @@ fn repr_skip() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl ::core::cmp::PartialOrd for Test {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -1589,6 +1625,7 @@ fn repr_expr() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl ::core::cmp::PartialOrd for Test {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -1650,6 +1687,7 @@ fn repr_with_value() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl<T> ::core::cmp::PartialOrd for Test<T> {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -1720,6 +1758,7 @@ fn repr_with_value_reverse() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl<T> ::core::cmp::PartialOrd for Test<T> {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -1790,6 +1829,7 @@ fn repr_with_value_mix() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl<T> ::core::cmp::PartialOrd for Test<T> {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -1862,6 +1902,7 @@ fn repr_with_value_skip() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl<T> ::core::cmp::PartialOrd for Test<T> {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -1932,6 +1973,7 @@ fn repr_with_value_expr() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl<T> ::core::cmp::PartialOrd for Test<T> {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {

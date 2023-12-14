@@ -13,6 +13,7 @@ fn struct_() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl<T> ::core::cmp::PartialOrd for Test<T> {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -37,6 +38,7 @@ fn tuple() -> Result<()> {
 			struct Test<T>(std::marker::PhantomData<T>);
 		},
 		quote! {
+			#[automatically_derived]
 			impl<T> ::core::cmp::PartialOrd for Test<T> {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -96,6 +98,7 @@ fn enum_() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl<T> ::core::cmp::PartialOrd for Test<T> {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -135,6 +138,7 @@ fn union_() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl<T> ::core::clone::Clone for Test<T> {
 				#[inline]
 				fn clone(&self) -> Self {
@@ -142,6 +146,7 @@ fn union_() -> Result<()> {
 				}
 			}
 
+			#[automatically_derived]
 			impl<T> ::core::marker::Copy for Test<T>
 			{ }
 		},
@@ -157,6 +162,7 @@ fn bound() -> Result<()> {
 			struct Test<T, U>(T, std::marker::PhantomData<U>);
 		},
 		quote! {
+			#[automatically_derived]
 			impl<T, U> ::core::cmp::Ord for Test<T, U>
 			where T: ::core::cmp::Ord
 			{
@@ -175,6 +181,7 @@ fn bound() -> Result<()> {
 				}
 			}
 
+			#[automatically_derived]
 			impl<T, U> ::core::cmp::PartialOrd for Test<T, U> {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {

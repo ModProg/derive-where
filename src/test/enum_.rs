@@ -14,6 +14,7 @@ fn default_struct() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl<T> ::core::default::Default for Test<T>
 			where T: ::core::default::Default
 			{
@@ -36,6 +37,7 @@ fn default_tuple() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl<T> ::core::default::Default for Test<T>
 			where T: ::core::default::Default
 			{
@@ -59,6 +61,7 @@ fn default_unit() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl<T> ::core::default::Default for Test<T>
 			where T: ::core::default::Default
 			{
@@ -80,6 +83,7 @@ fn one_data() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl<T> ::core::cmp::PartialEq for Test<T> {
 				#[inline]
 				fn eq(&self, __other: &Self) -> bool {
@@ -90,6 +94,7 @@ fn one_data() -> Result<()> {
 				}
 			}
 
+			#[automatically_derived]
 			impl<T> ::core::cmp::PartialOrd for Test<T> {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -147,6 +152,7 @@ fn two_data() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl<T> ::core::cmp::PartialEq for Test<T> {
 				#[inline]
 				fn eq(&self, __other: &Self) -> bool {
@@ -164,6 +170,7 @@ fn two_data() -> Result<()> {
 				}
 			}
 
+			#[automatically_derived]
 			impl<T> ::core::cmp::PartialOrd for Test<T> {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -229,6 +236,7 @@ fn unit() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl<T> ::core::cmp::PartialEq for Test<T> {
 				#[inline]
 				fn eq(&self, __other: &Self) -> bool {
@@ -244,6 +252,7 @@ fn unit() -> Result<()> {
 				}
 			}
 
+			#[automatically_derived]
 			impl<T> ::core::cmp::PartialOrd for Test<T> {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -304,6 +313,7 @@ fn struct_unit() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl<T> ::core::cmp::PartialEq for Test<T> {
 				#[inline]
 				fn eq(&self, __other: &Self) -> bool {
@@ -319,6 +329,7 @@ fn struct_unit() -> Result<()> {
 				}
 			}
 
+			#[automatically_derived]
 			impl<T> ::core::cmp::PartialOrd for Test<T> {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
@@ -379,6 +390,7 @@ fn tuple_unit() -> Result<()> {
 			}
 		},
 		quote! {
+			#[automatically_derived]
 			impl<T> ::core::cmp::PartialEq for Test<T> {
 				#[inline]
 				fn eq(&self, __other: &Self) -> bool {
@@ -394,6 +406,7 @@ fn tuple_unit() -> Result<()> {
 				}
 			}
 
+			#[automatically_derived]
 			impl<T> ::core::cmp::PartialOrd for Test<T> {
 				#[inline]
 				fn partial_cmp(&self, __other: &Self) -> ::core::option::Option<::core::cmp::Ordering> {
