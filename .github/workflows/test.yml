@@ -22,9 +22,9 @@ jobs:
       fail-fast: false
       matrix:
         rust:
-          - { version: 1.57.0, msrv: true }
-          - { version: stable, msrv: false }
-          - { version: nightly, msrv: false }
+          - 1.57.0
+          - stable
+          - nightly
         features:
           - ""
           - --features safe
@@ -33,15 +33,17 @@ jobs:
           - --features safe,zeroize
           - --features safe,zeroize-on-drop
         include:
-          - rust: { version: nightly, msrv: false }
+          - rust: 1.57.0
+            msrv: true
+          - rust: nightly
             features: --features nightly
-          - rust: { version: nightly, msrv: false }
+          - rust: nightly
             features: --features safe,nightly
-          - rust: { version: nightly, msrv: false }
+          - rust: nightly
             features: --features nightly,zeroize
-          - rust: { version: nightly, msrv: false }
+          - rust: nightly
             features: --features nightly,zeroize-on-drop
-          - rust: { version: nightly, msrv: false }
+          - rust: nightly
             features: --all-features
 
     steps:
@@ -49,10 +51,10 @@ jobs:
         uses: actions/checkout@v4
       - name: Install Rust
         run: |
-          rustup toolchain install ${{ matrix.rust.version }} --profile minimal --allow-downgrade
-          rustup default ${{ matrix.rust.version }}
+          rustup toolchain install ${{ matrix.rust }} --profile minimal --allow-downgrade
+          rustup default ${{ matrix.rust }}
       - name: Pin `zeroize` for MSRV
-        if: matrix.rust.msrv
+        if: matrix.msrv
         run:
           cargo update -p zeroize --precise 1.6.0
       - name: Build
@@ -74,9 +76,9 @@ jobs:
       fail-fast: false
       matrix:
         rust:
-          - { version: 1.57.0, msrv: true }
-          - { version: stable, msrv: false }
-          - { version: nightly, msrv: false }
+          - 1.57.0
+          - stable
+          - nightly
         features:
           - ""
           - --features safe
@@ -85,15 +87,17 @@ jobs:
           - --features safe,zeroize
           - --features safe,zeroize-on-drop
         include:
-          - rust: { version: nightly, msrv: false }
+          - rust: 1.57.0
+            msrv: true
+          - rust: nightly
             features: --features nightly
-          - rust: { version: nightly, msrv: false }
+          - rust: nightly
             features: --features safe,nightly
-          - rust: { version: nightly, msrv: false }
+          - rust: nightly
             features: --features nightly,zeroize
-          - rust: { version: nightly, msrv: false }
+          - rust: nightly
             features: --features nightly,zeroize-on-drop
-          - rust: { version: nightly, msrv: false }
+          - rust: nightly
             features: --all-features
 
     steps:
@@ -101,10 +105,10 @@ jobs:
         uses: actions/checkout@v4
       - name: Install Rust
         run: |
-          rustup toolchain install ${{ matrix.rust.version }} --target thumbv6m-none-eabi --profile minimal --allow-downgrade
-          rustup default ${{ matrix.rust.version }}
+          rustup toolchain install ${{ matrix.rust }} --target thumbv6m-none-eabi --profile minimal --allow-downgrade
+          rustup default ${{ matrix.rust }}
       - name: Pin `zeroize` for MSRV
-        if: matrix.rust.msrv
+        if: matrix.msrv
         run:
           cargo update -p zeroize --precise 1.6.0
       - name: Build
