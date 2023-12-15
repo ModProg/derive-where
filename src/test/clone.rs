@@ -95,8 +95,59 @@ fn union_() -> Result<()> {
 				fn clone(&self) -> Self {
 					struct __AssertCopy<__T: ::core::marker::Copy + ?::core::marker::Sized>(::core::marker::PhantomData<__T>);
 					let _: __AssertCopy<Self>;
+					*self
 				}
 			}
+		},
+	)
+}
+
+#[test]
+fn no_bound() -> Result<()> {
+	test_derive(
+		quote! {
+			#[derive_where(Clone, Copy)]
+			struct Test<T>(std::marker::PhantomData<T>);
+		},
+		quote! {
+			#[automatically_derived]
+			impl<T> ::core::clone::Clone for Test<T>
+			{
+				#[inline]
+				fn clone(&self) -> Self {
+					*self
+				}
+			}
+
+			#[automatically_derived]
+			impl<T> ::core::marker::Copy for Test<T>
+			{ }
+		},
+	)
+}
+
+#[test]
+fn custom_bound() -> Result<()> {
+	test_derive(
+		quote! {
+			#[derive_where(Clone, Copy; T: Trait)]
+			struct Test<T>(T);
+		},
+		quote! {
+			#[automatically_derived]
+			impl<T> ::core::clone::Clone for Test<T>
+			where T: Trait
+			{
+				#[inline]
+				fn clone(&self) -> Self {
+					*self
+				}
+			}
+
+			#[automatically_derived]
+			impl<T> ::core::marker::Copy for Test<T>
+			where T: Trait
+			{ }
 		},
 	)
 }

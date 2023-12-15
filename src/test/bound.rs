@@ -7,7 +7,7 @@ use super::test_derive;
 fn bound() -> Result<()> {
 	test_derive(
 		quote! {
-			#[derive_where(Clone; T)]
+			#[derive_where(Clone, Copy; T)]
 			struct Test<T, U>(T, std::marker::PhantomData<U>);
 		},
 		quote! {
@@ -22,6 +22,11 @@ fn bound() -> Result<()> {
 					}
 				}
 			}
+
+			#[automatically_derived]
+			impl<T, U> ::core::marker::Copy for Test<T, U>
+			where T: ::core::marker::Copy
+			{ }
 		},
 	)
 }
@@ -30,7 +35,7 @@ fn bound() -> Result<()> {
 fn bound_multiple() -> Result<()> {
 	test_derive(
 		quote! {
-			#[derive_where(Clone; T, U)]
+			#[derive_where(Clone, Copy; T, U)]
 			struct Test<T, U, V>((T, U), std::marker::PhantomData<V>);
 		},
 		quote! {
@@ -47,6 +52,13 @@ fn bound_multiple() -> Result<()> {
 					}
 				}
 			}
+
+			#[automatically_derived]
+			impl<T, U, V> ::core::marker::Copy for Test<T, U, V>
+			where
+				T: ::core::marker::Copy,
+				U: ::core::marker::Copy
+			{ }
 		},
 	)
 }

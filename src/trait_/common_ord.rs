@@ -14,13 +14,13 @@ use syn::{parse_quote, Expr, ExprLit, LitInt, Path};
 
 #[cfg(not(feature = "nightly"))]
 use crate::{item::Representation, Discriminant, Trait};
-use crate::{Data, DeriveTrait, Item, SimpleType, SplitGenerics};
+use crate::{Data, DeriveTrait, DeriveWhere, Item, SimpleType, SplitGenerics};
 
 /// Build signature for [`PartialOrd`] and [`Ord`].
 pub fn build_ord_signature(
 	item: &Item,
 	#[cfg_attr(feature = "nightly", allow(unused_variables))] generics: &SplitGenerics<'_>,
-	#[cfg_attr(feature = "nightly", allow(unused_variables))] traits: &[DeriveTrait],
+	#[cfg_attr(feature = "nightly", allow(unused_variables))] derive_where: &DeriveWhere,
 	trait_: &DeriveTrait,
 	body: &TokenStream,
 ) -> TokenStream {
@@ -173,13 +173,13 @@ pub fn build_ord_signature(
 								}
 							});
 
-							if traits.iter().any(|trait_| trait_ == Trait::Copy) {
+							if derive_where.contains(Trait::Copy) {
 								quote! {
 									#validate
 
 									#path::#method(&(*self as isize), &(*__other as isize))
 								}
-							} else if traits.iter().any(|trait_| trait_ == Trait::Clone) {
+							} else if derive_where.contains(Trait::Clone) {
 								let clone = DeriveTrait::Clone.path();
 								quote! {
 									#validate
@@ -215,11 +215,11 @@ pub fn build_ord_signature(
 							)
 						}
 						Discriminant::UnitRepr(repr) => {
-							if traits.iter().any(|trait_| trait_ == Trait::Copy) {
+							if derive_where.contains(Trait::Copy) {
 								quote! {
 									#path::#method(&(*self as #repr), &(*__other as #repr))
 								}
-							} else if traits.iter().any(|trait_| trait_ == Trait::Clone) {
+							} else if derive_where.contains(Trait::Clone) {
 								let clone = DeriveTrait::Clone.path();
 								quote! {
 									#path::#method(&(#clone::clone(self) as #repr), &(#clone::clone(__other) as #repr))
