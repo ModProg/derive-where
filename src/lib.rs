@@ -55,7 +55,7 @@
 //!
 //! ## Generic type bounds
 //!
-//! Separated from the list of traits with a semi-colon, types to bind to can be
+//! Separated from the list of traits with a semicolon, types to bind to can be
 //! specified. This example will restrict the implementation for `Example` to
 //! `T: Clone`:
 //!
@@ -307,7 +307,7 @@
 //! ## Supported items
 //!
 //! Structs, tuple structs, unions and enums are supported. Derive-where tries
-//! it's best to discourage usage that could be covered by std's `derive`. For
+//! its best to discourage usage that could be covered by std's `derive`. For
 //! example unit structs and enums only containing unit variants aren't
 //! supported.
 //!
