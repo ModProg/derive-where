@@ -588,7 +588,7 @@ pub fn derive_where_actual(input: proc_macro::TokenStream) -> proc_macro::TokenS
 		clean_item.span()
 	};
 
-	match { Input::from_input(span, &item) } {
+	match Input::from_input(span, &item) {
 		Ok(Input {
 			derive_wheres,
 			generics,

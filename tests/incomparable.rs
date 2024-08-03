@@ -1,3 +1,4 @@
+#![allow(unused)]
 use derive_where::derive_where;
 
 macro_rules! incomparable {

@@ -12,6 +12,7 @@ use crate::{Data, Error, Incomparable, Trait};
 pub enum Item<'a> {
 	/// Enum.
 	Enum {
+		#[cfg_attr(feature = "nightly", allow(unused))]
 		/// Type of discriminant used.
 		discriminant: Discriminant,
 		/// [`struct@Ident`] of this enum.
@@ -96,6 +97,7 @@ impl Item<'_> {
 /// Type of discriminant used.
 #[derive(Clone, Copy)]
 #[cfg_attr(test, derive(Debug))]
+#[cfg_attr(feature = "nightly", allow(unused))]
 pub enum Discriminant {
 	/// The enum has only a single variant.
 	Single,
