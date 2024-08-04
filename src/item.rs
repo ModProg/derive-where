@@ -1,10 +1,16 @@
 //! Intermediate representation of item data.
 
-use proc_macro2::{Ident, Span, TokenStream, TokenTree};
-use quote::ToTokens;
-use syn::{punctuated::Punctuated, spanned::Spanned, Attribute, Meta, Result, Token, Variant};
+use proc_macro2::Ident;
+#[cfg(not(feature = "nightly"))]
+use {
+	proc_macro2::{Span, TokenStream, TokenTree},
+	quote::ToTokens,
+	syn::{punctuated::Punctuated, spanned::Spanned, Attribute, Meta, Result, Token, Variant},
+};
 
-use crate::{Data, Error, Incomparable, Trait};
+#[cfg(not(feature = "nightly"))]
+use crate::Error;
+use crate::{Data, Incomparable, Trait};
 
 /// Fields or variants of an item.
 #[cfg_attr(test, derive(Debug))]
@@ -12,6 +18,7 @@ use crate::{Data, Error, Incomparable, Trait};
 pub enum Item<'a> {
 	/// Enum.
 	Enum {
+		#[cfg(not(feature = "nightly"))]
 		/// Type of discriminant used.
 		discriminant: Discriminant,
 		/// [`struct@Ident`] of this enum.
@@ -96,6 +103,7 @@ impl Item<'_> {
 /// Type of discriminant used.
 #[derive(Clone, Copy)]
 #[cfg_attr(test, derive(Debug))]
+#[cfg(not(feature = "nightly"))]
 pub enum Discriminant {
 	/// The enum has only a single variant.
 	Single,
@@ -109,6 +117,7 @@ pub enum Discriminant {
 	DataRepr(Representation),
 }
 
+#[cfg(not(feature = "nightly"))]
 impl Discriminant {
 	/// Parse the representation of an item.
 	pub fn parse(attrs: &[Attribute], variants: &Punctuated<Variant, Token![,]>) -> Result<Self> {
@@ -165,6 +174,7 @@ impl Discriminant {
 /// The type used to represent an enum.
 #[derive(Clone, Copy)]
 #[cfg_attr(test, derive(Debug))]
+#[cfg(not(feature = "nightly"))]
 pub enum Representation {
 	/// [`u8`].
 	U8,
@@ -192,6 +202,7 @@ pub enum Representation {
 	ISize,
 }
 
+#[cfg(not(feature = "nightly"))]
 impl Representation {
 	/// Parse an [`struct@Ident`] to a valid representation if it is.
 	fn parse(ident: &Ident) -> Option<Self> {
@@ -245,6 +256,7 @@ impl Representation {
 	}
 }
 
+#[cfg(not(feature = "nightly"))]
 impl ToTokens for Representation {
 	fn to_tokens(&self, tokens: &mut TokenStream) {
 		tokens.extend(self.to_token());

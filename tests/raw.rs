@@ -1,3 +1,4 @@
+#![allow(unused)]
 mod util;
 
 use derive_where::derive_where;

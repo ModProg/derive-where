@@ -55,7 +55,7 @@
 //!
 //! ## Generic type bounds
 //!
-//! Separated from the list of traits with a semi-colon, types to bind to can be
+//! Separated from the list of traits with a semicolon, types to bind to can be
 //! specified. This example will restrict the implementation for `Example` to
 //! `T: Clone`:
 //!
@@ -307,7 +307,7 @@
 //! ## Supported items
 //!
 //! Structs, tuple structs, unions and enums are supported. Derive-where tries
-//! it's best to discourage usage that could be covered by std's `derive`. For
+//! its best to discourage usage that could be covered by std's `derive`. For
 //! example unit structs and enums only containing unit variants aren't
 //! supported.
 //!
@@ -408,6 +408,8 @@ use util::MetaListExt;
 
 #[cfg(feature = "zeroize")]
 use self::attr::ZeroizeFqs;
+#[cfg(not(feature = "nightly"))]
+use self::item::Discriminant;
 use self::{
 	attr::{
 		Default, DeriveTrait, DeriveWhere, FieldAttr, Incomparable, ItemAttr, Skip, SkipGroup,
@@ -416,7 +418,7 @@ use self::{
 	data::{Data, DataType, Field, SimpleType},
 	error::Error,
 	input::Input,
-	item::{Discriminant, Item},
+	item::Item,
 	trait_::{Trait, TraitImpl},
 	util::Either,
 };
@@ -588,7 +590,7 @@ pub fn derive_where_actual(input: proc_macro::TokenStream) -> proc_macro::TokenS
 		clean_item.span()
 	};
 
-	match { Input::from_input(span, &item) } {
+	match Input::from_input(span, &item) {
 		Ok(Input {
 			derive_wheres,
 			generics,

@@ -1,4 +1,5 @@
 #![cfg(feature = "zeroize")]
+#![allow(unused)]
 
 extern crate zeroize_ as zeroize;
 

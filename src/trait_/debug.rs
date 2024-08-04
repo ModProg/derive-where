@@ -79,7 +79,7 @@ impl TraitImpl for Debug {
 			SimpleType::Unit(_) => {
 				quote! { #self_pattern => ::core::fmt::Formatter::write_str(__f, #debug_name), }
 			}
-			SimpleType::Union(_) => unreachable!("unexpected trait for union"),
+			SimpleType::Union => unreachable!("unexpected trait for union"),
 		}
 	}
 }

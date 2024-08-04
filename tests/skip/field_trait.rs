@@ -1,3 +1,4 @@
+#![allow(unused)]
 use std::cmp::Ordering;
 
 use derive_where::derive_where;

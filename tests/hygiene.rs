@@ -1,4 +1,4 @@
-#![allow(clippy::clone_on_copy)]
+#![allow(clippy::clone_on_copy, unused)]
 
 mod util;
 

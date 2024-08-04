@@ -47,3 +47,6 @@ zeroize_ = { version = "1.5", package = "zeroize", default-features = false }
 [package.metadata.docs.rs]
 all-features = true
 targets = []
+
+[workspace.metadata.typos]
+default.extend-words.wheres = "wheres"

@@ -69,7 +69,7 @@ impl TraitImpl for Hash {
 					}
 				}
 			}
-			SimpleType::Union(_) => unreachable!("unexpected trait for union"),
+			SimpleType::Union => unreachable!("unexpected trait for union"),
 		}
 	}
 }

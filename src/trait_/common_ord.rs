@@ -461,7 +461,7 @@ pub fn build_incomparable_pattern(variants: &[Data]) -> Option<TokenStream> {
 		.map(|variant @ Data { path, .. }| match variant.simple_type() {
 			SimpleType::Struct(_) => quote!(#path{..}),
 			SimpleType::Tuple(_) => quote!(#path(..)),
-			SimpleType::Union(_) => unreachable!("enum variants cannot be unions"),
+			SimpleType::Union => unreachable!("enum variants cannot be unions"),
 			SimpleType::Unit(_) => quote!(#path),
 		})
 		.peekable();
