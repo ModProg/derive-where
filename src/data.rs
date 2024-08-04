@@ -4,7 +4,9 @@ mod field;
 mod fields;
 
 use proc_macro2::Span;
-use syn::{Expr, FieldsNamed, Ident, Pat, PatPath, Path, Result, Variant};
+#[cfg(not(feature = "nightly"))]
+use syn::Expr;
+use syn::{FieldsNamed, Ident, Pat, PatPath, Path, Result, Variant};
 
 pub use self::{
 	field::{Field, Member},
@@ -27,7 +29,7 @@ pub struct Data<'a> {
 	pub path: Path,
 	/// [Type](DataType) of this struct, union or variant.
 	pub type_: DataType<'a>,
-	#[cfg_attr(feature = "nightly", allow(unused))]
+	#[cfg(not(feature = "nightly"))]
 	/// Discriminant of this variant.
 	pub discriminant: Option<&'a Expr>,
 }
@@ -70,7 +72,7 @@ pub enum SimpleType<'a> {
 	/// Tuple struct or tuple variant.
 	Tuple(&'a Fields<'a>),
 	/// Union.
-	Union(#[allow(unused)] &'a Fields<'a>),
+	Union,
 	/// Unit variant.
 	Unit(&'a Pat),
 }
@@ -101,6 +103,7 @@ impl<'a> Data<'a> {
 						ident,
 						path,
 						type_: DataType::Struct(fields),
+						#[cfg(not(feature = "nightly"))]
 						discriminant: None,
 					})
 				}
@@ -118,6 +121,7 @@ impl<'a> Data<'a> {
 						ident,
 						path,
 						type_: DataType::Tuple(fields),
+						#[cfg(not(feature = "nightly"))]
 						discriminant: None,
 					})
 				}
@@ -132,6 +136,7 @@ impl<'a> Data<'a> {
 					qself: None,
 					path,
 				})),
+				#[cfg(not(feature = "nightly"))]
 				discriminant: None,
 			}),
 			syn::Fields::Unit => Err(Error::item_empty(span)),
@@ -159,6 +164,7 @@ impl<'a> Data<'a> {
 				ident,
 				path,
 				type_: DataType::Union(fields),
+				#[cfg(not(feature = "nightly"))]
 				discriminant: None,
 			})
 		}
@@ -192,6 +198,7 @@ impl<'a> Data<'a> {
 						default,
 						type_: VariantType::Struct(fields),
 					},
+					#[cfg(not(feature = "nightly"))]
 					discriminant: variant.discriminant.as_ref().map(|(_, expr)| expr),
 				})
 			}
@@ -208,6 +215,7 @@ impl<'a> Data<'a> {
 						default,
 						type_: VariantType::Tuple(fields),
 					},
+					#[cfg(not(feature = "nightly"))]
 					discriminant: variant.discriminant.as_ref().map(|(_, expr)| expr),
 				})
 			}
@@ -227,6 +235,7 @@ impl<'a> Data<'a> {
 						default,
 						type_: VariantType::Unit(pattern),
 					},
+					#[cfg(not(feature = "nightly"))]
 					discriminant: variant.discriminant.as_ref().map(|(_, expr)| expr),
 				})
 			}
@@ -328,7 +337,7 @@ impl<'a> Data<'a> {
 				type_: VariantType::Unit(pattern),
 				..
 			} => SimpleType::Unit(pattern),
-			DataType::Union(fields) => SimpleType::Union(fields),
+			DataType::Union(_) => SimpleType::Union,
 		}
 	}
 

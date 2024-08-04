@@ -123,7 +123,7 @@ impl TraitImpl for Clone {
 			SimpleType::Unit(pattern) => {
 				quote! { #pattern => #pattern, }
 			}
-			SimpleType::Union(_) => TokenStream::new(),
+			SimpleType::Union => TokenStream::new(),
 		}
 	}
 }

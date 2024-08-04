@@ -57,7 +57,7 @@ impl TraitImpl for Ord {
 					}
 				}
 				SimpleType::Unit(_) => TokenStream::new(),
-				SimpleType::Union(_) => unreachable!("unexpected trait for union"),
+				SimpleType::Union => unreachable!("unexpected trait for union"),
 			}
 		}
 	}

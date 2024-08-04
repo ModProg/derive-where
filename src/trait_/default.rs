@@ -60,7 +60,7 @@ impl TraitImpl for Default {
 				SimpleType::Unit(_) => {
 					quote! { #path }
 				}
-				SimpleType::Union(_) => unreachable!("unexpected trait for union"),
+				SimpleType::Union => unreachable!("unexpected trait for union"),
 			}
 		}
 		// Skip `Default` implementation if variant isn't marked with a `default` attribute.

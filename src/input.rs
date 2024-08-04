@@ -5,7 +5,9 @@ use syn::{DeriveInput, GenericParam, Generics, ImplGenerics, Result, TypeGeneric
 
 #[cfg(feature = "zeroize")]
 use crate::DeriveTrait;
-use crate::{Data, DeriveWhere, Discriminant, Either, Error, Item, ItemAttr, Trait};
+#[cfg(not(feature = "nightly"))]
+use crate::Discriminant;
+use crate::{Data, DeriveWhere, Either, Error, Item, ItemAttr, Trait};
 
 /// Parsed input.
 pub struct Input<'a> {
@@ -51,6 +53,7 @@ impl<'a> Input<'a> {
 			)
 			.map(Item::Item)?,
 			syn::Data::Enum(data) => {
+				#[cfg(not(feature = "nightly"))]
 				let discriminant = Discriminant::parse(attrs, &data.variants)?;
 
 				let variants = data
@@ -99,6 +102,7 @@ impl<'a> Input<'a> {
 				}
 
 				Item::Enum {
+					#[cfg(not(feature = "nightly"))]
 					discriminant,
 					ident,
 					variants,

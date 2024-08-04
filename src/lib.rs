@@ -408,6 +408,8 @@ use util::MetaListExt;
 
 #[cfg(feature = "zeroize")]
 use self::attr::ZeroizeFqs;
+#[cfg(not(feature = "nightly"))]
+use self::item::Discriminant;
 use self::{
 	attr::{
 		Default, DeriveTrait, DeriveWhere, FieldAttr, Incomparable, ItemAttr, Skip, SkipGroup,
@@ -416,7 +418,7 @@ use self::{
 	data::{Data, DataType, Field, SimpleType},
 	error::Error,
 	input::Input,
-	item::{Discriminant, Item},
+	item::Item,
 	trait_::{Trait, TraitImpl},
 	util::Either,
 };

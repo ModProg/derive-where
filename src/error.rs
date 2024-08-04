@@ -213,12 +213,14 @@ impl Error {
 	}
 
 	/// Unknown `repr`.
+	#[cfg(not(feature = "nightly"))]
 	pub fn repr_unknown(span: Span) -> syn::Error {
 		syn::Error::new(span, "found unknown representation")
 	}
 
 	/// Invalid enum with non-empty variants and custom discriminants without an
 	/// integer representation.
+	#[cfg(not(feature = "nightly"))]
 	pub fn repr_discriminant_invalid(span: Span) -> syn::Error {
 		syn::Error::new(
 			span,
