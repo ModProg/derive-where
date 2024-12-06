@@ -53,10 +53,11 @@ jobs:
         run: |
           rustup toolchain install ${{ matrix.rust }} --profile minimal --allow-downgrade
           rustup default ${{ matrix.rust }}
-      - name: Pin `zeroize` for MSRV
+      - name: Pin dependencies for MSRV
         if: matrix.msrv
-        run:
+        run: |
           cargo update -p zeroize --precise 1.6.0
+          cargo update -p pretty_assertions --precise 1.4.0
       - name: Build
         run:
           cargo build --workspace ${{ matrix.features }}
@@ -107,10 +108,11 @@ jobs:
         run: |
           rustup toolchain install ${{ matrix.rust }} --target thumbv6m-none-eabi --profile minimal --allow-downgrade
           rustup default ${{ matrix.rust }}
-      - name: Pin `zeroize` for MSRV
+      - name: Pin dependencies for MSRV
         if: matrix.msrv
-        run:
+        run: |
           cargo update -p zeroize --precise 1.6.0
+          cargo update -p pretty_assertions --precise 1.4.0
       - name: Build
         run:
           cargo build --target thumbv6m-none-eabi ${{ matrix.features }} -p ensure-no-std
