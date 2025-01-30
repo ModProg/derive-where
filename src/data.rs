@@ -311,7 +311,7 @@ impl<'a> Data<'a> {
 	}
 
 	/// Returns `true` if all fields are skipped with that [`Trait`].
-	fn skip(&self, trait_: Trait) -> bool {
+	pub fn skip(&self, trait_: Trait) -> bool {
 		self.skip_inner.trait_skipped(trait_)
 			|| match self.fields() {
 				Either::Left(fields) => fields.skip(trait_),

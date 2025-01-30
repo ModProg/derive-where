@@ -45,4 +45,7 @@ struct DuplicateTraitSeparate<T>(
 #[derive_where(Clone; T)]
 struct MissingDeriveTrait<T>(#[derive_where(skip(Debug))] PhantomData<T>);
 
+#[derive_where(Clone, Copy)]
+struct SkipCloneWhileCopy<T>(#[derive_where(skip(Clone))] PhantomData<T>);
+
 fn main() {}

@@ -51,3 +51,9 @@ error: trait to be skipped isn't being implemented
    |
 46 | struct MissingDeriveTrait<T>(#[derive_where(skip(Debug))] PhantomData<T>);
    |                                                  ^^^^^
+
+error: Cannot skip `Clone` while deriving `Copy`
+  --> tests/ui/skip.rs:49:50
+   |
+49 | struct SkipCloneWhileCopy<T>(#[derive_where(skip(Clone))] PhantomData<T>);
+   |                                                  ^^^^^

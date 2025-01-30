@@ -277,6 +277,11 @@ impl Error {
 		)
 	}
 
+	/// Unsupported `skip(Clone)` while deriving copy.
+	pub fn unable_to_skip_clone_while_deriving_copy(skip_clone: Span) -> syn::Error {
+		syn::Error::new(skip_clone, "Cannot skip `Clone` while deriving `Copy`")
+	}
+
 	/// List of available [`Trait`](crate::Trait)s.
 	fn trait_list() -> String {
 		[
@@ -300,6 +305,7 @@ impl Error {
 	/// List of available [`SkipGroup`](crate::SkipGroup)s.
 	fn skip_group_list() -> String {
 		[
+			"Clone",
 			"Debug",
 			"EqHashOrd",
 			"Hash",

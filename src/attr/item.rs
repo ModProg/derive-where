@@ -259,7 +259,7 @@ impl DeriveWhere {
 	pub fn any_skip(&self) -> bool {
 		self.traits
 			.iter()
-			.any(|trait_| SkipGroup::trait_supported(**trait_))
+			.any(|trait_| SkipGroup::trait_supported_by_skip_all(**trait_))
 	}
 
 	/// Create [`WhereClause`] for the given parameters.

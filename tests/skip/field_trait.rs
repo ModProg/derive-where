@@ -4,7 +4,8 @@ use std::cmp::Ordering;
 use derive_where::derive_where;
 
 use crate::util::{
-	self, AssertDebug, AssertHash, AssertOrd, AssertPartialEq, AssertPartialOrd, Wrapper,
+	self, AssertClone, AssertDebug, AssertHash, AssertOrd, AssertPartialEq, AssertPartialOrd,
+	Wrapper,
 };
 
 #[test]
@@ -17,6 +18,18 @@ fn debug() {
 	let _ = AssertDebug(&test_1);
 
 	assert_eq!(format!("{:?}", test_1), "Test");
+}
+
+#[test]
+fn clone() {
+	#[derive_where(Clone)]
+	struct Test<T>(#[derive_where(skip(Clone))] Wrapper<T>);
+
+	let test_1 = Test(42.into());
+
+	let _ = AssertClone(&test_1);
+
+	assert_eq!(test_1.clone().0, 0)
 }
 
 #[test]

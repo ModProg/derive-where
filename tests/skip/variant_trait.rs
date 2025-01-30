@@ -2,9 +2,11 @@
 use std::cmp::Ordering;
 
 use derive_where::derive_where;
+use pretty_assertions::assert_eq;
 
 use crate::util::{
-	self, AssertDebug, AssertHash, AssertOrd, AssertPartialEq, AssertPartialOrd, Wrapper,
+	self, AssertClone, AssertDebug, AssertHash, AssertOrd, AssertPartialEq, AssertPartialOrd,
+	Wrapper,
 };
 
 #[test]
@@ -20,6 +22,22 @@ fn debug() {
 	let _ = AssertDebug(&test_1);
 
 	assert_eq!(format!("{:?}", test_1), "A");
+}
+
+#[test]
+fn clone() {
+	#[derive_where(Clone)]
+	enum Test<T> {
+		#[derive_where(skip_inner(Clone))]
+		A(Wrapper<T>),
+	}
+
+	let test_1 = Test::A(42.into());
+
+	let _ = AssertClone(&test_1);
+
+	let Test::A(cloned) = test_1.clone();
+	assert_eq!(cloned, 0);
 }
 
 #[test]
@@ -73,9 +91,9 @@ fn ord() {
 
 #[test]
 fn all() {
-	#[derive_where(Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+	#[derive_where(Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Clone)]
 	enum Test<T> {
-		#[derive_where(skip_inner(Debug, EqHashOrd))]
+		#[derive_where(skip_inner(Debug, EqHashOrd, Clone))]
 		A(Wrapper<T>),
 	}
 
@@ -85,12 +103,15 @@ fn all() {
 	let test_ge = Test::A(43.into());
 
 	let _ = AssertDebug(&test_1);
+	let _ = AssertClone(&test_1);
 	let _ = AssertHash(&test_1);
 	let _ = AssertOrd(&test_1);
 	let _ = AssertPartialEq(&test_1);
 	let _ = AssertPartialOrd(&test_1);
 
 	assert_eq!(format!("{:?}", test_1), "A");
+
+	assert_eq!(test_1.clone(), Test::A(0.into()));
 
 	util::hash_eq(&test_1, &test_2);
 	util::hash_eq(&test_1, &test_ge);

@@ -1,5 +1,5 @@
-error: unsupported skip group, expected one of Debug, EqHashOrd, Hash, Zeroize
+error: unsupported skip group, expected one of Clone, Debug, EqHashOrd, Hash, Zeroize
  --> tests/ui/zeroize/item_skip.rs:6:27
   |
-6 | #[derive_where(skip_inner(Clone))]
-  |                           ^^^^^
+6 | #[derive_where(skip_inner(Copy))]
+  |                           ^^^^
