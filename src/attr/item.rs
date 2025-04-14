@@ -241,10 +241,10 @@ impl DeriveWhere {
 	/// Returns `true` if the given generic type parameter if present.
 	pub fn has_type_param(&self, type_param: &Ident) -> bool {
 		self.generics.iter().any(|generic| match generic {
-			Generic::NoBound(GenericNoBound(
-				_lifetimes,
-				Type::Path(TypePath { qself: None, path }),
-			)) => {
+			Generic::NoBound(GenericNoBound {
+				lifetimes: _,
+				ty: Type::Path(TypePath { qself: None, path }),
+			}) => {
 				if let Some(ident) = path.get_ident() {
 					ident == type_param
 				} else {
@@ -284,9 +284,12 @@ impl DeriveWhere {
 					.predicates
 					.push(WherePredicate::Type(match generic {
 						Generic::CustomBound(type_bound) => type_bound.clone(),
-						Generic::NoBound(GenericNoBound(lifetimes, path)) => PredicateType {
-							lifetimes: lifetimes.clone(),
-							bounded_ty: path.clone(),
+						Generic::NoBound(GenericNoBound {
+							lifetimes: bound_lifetimes,
+							ty,
+						}) => PredicateType {
+							lifetimes: bound_lifetimes.clone(),
+							bounded_ty: ty.clone(),
 							colon_token: <Token![:]>::default(),
 							bounds: trait_.where_bounds(item),
 						},
@@ -299,11 +302,19 @@ impl DeriveWhere {
 /// Holds the first part of a [`PredicateType`] prior to the `:`. Optionally contains lifetime `for`
 /// bindings.
 #[derive(Eq, PartialEq)]
-pub struct GenericNoBound(Option<BoundLifetimes>, Type);
+pub struct GenericNoBound {
+	/// Any `for<'a, 'b, 'etc>` bindings for the type.
+	lifetimes: Option<BoundLifetimes>,
+	/// The type bound to the [`DeriveTrait`].
+	ty: Type,
+}
 
 impl Parse for GenericNoBound {
 	fn parse(input: ParseStream) -> Result<Self> {
-		Ok(Self(input.parse()?, input.parse()?))
+		Ok(Self {
+			lifetimes: input.parse()?,
+			ty: input.parse()?,
+		})
 	}
 }
 
