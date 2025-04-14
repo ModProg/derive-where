@@ -299,8 +299,8 @@ impl DeriveWhere {
 	}
 }
 
-/// Holds the first part of a [`PredicateType`] prior to the `:`. Optionally contains lifetime `for`
-/// bindings.
+/// Holds the first part of a [`PredicateType`] prior to the `:`. Optionally
+/// contains lifetime `for` bindings.
 #[derive(Eq, PartialEq)]
 pub struct GenericNoBound {
 	/// Any `for<'a, 'b, 'etc>` bindings for the type.
@@ -318,12 +318,14 @@ impl Parse for GenericNoBound {
 	}
 }
 
-/// Holds a single generic [type](GenericNoBound) with optional lifetime bounds or [type with bound](PredicateType).
+/// Holds a single generic [type](GenericNoBound) with optional lifetime bounds
+/// or [type with bound](PredicateType).
 #[derive(Eq, PartialEq)]
 pub enum Generic {
 	/// Generic type with custom [specified bounds](PredicateType).
 	CustomBound(PredicateType),
-	/// Generic [type](GenericNoBound) which will be bound to the [`DeriveTrait`].
+	/// Generic [type](GenericNoBound) which will be bound to the
+	/// [`DeriveTrait`].
 	NoBound(GenericNoBound),
 }
 
@@ -332,8 +334,8 @@ impl Parse for Generic {
 		let fork = input.fork();
 
 		// Try to parse input as a `WherePredicate`. The problem is, both expressions
-		// start with an optional lifetime for bound and then Type, so starting with the `WherePredicate` is the easiest way
-		// of differentiating them.
+		// start with an optional lifetime for bound and then Type, so starting with the
+		// `WherePredicate` is the easiest way of differentiating them.
 		if let Ok(where_predicate) = WherePredicate::parse(&fork) {
 			input.advance_to(&fork);
 
