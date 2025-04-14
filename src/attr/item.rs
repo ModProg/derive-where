@@ -300,6 +300,7 @@ impl DeriveWhere {
 /// bindings.
 #[derive(Eq, PartialEq)]
 pub struct GenericNoBound(Option<BoundLifetimes>, Type);
+
 impl Parse for GenericNoBound {
 	fn parse(input: ParseStream) -> Result<Self> {
 		Ok(Self(input.parse()?, input.parse()?))
