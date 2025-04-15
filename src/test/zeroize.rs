@@ -230,3 +230,46 @@ fn fqs() -> Result<()> {
 		},
 	)
 }
+
+#[test]
+fn enum_skip() -> Result<()> {
+	test_derive(
+		quote! {
+			#[derive_where(ZeroizeOnDrop)]
+			enum Test<T> {
+				A(std::marker::PhantomData<T>),
+				#[derive_where(skip_inner)]
+				B(std::marker::PhantomData<T>),
+			}
+		},
+		#[cfg(not(feature = "zeroize-on-drop"))]
+		quote! {
+			#[automatically_derived]
+			impl<T> ::core::ops::Drop for Test<T> {
+				fn drop(&mut self) {
+					::zeroize::Zeroize::zeroize(self);
+				}
+			}
+		},
+		#[cfg(feature = "zeroize-on-drop")]
+		quote! {
+			#[automatically_derived]
+			impl <T> ::core::ops::Drop for Test<T> {
+				fn drop(&mut self) {
+					use ::zeroize::__internal::AssertZeroize;
+					use ::zeroize::__internal::AssertZeroizeOnDrop;
+
+					match self {
+						Test::A(ref mut __field_0) => {
+							__field_0.zeroize_or_on_drop();
+						}
+						Test::B(ref mut __field_0) => { }
+					}
+				}
+			}
+
+			#[automatically_derived]
+			impl<T> ::zeroize::ZeroizeOnDrop for Test<T> { }
+		},
+	)
+}

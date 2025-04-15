@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Use the `Copy` implementation for `Clone` and the `Ord` implementation for
   `PartialOrd` when custom bounds are present.
 
+### Fixed
+- Support skipping only some variants with `ZeroizeOnDrop`.
+- Only generate single call to `zeroize()` with `ZeroizeOnDrop` on multiple
+  fields or variants.
+
 ## [1.2.7] - 2023-12-14
 
 ### Fixed

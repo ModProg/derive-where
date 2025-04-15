@@ -7,9 +7,9 @@ use syn::{
 	Token,
 };
 
-use crate::{
-	util, Data, DeriveTrait, DeriveWhere, Error, Item, SimpleType, SplitGenerics, TraitImpl,
-};
+use crate::{util, DeriveTrait, DeriveWhere, Error, Item, SplitGenerics, TraitImpl};
+#[cfg(feature = "zeroize-on-drop")]
+use crate::{Data, SimpleType};
 
 /// Dummy-struct implement [`Trait`](crate::Trait) for [`ZeroizeOnDrop`](https://docs.rs/zeroize/latest/zeroize/trait.ZeroizeOnDrop.html) .
 pub struct ZeroizeOnDrop;
@@ -97,80 +97,82 @@ impl TraitImpl for ZeroizeOnDrop {
 			Item::Item(data) if data.is_empty(**trait_) => quote! {
 				fn drop(&mut self) { }
 			},
+			#[cfg(feature = "zeroize-on-drop")]
 			_ => {
-				#[cfg(feature = "zeroize-on-drop")]
-				{
-					let crate_ = trait_.crate_();
-					let internal = util::path_segment("__internal");
+				let crate_ = trait_.crate_();
+				let internal = util::path_segment("__internal");
 
-					let mut assert_zeroize = crate_.clone();
-					assert_zeroize
-						.segments
-						.extend([internal.clone(), util::path_segment("AssertZeroize")]);
+				let mut assert_zeroize = crate_.clone();
+				assert_zeroize
+					.segments
+					.extend([internal.clone(), util::path_segment("AssertZeroize")]);
 
-					let mut assert_zeroize_on_drop = crate_;
-					assert_zeroize_on_drop
-						.segments
-						.extend([internal, util::path_segment("AssertZeroizeOnDrop")]);
+				let mut assert_zeroize_on_drop = crate_;
+				assert_zeroize_on_drop
+					.segments
+					.extend([internal, util::path_segment("AssertZeroizeOnDrop")]);
 
-					quote! {
-						fn drop(&mut self) {
-							use #assert_zeroize;
-							use #assert_zeroize_on_drop;
+				quote! {
+					fn drop(&mut self) {
+						use #assert_zeroize;
+						use #assert_zeroize_on_drop;
 
-							match self {
-								#body
-							}
+						match self {
+							#body
 						}
 					}
 				}
-				#[cfg(not(feature = "zeroize-on-drop"))]
+			}
+			#[cfg(not(feature = "zeroize-on-drop"))]
+			_ => {
+				// Use unused variables.
+				let _ = body;
+
+				let path = util::path_from_root_and_strs(trait_.crate_(), &["Zeroize"]);
+
 				quote! {
 					fn drop(&mut self) {
-						#body
+						#path::zeroize(self);
 					}
 				}
 			}
 		}
 	}
 
+	#[cfg(feature = "zeroize-on-drop")]
 	fn build_body(
 		&self,
 		_derive_where: &DeriveWhere,
 		trait_: &DeriveTrait,
 		data: &Data,
 	) -> TokenStream {
-		if data.is_empty(**trait_) {
-			TokenStream::new()
-		} else {
-			match data.simple_type() {
-				SimpleType::Struct(fields) | SimpleType::Tuple(fields) => {
-					#[cfg(feature = "zeroize-on-drop")]
-					{
-						let self_pattern = fields.self_pattern_mut();
-						let self_ident = data.iter_self_ident(**trait_);
+		match data.simple_type() {
+			SimpleType::Struct(fields) | SimpleType::Tuple(fields) => {
+				#[cfg(feature = "zeroize-on-drop")]
+				{
+					let self_pattern = fields.self_pattern_mut();
+					let self_ident = data.iter_self_ident(**trait_);
 
-						quote! {
-							#self_pattern => {
-								#(#self_ident.zeroize_or_on_drop();)*
-							}
-						}
-					}
-					#[cfg(not(feature = "zeroize-on-drop"))]
-					{
-						// Use unused variables.
-						let _ = fields;
-
-						let path = util::path_from_root_and_strs(trait_.crate_(), &["Zeroize"]);
-
-						quote! {
-							#path::zeroize(self);
+					quote! {
+						#self_pattern => {
+							#(#self_ident.zeroize_or_on_drop();)*
 						}
 					}
 				}
-				SimpleType::Unit(_) => TokenStream::new(),
-				SimpleType::Union => unreachable!("unexpected trait for union"),
+				#[cfg(not(feature = "zeroize-on-drop"))]
+				{
+					// Use unused variables.
+					let _ = fields;
+
+					let path = util::path_from_root_and_strs(trait_.crate_(), &["Zeroize"]);
+
+					quote! {
+						#path::zeroize(self);
+					}
+				}
 			}
+			SimpleType::Unit(_) => TokenStream::new(),
+			SimpleType::Union => unreachable!("unexpected trait for union"),
 		}
 	}
 }
