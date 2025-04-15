@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Allow lifetime `for<'a, ...>` bounds in non-bounded generic parameters.
+
 ### Changed
 - Use the `Copy` implementation for `Clone` and the `Ord` implementation for
   `PartialOrd` when custom bounds are present.

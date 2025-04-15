@@ -112,6 +112,31 @@ fn where_() -> Result<()> {
 }
 
 #[test]
+fn for_lifetime() -> Result<()> {
+	test_derive(
+		quote! {
+			#[derive_where(Clone; for<'a> T)]
+			struct Test<T, U>(T, std::marker::PhantomData<U>) where T: std::fmt::Debug;
+		},
+		quote! {
+			#[automatically_derived]
+			impl<T, U> ::core::clone::Clone for Test<T, U>
+			where
+				T: std::fmt::Debug,
+				for<'a> T: ::core::clone::Clone
+			{
+				#[inline]
+				fn clone(&self) -> Self {
+					match self {
+						Test(ref __field_0, ref __field_1) => Test(::core::clone::Clone::clone(__field_0), ::core::clone::Clone::clone(__field_1)),
+					}
+				}
+			}
+		},
+	)
+}
+
+#[test]
 fn associated_type() -> Result<()> {
 	test_derive(
 		quote! {
