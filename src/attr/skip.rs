@@ -157,7 +157,7 @@ impl Skip {
 		match self {
 			Skip::None => false,
 			Skip::All => true,
-			Skip::Traits(groups) => groups.iter().any(|this_group| *this_group == group),
+			Skip::Traits(groups) => groups.contains(&group),
 		}
 	}
 }
