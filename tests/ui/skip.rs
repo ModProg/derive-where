@@ -48,4 +48,10 @@ struct MissingDeriveTrait<T>(#[derive_where(skip(Debug))] PhantomData<T>);
 #[derive_where(Clone, Copy)]
 struct SkipCloneWhileCopy<T>(#[derive_where(skip(Clone))] PhantomData<T>);
 
+struct NonDefault<T>(PhantomData<T>);
+
+#[derive_where(Clone)]
+#[derive_where(skip_inner(Clone))]
+struct SkipCloneNonDefault<T>(NonDefault<T>);
+
 fn main() {}

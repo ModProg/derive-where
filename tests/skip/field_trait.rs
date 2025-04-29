@@ -5,7 +5,7 @@ use derive_where::derive_where;
 
 use crate::util::{
 	self, AssertClone, AssertDebug, AssertHash, AssertOrd, AssertPartialEq, AssertPartialOrd,
-	Wrapper,
+	NonTrait, Wrapper,
 };
 
 #[test]
@@ -23,13 +23,13 @@ fn debug() {
 #[test]
 fn clone() {
 	#[derive_where(Clone)]
-	struct Test<T>(#[derive_where(skip(Clone))] Wrapper<T>);
+	struct Test<T>(#[derive_where(skip(Clone))] NonTrait<T>);
 
 	let test_1 = Test(42.into());
 
 	let _ = AssertClone(&test_1);
 
-	assert_eq!(test_1.clone().0, 0)
+	assert_eq!(test_1.clone().0.data(), 0)
 }
 
 #[test]

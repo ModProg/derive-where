@@ -57,3 +57,16 @@ error: Cannot skip `Clone` while deriving `Copy`
    |
 49 | struct SkipCloneWhileCopy<T>(#[derive_where(skip(Clone))] PhantomData<T>);
    |                                                  ^^^^^
+
+error[E0277]: the trait bound `NonDefault<T>: Default` is not satisfied
+  --> tests/ui/skip.rs:53:1
+   |
+53 | #[derive_where(Clone)]
+   | ^^^^^^^^^^^^^^^^^^^^^^ the trait `Default` is not implemented for `NonDefault<T>`
+   |
+   = note: this error originates in the derive macro `::derive_where::DeriveWhere` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: consider annotating `NonDefault<T>` with `#[derive(Default)]`
+   |
+51 + #[derive(Default)]
+52 | struct NonDefault<T>(PhantomData<T>);
+   |

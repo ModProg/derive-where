@@ -5,7 +5,7 @@ use derive_where::derive_where;
 
 use crate::util::{
 	self, AssertClone, AssertDebug, AssertHash, AssertOrd, AssertPartialEq, AssertPartialOrd,
-	Wrapper,
+	NonTrait, Wrapper,
 };
 
 #[test]
@@ -25,13 +25,13 @@ fn debug() {
 fn clone() {
 	#[derive_where(Clone)]
 	#[derive_where(skip_inner(Clone))]
-	struct Test<T>(Wrapper<T>);
+	struct Test<T>(NonTrait<T>);
 
 	let test_1 = Test(42.into());
 
 	let _ = AssertClone(&test_1);
 
-	assert_eq!(test_1.clone().0, 0);
+	assert_eq!(test_1.clone().0.data(), 0);
 }
 
 #[test]
@@ -81,9 +81,9 @@ fn ord() {
 
 #[test]
 fn all() {
-	#[derive_where(Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Clone)]
-	#[derive_where(skip_inner(Debug, EqHashOrd, Clone))]
-	struct Test<T>(Wrapper<T>);
+	#[derive_where(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+	#[derive_where(skip_inner(Clone, Debug, EqHashOrd))]
+	struct Test<T>(NonTrait<T>);
 
 	let test_1 = Test(42.into());
 	let test_2 = Test(42.into());
@@ -97,9 +97,9 @@ fn all() {
 	let _ = AssertPartialEq(&test_1);
 	let _ = AssertPartialOrd(&test_1);
 
-	assert_eq!(format!("{:?}", test_1), "Test");
+	assert_eq!(test_1.clone().0.data(), 0);
 
-	assert_eq!(test_1.clone().0, 0);
+	assert_eq!(format!("{:?}", test_1), "Test");
 
 	util::hash_eq(&test_1, &test_2);
 	util::hash_eq(&test_1, &test_ge);

@@ -6,7 +6,7 @@ use pretty_assertions::assert_eq;
 
 use crate::util::{
 	self, AssertClone, AssertDebug, AssertHash, AssertOrd, AssertPartialEq, AssertPartialOrd,
-	Wrapper,
+	NonTrait, Wrapper,
 };
 
 #[test]
@@ -29,7 +29,7 @@ fn clone() {
 	#[derive_where(Clone)]
 	enum Test<T> {
 		#[derive_where(skip_inner(Clone))]
-		A(Wrapper<T>),
+		A(NonTrait<T>),
 	}
 
 	let test_1 = Test::A(42.into());
@@ -37,7 +37,7 @@ fn clone() {
 	let _ = AssertClone(&test_1);
 
 	let Test::A(cloned) = test_1.clone();
-	assert_eq!(cloned, 0);
+	assert_eq!(cloned.data(), 0);
 }
 
 #[test]
