@@ -128,7 +128,10 @@ fn for_lifetime() -> Result<()> {
 				#[inline]
 				fn clone(&self) -> Self {
 					match self {
-						Test(ref __field_0, ref __field_1) => Test(::core::clone::Clone::clone(__field_0), ::core::clone::Clone::clone(__field_1)),
+						Test(ref __field_0, ref __field_1) => Test {
+							0: ::core::clone::Clone::clone(__field_0),
+							1: ::core::clone::Clone::clone(__field_1)
+						},
 					}
 				}
 			}
