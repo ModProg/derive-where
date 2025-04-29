@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Allow skipping fields for `Clone`, calling `Default::default()` instead.
-  **Note:** `Clone` is excluded from `#[derive_where(skip)]` to avoid this being a breaking change.
+  **Note:** `Clone` is excluded from blanket skipping and can only be used with
+  selective skipping to avoid this being a breaking change.
 
 ## [1.3.0] - 2025-04-21
 

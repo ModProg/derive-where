@@ -144,6 +144,7 @@ Selective skipping of fields for certain traits is also an option, both in
 `skip` and `skip_inner`. To prevent breaking invariants defined for these
 traits, some of them can only be skipped in groups. The following groups are
 available:
+- [`Clone`]: Uses [`Default`] instead of [`Clone`].
 - [`Debug`]
 - `EqHashOrd`: Skips [`Eq`], [`Hash`], [`Ord`], [`PartialOrd`] and
   [`PartialEq`].
