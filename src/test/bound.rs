@@ -18,7 +18,7 @@ fn bound() -> Result<()> {
 				#[inline]
 				fn clone(&self) -> Self {
 					match self {
-						Test(ref __field_0, ref __field_1) => Test(::core::clone::Clone::clone(__field_0), ::core::clone::Clone::clone(__field_1)),
+						Test(ref __field_0, ref __field_1) => Test { 0: ::core::clone::Clone::clone(__field_0), 1: ::core::clone::Clone::clone(__field_1) },
 					}
 				}
 			}
@@ -48,7 +48,7 @@ fn bound_multiple() -> Result<()> {
 				#[inline]
 				fn clone(&self) -> Self {
 					match self {
-						Test(ref __field_0, ref __field_1) => Test(::core::clone::Clone::clone(__field_0), ::core::clone::Clone::clone(__field_1)),
+						Test(ref __field_0, ref __field_1) => Test{ 0: ::core::clone::Clone::clone(__field_0), 1: ::core::clone::Clone::clone(__field_1) },
 					}
 				}
 			}
@@ -78,7 +78,7 @@ fn custom_bound() -> Result<()> {
 				#[inline]
 				fn clone(&self) -> Self {
 					match self {
-						Test(ref __field_0) => Test(::core::clone::Clone::clone(__field_0)),
+						Test(ref __field_0) => Test { 0: ::core::clone::Clone::clone(__field_0) },
 					}
 				}
 			}
@@ -103,7 +103,7 @@ fn where_() -> Result<()> {
 				#[inline]
 				fn clone(&self) -> Self {
 					match self {
-						Test(ref __field_0, ref __field_1) => Test(::core::clone::Clone::clone(__field_0), ::core::clone::Clone::clone(__field_1)),
+						Test(ref __field_0, ref __field_1) => Test { 0: ::core::clone::Clone::clone(__field_0), 1: ::core::clone::Clone::clone(__field_1) },
 					}
 				}
 			}
@@ -128,7 +128,10 @@ fn for_lifetime() -> Result<()> {
 				#[inline]
 				fn clone(&self) -> Self {
 					match self {
-						Test(ref __field_0, ref __field_1) => Test(::core::clone::Clone::clone(__field_0), ::core::clone::Clone::clone(__field_1)),
+						Test(ref __field_0, ref __field_1) => Test {
+							0: ::core::clone::Clone::clone(__field_0),
+							1: ::core::clone::Clone::clone(__field_1)
+						},
 					}
 				}
 			}
@@ -151,7 +154,7 @@ fn associated_type() -> Result<()> {
 				#[inline]
 				fn clone(&self) -> Self {
 					match self {
-						Test(ref __field_0) => Test(::core::clone::Clone::clone(__field_0)),
+						Test(ref __field_0) => Test { 0: ::core::clone::Clone::clone(__field_0) },
 					}
 				}
 			}
@@ -174,7 +177,7 @@ fn associated_type_custom_bound() -> Result<()> {
 				#[inline]
 				fn clone(&self) -> Self {
 					match self {
-						Test(ref __field_0) => Test(::core::clone::Clone::clone(__field_0)),
+						Test(ref __field_0) => Test { 0: ::core::clone::Clone::clone(__field_0) },
 					}
 				}
 			}
@@ -197,7 +200,7 @@ fn check_trait_bounds() -> Result<()> {
 				#[inline]
 				fn clone(&self) -> Self {
 					match self {
-						Test(ref __field_0, ref __field_1) => Test(::core::clone::Clone::clone(__field_0), ::core::clone::Clone::clone(__field_1)),
+						Test(ref __field_0, ref __field_1) => Test { 0: ::core::clone::Clone::clone(__field_0), 1: ::core::clone::Clone::clone(__field_1) },
 					}
 				}
 			}
@@ -333,7 +336,7 @@ fn check_multiple_trait_bounds() -> Result<()> {
 				#[inline]
 				fn clone(&self) -> Self {
 					match self {
-						Test(ref __field_0, ref __field_1) => Test(::core::clone::Clone::clone(__field_0), ::core::clone::Clone::clone(__field_1)),
+						Test(ref __field_0, ref __field_1) => Test { 0: ::core::clone::Clone::clone(__field_0), 1: ::core::clone::Clone::clone(__field_1) },
 					}
 				}
 			}

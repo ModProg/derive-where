@@ -4,7 +4,7 @@ use std::default::Default;
 
 use syn::{spanned::Spanned, Meta, Path, Result};
 
-use crate::{util::MetaListExt, DeriveWhere, Error, Trait};
+use crate::{attr::DeriveTrait, util::MetaListExt, DeriveWhere, Error, Trait};
 
 /// Stores what [`Trait`]s to skip this field or variant for.
 #[cfg_attr(test, derive(Debug))]
@@ -101,6 +101,18 @@ impl Skip {
 					if let Meta::Path(path) = nested_meta {
 						let skip_group = SkipGroup::from_path(path)?;
 
+						if skip_group == SkipGroup::Clone
+							&& derive_wheres.iter().any(|derive_where| {
+								derive_where
+									.traits
+									.iter()
+									.any(|trait_| trait_ == &DeriveTrait::Copy)
+							}) {
+							return Err(Error::unable_to_skip_clone_while_deriving_copy(
+								path.span(),
+							));
+						}
+
 						// Don't allow to skip the same trait twice.
 						if traits.contains(&skip_group) {
 							return Err(Error::option_skip_duplicate(
@@ -144,7 +156,7 @@ impl Skip {
 	pub fn trait_skipped(&self, trait_: Trait) -> bool {
 		match self {
 			Skip::None => false,
-			Skip::All => SkipGroup::trait_supported(trait_),
+			Skip::All => SkipGroup::trait_supported_by_skip_all(trait_),
 			Skip::Traits(skip_groups) => skip_groups
 				.iter()
 				.any(|skip_group| skip_group.traits().any(|this_trait| this_trait == trait_)),
@@ -166,6 +178,8 @@ impl Skip {
 #[derive(Clone, Copy, Eq, PartialEq)]
 #[cfg_attr(test, derive(Debug))]
 pub enum SkipGroup {
+	/// [`Clone`].
+	Clone,
 	/// [`Debug`].
 	Debug,
 	/// [`Eq`], [`Hash`], [`Ord`], [`PartialEq`] and [`PartialOrd`].
@@ -185,6 +199,7 @@ impl SkipGroup {
 			use SkipGroup::*;
 
 			match ident.to_string().as_str() {
+				"Clone" => Ok(Clone),
 				"Debug" => Ok(Debug),
 				"EqHashOrd" => Ok(EqHashOrd),
 				"Hash" => Ok(Hash),
@@ -202,6 +217,7 @@ impl SkipGroup {
 	/// messages.
 	const fn as_str(self) -> &'static str {
 		match self {
+			Self::Clone => "Clone",
 			Self::Debug => "Debug",
 			Self::EqHashOrd => "EqHashOrd",
 			Self::Hash => "Hash",
@@ -213,6 +229,9 @@ impl SkipGroup {
 	/// [`Trait`]s supported by this group.
 	fn traits(self) -> impl Iterator<Item = Trait> {
 		match self {
+			Self::Clone => [Some(Trait::Clone), None, None, None, None]
+				.into_iter()
+				.flatten(),
 			Self::Debug => [Some(Trait::Debug), None, None, None, None]
 				.into_iter()
 				.flatten(),
@@ -242,7 +261,7 @@ impl SkipGroup {
 	}
 
 	/// Returns `true` if [`Trait`] is supported by any group.
-	pub fn trait_supported(trait_: Trait) -> bool {
+	pub fn trait_supported_by_skip_all(trait_: Trait) -> bool {
 		match trait_ {
 			Trait::Clone | Trait::Copy | Trait::Default => false,
 			Trait::Debug

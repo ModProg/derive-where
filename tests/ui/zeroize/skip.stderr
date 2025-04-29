@@ -1,5 +1,5 @@
-error: unsupported skip group, expected one of Debug, EqHashOrd, Hash, Zeroize
- --> tests/ui/zeroize/skip.rs:6:48
+error: unsupported trait, expected one of Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd, Zeroize, ZeroizeOnDrop
+ --> tests/ui/zeroize/skip.rs:5:16
   |
-6 | struct UnsupportedTrait<T>(#[derive_where(skip(Clone))] PhantomData<T>);
-  |                                                ^^^^^
+5 | #[derive_where(Skip; T)]
+  |                ^^^^

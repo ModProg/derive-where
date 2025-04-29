@@ -5,7 +5,8 @@ use quote::quote;
 use syn::{TraitBound, TraitBoundModifier, TypeParamBound};
 
 use crate::{
-	Data, DataType, DeriveTrait, DeriveWhere, Item, SimpleType, SplitGenerics, Trait, TraitImpl,
+	data::Field, Data, DataType, DeriveTrait, DeriveWhere, Item, SimpleType, SplitGenerics, Trait,
+	TraitImpl,
 };
 
 /// Dummy-struct implement [`Trait`] for [`Clone`](trait@std::clone::Clone).
@@ -99,25 +100,26 @@ impl TraitImpl for Clone {
 		}
 
 		match data.simple_type() {
-			SimpleType::Struct(fields) => {
+			SimpleType::Struct(fields) | SimpleType::Tuple(fields) => {
 				let self_pattern = &fields.self_pattern;
 				let item_path = &data.path;
-				let self_ident = data.iter_self_ident(**trait_);
-				let fields = data.iter_field_ident(**trait_);
 				let trait_path = trait_.path();
+				let default_path = DeriveTrait::Default.path();
+
+				let fields = fields.fields.iter().map(
+					|field @ Field {
+					     self_ident, member, ..
+					 }| {
+						if field.skip(Trait::Clone) || data.skip(Trait::Clone) {
+							quote!(#member: #default_path::default())
+						} else {
+							quote!(#member: #trait_path::clone(#self_ident))
+						}
+					},
+				);
 
 				quote! {
-					#self_pattern => #item_path { #(#fields: #trait_path::clone(#self_ident)),* },
-				}
-			}
-			SimpleType::Tuple(fields) => {
-				let self_pattern = &fields.self_pattern;
-				let item_path = &data.path;
-				let self_ident = data.iter_self_ident(**trait_);
-				let trait_path = trait_.path();
-
-				quote! {
-					#self_pattern => #item_path(#(#trait_path::clone(#self_ident)),*),
+					#self_pattern => #item_path { #(#fields),* },
 				}
 			}
 			SimpleType::Unit(pattern) => {

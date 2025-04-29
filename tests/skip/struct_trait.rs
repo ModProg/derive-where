@@ -4,7 +4,8 @@ use std::cmp::Ordering;
 use derive_where::derive_where;
 
 use crate::util::{
-	self, AssertDebug, AssertHash, AssertOrd, AssertPartialEq, AssertPartialOrd, Wrapper,
+	self, AssertClone, AssertDebug, AssertHash, AssertOrd, AssertPartialEq, AssertPartialOrd,
+	NonTrait, Wrapper,
 };
 
 #[test]
@@ -18,6 +19,19 @@ fn debug() {
 	let _ = AssertDebug(&test_1);
 
 	assert_eq!(format!("{:?}", test_1), "Test");
+}
+
+#[test]
+fn clone() {
+	#[derive_where(Clone)]
+	#[derive_where(skip_inner(Clone))]
+	struct Test<T>(NonTrait<T>);
+
+	let test_1 = Test(42.into());
+
+	let _ = AssertClone(&test_1);
+
+	assert_eq!(test_1.clone().0.data(), 0);
 }
 
 #[test]
@@ -67,20 +81,23 @@ fn ord() {
 
 #[test]
 fn all() {
-	#[derive_where(Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-	#[derive_where(skip_inner(Debug, EqHashOrd))]
-	struct Test<T>(Wrapper<T>);
+	#[derive_where(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+	#[derive_where(skip_inner(Clone, Debug, EqHashOrd))]
+	struct Test<T>(NonTrait<T>);
 
 	let test_1 = Test(42.into());
 	let test_2 = Test(42.into());
 	let test_le = Test(41.into());
 	let test_ge = Test(43.into());
 
+	let _ = AssertClone(&test_1);
 	let _ = AssertDebug(&test_1);
 	let _ = AssertHash(&test_1);
 	let _ = AssertOrd(&test_1);
 	let _ = AssertPartialEq(&test_1);
 	let _ = AssertPartialOrd(&test_1);
+
+	assert_eq!(test_1.clone().0.data(), 0);
 
 	assert_eq!(format!("{:?}", test_1), "Test");
 

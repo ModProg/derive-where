@@ -27,6 +27,54 @@ fn struct_() -> Result<()> {
 }
 
 #[test]
+fn skip_inner() -> Result<()> {
+	test_derive(
+		quote! {
+			#[derive_where(Clone)]
+			#[derive_where(skip_inner(Clone))]
+			struct Test<T> {
+				field: std::marker::PhantomData<T>,
+			}
+		},
+		quote! {
+			#[automatically_derived]
+			impl<T> ::core::clone::Clone for Test<T> {
+				#[inline]
+				fn clone(&self) -> Self {
+					match self {
+						Test { field: ref __field_field } => Test { field: ::core::default::Default::default() },
+					}
+				}
+			}
+		},
+	)
+}
+
+#[test]
+fn skip_field() -> Result<()> {
+	test_derive(
+		quote! {
+			#[derive_where(Clone)]
+			struct Test<T> {
+				#[derive_where(skip(Clone))]
+				field: std::marker::PhantomData<T>,
+			}
+		},
+		quote! {
+			#[automatically_derived]
+			impl<T> ::core::clone::Clone for Test<T> {
+				#[inline]
+				fn clone(&self) -> Self {
+					match self {
+						Test { field: ref __field_field } => Test { field: ::core::default::Default::default() },
+					}
+				}
+			}
+		},
+	)
+}
+
+#[test]
 fn tuple() -> Result<()> {
 	test_derive(
 		quote! {
@@ -39,7 +87,7 @@ fn tuple() -> Result<()> {
 				#[inline]
 				fn clone(&self) -> Self {
 					match self {
-						Test(ref __field_0) => Test(::core::clone::Clone::clone(__field_0)),
+						Test(ref __field_0) => Test { 0: ::core::clone::Clone::clone(__field_0) },
 					}
 				}
 			}
@@ -68,8 +116,8 @@ fn enum_() -> Result<()> {
 					match self {
 						Test::A { field: ref __field_field } => Test::A { field: ::core::clone::Clone::clone(__field_field) },
 						Test::B { } => Test::B { },
-						Test::C(ref __field_0) => Test::C(::core::clone::Clone::clone(__field_0)),
-						Test::D() => Test::D(),
+						Test::C(ref __field_0) => Test::C { 0: ::core::clone::Clone::clone(__field_0) },
+						Test::D() => Test::D { },
 						Test::E => Test::E,
 					}
 				}

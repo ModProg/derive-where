@@ -122,6 +122,37 @@ pub struct AssertZeroize<'a, T: Zeroize>(pub &'a T);
 pub struct AssertZeroizeOnDrop<'a, T: ZeroizeOnDrop>(pub &'a T);
 
 #[allow(dead_code)]
+pub struct NonTrait<T = ()> {
+	data: i32,
+	hack: PhantomData<T>,
+}
+
+#[allow(dead_code)]
+impl<T> NonTrait<T> {
+	pub fn data(&self) -> i32 {
+		self.data
+	}
+}
+
+impl<T> Default for NonTrait<T> {
+	fn default() -> Self {
+		Self {
+			data: i32::default(),
+			hack: PhantomData,
+		}
+	}
+}
+
+impl From<i32> for NonTrait<()> {
+	fn from(data: i32) -> Self {
+		Self {
+			data,
+			hack: PhantomData,
+		}
+	}
+}
+
+#[allow(dead_code)]
 pub fn hash_eq<T: Hash>(test_1: T, test_2: T) {
 	let mut hasher = DefaultHasher::new();
 	test_1.hash(&mut hasher);
