@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   **Note:** `Clone` is excluded from blanket skipping and can only be used with
   selective skipping to avoid this being a breaking change.
 
+### Fixed
+- Support skipping only some variants with `Zeroize`.
+
 ## [1.3.0] - 2025-04-21
 
 ### Added

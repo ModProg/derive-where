@@ -112,34 +112,30 @@ impl TraitImpl for Zeroize {
 		trait_: &DeriveTrait,
 		data: &Data,
 	) -> TokenStream {
-		if data.is_empty(**trait_) {
-			TokenStream::new()
-		} else {
-			match data.simple_type() {
-				SimpleType::Struct(fields) | SimpleType::Tuple(fields) => {
-					let trait_path = trait_.path();
-					let self_pattern = fields.self_pattern_mut();
+		match data.simple_type() {
+			SimpleType::Struct(fields) | SimpleType::Tuple(fields) => {
+				let trait_path = trait_.path();
+				let self_pattern = fields.self_pattern_mut();
 
-					let body = data
-						.iter_fields(**trait_)
-						.zip(data.iter_self_ident(**trait_))
-						.map(|(field, self_ident)| {
-							if field.attr.zeroize_fqs.0 {
-								quote! { #trait_path::zeroize(#self_ident); }
-							} else {
-								quote! { #self_ident.zeroize(); }
-							}
-						});
-
-					quote! {
-						#self_pattern => {
-							#(#body)*
+				let body = data
+					.iter_fields(**trait_)
+					.zip(data.iter_self_ident(**trait_))
+					.map(|(field, self_ident)| {
+						if field.attr.zeroize_fqs.0 {
+							quote! { #trait_path::zeroize(#self_ident); }
+						} else {
+							quote! { #self_ident.zeroize(); }
 						}
+					});
+
+				quote! {
+					#self_pattern => {
+						#(#body)*
 					}
 				}
-				SimpleType::Unit(_) => TokenStream::new(),
-				SimpleType::Union => unreachable!("unexpected trait for union"),
 			}
+			SimpleType::Unit(_) => TokenStream::new(),
+			SimpleType::Union => unreachable!("unexpected trait for union"),
 		}
 	}
 }
