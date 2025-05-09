@@ -277,6 +277,7 @@
 //!   crate in case of a re-export or rename.
 //! - `no_drop`: an item-level option which will not implement [`Drop`] but
 //!   instead only assert that every field implements [`ZeroizeOnDrop`].
+//!   Requires the `zeroize-on-drop` feature.
 //!
 //! ```
 //! # #[cfg(feature = "zeroize-on-drop")]
@@ -438,6 +439,7 @@ const DERIVE_WHERE_VISITED: &str = "derive_where_visited";
 ///     trait.
 ///   - `#[derive_where(ZeroizeOnDrop(crate = path))]`: Specify path to
 ///     [`ZeroizeOnDrop`] trait.
+///   - `#[derive_where(ZeroizeOnDrop(no_drop))]`: no [`Drop`] implementation.
 /// - `#[derive_where(skip_inner(EqHashOrd, ..))]`: Skip all fields in the item.
 ///   Optionally specify trait groups to constrain skipping fields. Only works
 ///   for structs, for enums use this on the variant-level.

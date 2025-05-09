@@ -242,7 +242,8 @@ and can be implemented without [`Zeroize`], otherwise it only implements
 - `crate`: an item-level option which specifies a path to the [`zeroize`]
   crate in case of a re-export or rename.
 - `no_drop`: an item-level option which will not implement [`Drop`] but instead
-  only assert that every field implements [`ZeroizeOnDrop`].
+  only assert that every field implements [`ZeroizeOnDrop`]. Requires the
+  `zeroize-on-drop` feature.
 
 ```rust
 #[derive_where(ZeroizeOnDrop(crate = zeroize_))]
