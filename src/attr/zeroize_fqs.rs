@@ -2,7 +2,7 @@
 
 use syn::{spanned::Spanned, Meta, Result};
 
-use crate::{util::MetaListExt, DeriveWhere, Error, Trait, TraitImpl};
+use crate::{util::MetaListExt, DeriveWhere, Error, Trait};
 
 /// Stores if this field should use FQS to call [`Zeroize::zeroize`](https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html#tymethod.zeroize).
 #[derive(Default)]

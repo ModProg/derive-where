@@ -1,21 +1,26 @@
 //! [`Eq`](trait@std::cmp::Eq) implementation.
 
+use std::ops::Deref;
+
 use proc_macro2::TokenStream;
 use quote::quote;
 
-use crate::{Data, DeriveTrait, DeriveWhere, Item, SplitGenerics, TraitImpl};
+use crate::{util, Data, DeriveTrait, DeriveWhere, Item, SplitGenerics, Trait, TraitImpl};
 
-/// Dummy-struct implement [`Trait`](crate::Trait) for
-/// [`Eq`](trait@std::cmp::Eq).
+/// [`TraitImpl`] for [`Eq`](trait@std::cmp::Eq).
 pub struct Eq;
 
 impl TraitImpl for Eq {
-	fn as_str(&self) -> &'static str {
+	fn as_str() -> &'static str {
 		"Eq"
 	}
 
-	fn default_derive_trait(&self) -> DeriveTrait {
+	fn default_derive_trait() -> DeriveTrait {
 		DeriveTrait::Eq
+	}
+
+	fn path(&self) -> syn::Path {
+		util::path_from_strs(&["core", "cmp", "Eq"])
 	}
 
 	fn build_signature(
@@ -23,7 +28,6 @@ impl TraitImpl for Eq {
 		_derive_where: &DeriveWhere,
 		_item: &Item,
 		_generics: &SplitGenerics<'_>,
-		_trait_: &DeriveTrait,
 		body: &TokenStream,
 	) -> TokenStream {
 		quote! {
@@ -36,16 +40,19 @@ impl TraitImpl for Eq {
 		}
 	}
 
-	fn build_body(
-		&self,
-		_derive_where: &DeriveWhere,
-		trait_: &DeriveTrait,
-		data: &Data,
-	) -> TokenStream {
-		let types = data.iter_fields(**trait_).map(|field| field.type_);
+	fn build_body(&self, _derive_where: &DeriveWhere, data: &Data) -> TokenStream {
+		let types = data.iter_fields(**self).map(|field| field.type_);
 
 		quote! {
 			#(let _: __AssertEq<#types>;)*
 		}
+	}
+}
+
+impl Deref for Eq {
+	type Target = Trait;
+
+	fn deref(&self) -> &Self::Target {
+		&Trait::Eq
 	}
 }

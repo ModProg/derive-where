@@ -1,22 +1,29 @@
 //! [`PartialOrd`](trait@std::cmp::PartialOrd) implementation.
 
+use std::ops::Deref;
+
 use proc_macro2::TokenStream;
 use quote::quote;
 
 use super::common_ord;
-use crate::{Data, DeriveTrait, DeriveWhere, Item, SimpleType, SplitGenerics, Trait, TraitImpl};
+use crate::{
+	util, Data, DeriveTrait, DeriveWhere, Item, SimpleType, SplitGenerics, Trait, TraitImpl,
+};
 
-/// Dummy-struct implement [`Trait`] for
-/// [`PartialOrd`](trait@std::cmp::PartialOrd).
+/// [`TraitImpl`] for [`PartialOrd`](trait@std::cmp::PartialOrd).
 pub struct PartialOrd;
 
 impl TraitImpl for PartialOrd {
-	fn as_str(&self) -> &'static str {
+	fn as_str() -> &'static str {
 		"PartialOrd"
 	}
 
-	fn default_derive_trait(&self) -> DeriveTrait {
+	fn default_derive_trait() -> DeriveTrait {
 		DeriveTrait::PartialOrd
+	}
+
+	fn path(&self) -> syn::Path {
+		util::path_from_strs(&["core", "cmp", "PartialOrd"])
 	}
 
 	fn build_signature(
@@ -24,7 +31,6 @@ impl TraitImpl for PartialOrd {
 		derive_where: &DeriveWhere,
 		item: &Item,
 		generics: &SplitGenerics<'_>,
-		trait_: &DeriveTrait,
 		body: &TokenStream,
 	) -> TokenStream {
 		let body = if (derive_where.generics.is_empty() || derive_where.any_custom_bound())
@@ -34,7 +40,7 @@ impl TraitImpl for PartialOrd {
 				::core::option::Option::Some(::core::cmp::Ord::cmp(self, __other))
 			}
 		} else {
-			common_ord::build_ord_signature(item, generics, derive_where, trait_, body)
+			common_ord::build_ord_signature(item, generics, derive_where, self, body)
 		};
 
 		quote! {
@@ -45,13 +51,8 @@ impl TraitImpl for PartialOrd {
 		}
 	}
 
-	fn build_body(
-		&self,
-		derive_where: &DeriveWhere,
-		trait_: &DeriveTrait,
-		data: &Data,
-	) -> TokenStream {
-		if data.is_empty(**trait_)
+	fn build_body(&self, derive_where: &DeriveWhere, data: &Data) -> TokenStream {
+		if data.is_empty(**self)
 			|| data.is_incomparable()
 			|| ((derive_where.generics.is_empty() || derive_where.any_custom_bound())
 				&& derive_where.contains(Trait::Ord))
@@ -62,7 +63,7 @@ impl TraitImpl for PartialOrd {
 				SimpleType::Struct(fields) | SimpleType::Tuple(fields) => {
 					let self_pattern = &fields.self_pattern;
 					let other_pattern = &fields.other_pattern;
-					let body = common_ord::build_ord_body(trait_, data);
+					let body = common_ord::build_ord_body(self, data);
 
 					quote! {
 						(#self_pattern, #other_pattern) => #body,
@@ -72,5 +73,13 @@ impl TraitImpl for PartialOrd {
 				SimpleType::Union => unreachable!("unexpected trait for union"),
 			}
 		}
+	}
+}
+
+impl Deref for PartialOrd {
+	type Target = Trait;
+
+	fn deref(&self) -> &Self::Target {
+		&Trait::PartialOrd
 	}
 }

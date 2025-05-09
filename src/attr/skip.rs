@@ -4,7 +4,7 @@ use std::default::Default;
 
 use syn::{spanned::Spanned, Meta, Path, Result};
 
-use crate::{attr::DeriveTrait, util::MetaListExt, DeriveWhere, Error, Trait};
+use crate::{trait_::DeriveTrait, util::MetaListExt, DeriveWhere, Error, Trait};
 
 /// Stores what [`Trait`]s to skip this field or variant for.
 #[cfg_attr(test, derive(Debug))]

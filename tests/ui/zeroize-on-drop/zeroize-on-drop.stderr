@@ -1,0 +1,25 @@
+error: duplicate `no_drop` option
+ --> tests/ui/zeroize-on-drop/zeroize-on-drop.rs:7:39
+  |
+7 | #[derive_where(ZeroizeOnDrop(no_drop, no_drop))]
+  |                                       ^^^^^^^
+
+error[E0599]: the method `__derive_where_zeroize_on_drop` exists for mutable reference `&mut T`, but its trait bounds were not satisfied
+  --> tests/ui/zeroize-on-drop/zeroize-on-drop.rs:10:1
+   |
+10 | #[derive_where(ZeroizeOnDrop(no_drop))]
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ method cannot be called on `&mut T` due to unsatisfied trait bounds
+   |
+note: the following trait bounds were not satisfied:
+      `&mut T: ZeroizeOnDrop`
+      `T: ZeroizeOnDrop`
+  --> tests/ui/zeroize-on-drop/zeroize-on-drop.rs:10:1
+   |
+10 | #[derive_where(ZeroizeOnDrop(no_drop))]
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unsatisfied trait bound introduced in this `derive` macro
+   = help: items from traits can only be used if the type parameter is bounded by the trait
+   = note: this error originates in the derive macro `::derive_where::DeriveWhere` which comes from the expansion of the attribute macro `derive_where` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: the following trait defines an item `__derive_where_zeroize_on_drop`, perhaps you need to restrict type parameter `T` with it:
+   |
+11 | struct NoDropNoZeroizeOnDrop<T: <NoDropNoZeroizeOnDrop<T> as DeriveWhereAssertZeroizeOnDrop>::assert::AssertZeroizeOnDrop>(T);
+   |                               +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

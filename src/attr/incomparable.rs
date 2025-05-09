@@ -3,7 +3,7 @@
 use proc_macro2::Span;
 use syn::{spanned::Spanned, Meta, Result};
 
-use crate::{attr::DeriveTrait, DeriveWhere, Error};
+use crate::{trait_::DeriveTrait, DeriveWhere, Error};
 
 /// Stores if this variant should be incomparable when implementing
 /// [`PartialEq`] or [`PartialOrd`].

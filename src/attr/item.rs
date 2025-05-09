@@ -1,20 +1,17 @@
 //! [`Attribute`] parsing for items.
 
-use std::{borrow::Cow, ops::Deref};
+use std::borrow::Cow;
 
 use proc_macro2::Span;
 use syn::{
 	parse::{discouraged::Speculative, Parse, ParseStream},
 	punctuated::Punctuated,
 	spanned::Spanned,
-	Attribute, BoundLifetimes, Data, Ident, Meta, Path, PredicateType, Result, Token, TraitBound,
-	TraitBoundModifier, Type, TypeParamBound, TypePath, WhereClause, WherePredicate,
+	Attribute, BoundLifetimes, Data, Ident, Meta, PredicateType, Result, Token, Type, TypePath,
+	WhereClause, WherePredicate,
 };
 
-use crate::{
-	util::{self, MetaListExt},
-	Error, Incomparable, Item, Skip, SkipGroup, Trait, TraitImpl, DERIVE_WHERE,
-};
+use crate::{trait_::DeriveTrait, Error, Incomparable, Item, Skip, SkipGroup, Trait, DERIVE_WHERE};
 
 /// Attributes on item.
 #[derive(Default)]
@@ -259,7 +256,7 @@ impl DeriveWhere {
 	pub fn any_skip(&self) -> bool {
 		self.traits
 			.iter()
-			.any(|trait_| SkipGroup::trait_supported_by_skip_all(**trait_))
+			.any(|trait_| SkipGroup::trait_supported_by_skip_all(***trait_))
 	}
 
 	/// Create [`WhereClause`] for the given parameters.
@@ -350,175 +347,6 @@ impl Parse for Generic {
 				Ok(no_bound) => Ok(Generic::NoBound(no_bound)),
 				Err(error) => Err(Error::generic_syntax(error.span(), error)),
 			}
-		}
-	}
-}
-
-/// Trait to implement.
-#[derive(Eq, PartialEq)]
-pub enum DeriveTrait {
-	/// [`Clone`].
-	Clone,
-	/// [`Copy`].
-	Copy,
-	/// [`Debug`](std::fmt::Debug).
-	Debug,
-	/// [`Default`].
-	Default,
-	/// [`Eq`].
-	Eq,
-	/// [`Hash`](std::hash::Hash).
-	Hash,
-	/// [`Ord`].
-	Ord,
-	/// [`PartialEq`].
-	PartialEq,
-	/// [`PartialOrd`].
-	PartialOrd,
-	/// [`Zeroize`](https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html).
-	#[cfg(feature = "zeroize")]
-	Zeroize {
-		/// [`Zeroize`](https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html) path.
-		crate_: Option<Path>,
-	},
-	/// [`ZeroizeOnDrop`](https://docs.rs/zeroize/latest/zeroize/trait.ZeroizeOnDrop.html).
-	#[cfg(feature = "zeroize")]
-	ZeroizeOnDrop {
-		/// [`ZeroizeOnDrop`](https://docs.rs/zeroize/latest/zeroize/trait.ZeroizeOnDrop.html) path.
-		crate_: Option<Path>,
-	},
-}
-
-impl Deref for DeriveTrait {
-	type Target = Trait;
-
-	fn deref(&self) -> &Self::Target {
-		use DeriveTrait::*;
-
-		match self {
-			Clone => &Trait::Clone,
-			Copy => &Trait::Copy,
-			Debug => &Trait::Debug,
-			Default => &Trait::Default,
-			Eq => &Trait::Eq,
-			Hash => &Trait::Hash,
-			Ord => &Trait::Ord,
-			PartialEq => &Trait::PartialEq,
-			PartialOrd => &Trait::PartialOrd,
-			#[cfg(feature = "zeroize")]
-			Zeroize { .. } => &Trait::Zeroize,
-			#[cfg(feature = "zeroize")]
-			ZeroizeOnDrop { .. } => &Trait::ZeroizeOnDrop,
-		}
-	}
-}
-
-impl PartialEq<Trait> for &DeriveTrait {
-	fn eq(&self, other: &Trait) -> bool {
-		let trait_: &Trait = self;
-		trait_ == other
-	}
-}
-
-impl DeriveTrait {
-	/// Returns fully qualified [`Path`] for this trait.
-	pub fn path(&self) -> Path {
-		use DeriveTrait::*;
-
-		match self {
-			Clone => util::path_from_root_and_strs(self.crate_(), &["clone", "Clone"]),
-			Copy => util::path_from_root_and_strs(self.crate_(), &["marker", "Copy"]),
-			Debug => util::path_from_root_and_strs(self.crate_(), &["fmt", "Debug"]),
-			Default => util::path_from_root_and_strs(self.crate_(), &["default", "Default"]),
-			Eq => util::path_from_root_and_strs(self.crate_(), &["cmp", "Eq"]),
-			Hash => util::path_from_root_and_strs(self.crate_(), &["hash", "Hash"]),
-			Ord => util::path_from_root_and_strs(self.crate_(), &["cmp", "Ord"]),
-			PartialEq => util::path_from_root_and_strs(self.crate_(), &["cmp", "PartialEq"]),
-			PartialOrd => util::path_from_root_and_strs(self.crate_(), &["cmp", "PartialOrd"]),
-			#[cfg(feature = "zeroize")]
-			Zeroize { .. } => util::path_from_root_and_strs(self.crate_(), &["Zeroize"]),
-			#[cfg(feature = "zeroize")]
-			ZeroizeOnDrop { .. } => util::path_from_root_and_strs(self.crate_(), &["ZeroizeOnDrop"]),
-		}
-	}
-
-	/// Returns the path to the root crate for this trait.
-	pub fn crate_(&self) -> Path {
-		use DeriveTrait::*;
-
-		match self {
-			Clone => util::path_from_strs(&["core"]),
-			Copy => util::path_from_strs(&["core"]),
-			Debug => util::path_from_strs(&["core"]),
-			Default => util::path_from_strs(&["core"]),
-			Eq => util::path_from_strs(&["core"]),
-			Hash => util::path_from_strs(&["core"]),
-			Ord => util::path_from_strs(&["core"]),
-			PartialEq => util::path_from_strs(&["core"]),
-			PartialOrd => util::path_from_strs(&["core"]),
-			#[cfg(feature = "zeroize")]
-			Zeroize { crate_, .. } => {
-				if let Some(crate_) = crate_ {
-					crate_.clone()
-				} else {
-					util::path_from_strs(&["zeroize"])
-				}
-			}
-			#[cfg(feature = "zeroize")]
-			ZeroizeOnDrop { crate_, .. } => {
-				if let Some(crate_) = crate_ {
-					crate_.clone()
-				} else {
-					util::path_from_strs(&["zeroize"])
-				}
-			}
-		}
-	}
-
-	/// Returns where-clause bounds for the trait in respect of the item type.
-	fn where_bounds(&self, data: &Item) -> Punctuated<TypeParamBound, Token![+]> {
-		let mut list = Punctuated::new();
-
-		list.push(TypeParamBound::Trait(TraitBound {
-			paren_token: None,
-			modifier: TraitBoundModifier::None,
-			lifetimes: None,
-			path: self.path(),
-		}));
-
-		// Add bounds specific to the trait.
-		if let Some(bound) = self.additional_where_bounds(data) {
-			list.push(bound)
-		}
-
-		list
-	}
-
-	/// Create [`DeriveTrait`] from [`ParseStream`].
-	fn from_stream(span: Span, data: &Data, input: ParseStream) -> Result<(Span, Self)> {
-		match Meta::parse(input) {
-			Ok(meta) => {
-				let trait_ = Trait::from_path(meta.path())?;
-
-				if let Data::Union(_) = data {
-					// Make sure this `Trait` supports unions.
-					if !trait_.supports_union() {
-						return Err(Error::union(span));
-					}
-				}
-
-				match &meta {
-					Meta::Path(path) => Ok((path.span(), trait_.default_derive_trait())),
-					Meta::List(list) => {
-						let nested = list.parse_non_empty_nested_metas()?;
-
-						// This will return an error if no options are supported.
-						Ok((list.span(), trait_.parse_derive_trait(meta.span(), nested)?))
-					}
-					Meta::NameValue(name_value) => Err(Error::option_syntax(name_value.span())),
-				}
-			}
-			Err(error) => Err(Error::trait_syntax(error.span())),
 		}
 	}
 }

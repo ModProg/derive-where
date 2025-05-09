@@ -6,8 +6,12 @@ fn ui() {
 	use trybuild::TestCases;
 
 	TestCases::new().compile_fail("tests/ui/*.rs");
-	#[cfg(feature = "zeroize")]
-	TestCases::new().compile_fail("tests/ui/zeroize/*.rs");
 	#[cfg(not(feature = "zeroize"))]
 	TestCases::new().compile_fail("tests/ui/not-zeroize/*.rs");
+	#[cfg(feature = "zeroize")]
+	TestCases::new().compile_fail("tests/ui/zeroize/*.rs");
+	#[cfg(all(feature = "zeroize", not(feature = "zeroize-on-drop")))]
+	TestCases::new().compile_fail("tests/ui/not-zeroize-on-drop/*.rs");
+	#[cfg(feature = "zeroize-on-drop")]
+	TestCases::new().compile_fail("tests/ui/zeroize-on-drop/*.rs");
 }

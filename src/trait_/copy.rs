@@ -1,21 +1,34 @@
 //! [`Copy`](trait@std::marker::Copy) implementation.
 
-use crate::{DeriveTrait, TraitImpl};
+use std::ops::Deref;
 
-/// Dummy-struct implement [`Trait`](crate::Trait) for
-/// [`Copy`](trait@std::marker::Copy).
+use crate::{util, DeriveTrait, Trait, TraitImpl};
+
+/// [`TraitImpl`] for [`Copy`](trait@std::marker::Copy).
 pub struct Copy;
 
 impl TraitImpl for Copy {
-	fn as_str(&self) -> &'static str {
+	fn as_str() -> &'static str {
 		"Copy"
 	}
 
-	fn default_derive_trait(&self) -> DeriveTrait {
+	fn default_derive_trait() -> DeriveTrait {
 		DeriveTrait::Copy
 	}
 
-	fn supports_union(&self) -> bool {
+	fn supports_union() -> bool {
 		true
+	}
+
+	fn path(&self) -> syn::Path {
+		util::path_from_strs(&["core", "marker", "Copy"])
+	}
+}
+
+impl Deref for Copy {
+	type Target = Trait;
+
+	fn deref(&self) -> &Self::Target {
+		&Trait::Copy
 	}
 }

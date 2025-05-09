@@ -1,5 +1,7 @@
 //! [`Zeroize`](https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html) implementation.
 
+use std::ops::Deref;
+
 use proc_macro2::{Span, TokenStream};
 use quote::quote;
 use syn::{
@@ -8,26 +10,26 @@ use syn::{
 };
 
 use crate::{
-	util, Data, DeriveTrait, DeriveWhere, Error, Item, SimpleType, SplitGenerics, TraitImpl,
+	util, Data, DeriveTrait, DeriveWhere, Error, Item, SimpleType, SplitGenerics, Trait, TraitImpl,
 };
 
-/// Dummy-struct implement [`Trait`](crate::Trait) for [`Zeroize`](https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html) .
-pub struct Zeroize;
+/// [`TraitImpl`] for [`Zeroize`](https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html).
+#[derive(Eq, PartialEq)]
+pub struct Zeroize {
+	/// [`Zeroize`](https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html) path.
+	pub crate_: Option<Path>,
+}
 
 impl TraitImpl for Zeroize {
-	fn as_str(&self) -> &'static str {
+	fn as_str() -> &'static str {
 		"Zeroize"
 	}
 
-	fn default_derive_trait(&self) -> DeriveTrait {
-		DeriveTrait::Zeroize { crate_: None }
+	fn default_derive_trait() -> DeriveTrait {
+		DeriveTrait::Zeroize(Self { crate_: None })
 	}
 
-	fn parse_derive_trait(
-		&self,
-		_span: Span,
-		list: Punctuated<Meta, Token![,]>,
-	) -> Result<DeriveTrait> {
+	fn parse_derive_trait(_span: Span, list: Punctuated<Meta, Token![,]>) -> Result<DeriveTrait> {
 		// This is already checked in `DeriveTrait::from_stream`.
 		debug_assert!(!list.is_empty());
 
@@ -39,7 +41,7 @@ impl TraitImpl for Zeroize {
 					if path.is_ident("drop") {
 						return Err(Error::deprecated_zeroize_drop(path.span()));
 					} else {
-						return Err(Error::option_trait(path.span(), self.as_str()));
+						return Err(Error::option_trait(path.span(), Self::as_str()));
 					}
 				}
 				Meta::NameValue(name_value) => {
@@ -67,7 +69,7 @@ impl TraitImpl for Zeroize {
 							return Err(Error::option_duplicate(name_value.span(), "crate"));
 						}
 					} else {
-						return Err(Error::option_trait(name_value.path.span(), self.as_str()));
+						return Err(Error::option_trait(name_value.path.span(), Self::as_str()));
 					}
 				}
 				_ => {
@@ -76,7 +78,11 @@ impl TraitImpl for Zeroize {
 			}
 		}
 
-		Ok(DeriveTrait::Zeroize { crate_ })
+		Ok(DeriveTrait::Zeroize(Self { crate_ }))
+	}
+
+	fn path(&self) -> syn::Path {
+		util::path_from_root_and_strs(self.crate_(), &["Zeroize"])
 	}
 
 	fn build_signature(
@@ -84,15 +90,14 @@ impl TraitImpl for Zeroize {
 		_derive_where: &DeriveWhere,
 		item: &Item,
 		_generics: &SplitGenerics<'_>,
-		trait_: &DeriveTrait,
 		body: &TokenStream,
 	) -> TokenStream {
 		match item {
-			Item::Item(data) if data.is_empty(**trait_) => quote! {
+			Item::Item(data) if data.is_empty(**self) => quote! {
 				fn zeroize(&mut self) { }
 			},
 			_ => {
-				let trait_path = trait_.path();
+				let trait_path = self.path();
 				quote! {
 					fn zeroize(&mut self) {
 						use #trait_path;
@@ -106,20 +111,15 @@ impl TraitImpl for Zeroize {
 		}
 	}
 
-	fn build_body(
-		&self,
-		_derive_where: &DeriveWhere,
-		trait_: &DeriveTrait,
-		data: &Data,
-	) -> TokenStream {
+	fn build_body(&self, _derive_where: &DeriveWhere, data: &Data) -> TokenStream {
 		match data.simple_type() {
 			SimpleType::Struct(fields) | SimpleType::Tuple(fields) => {
-				let trait_path = trait_.path();
+				let trait_path = self.path();
 				let self_pattern = fields.self_pattern_mut();
 
 				let body = data
-					.iter_fields(**trait_)
-					.zip(data.iter_self_ident(**trait_))
+					.iter_fields(**self)
+					.zip(data.iter_self_ident(**self))
 					.map(|(field, self_ident)| {
 						if field.attr.zeroize_fqs.0 {
 							quote! { #trait_path::zeroize(#self_ident); }
@@ -137,5 +137,24 @@ impl TraitImpl for Zeroize {
 			SimpleType::Unit(_) => TokenStream::new(),
 			SimpleType::Union => unreachable!("unexpected trait for union"),
 		}
+	}
+}
+
+impl Zeroize {
+	/// Returns the path to the root crate for this trait.
+	fn crate_(&self) -> Path {
+		if let Some(crate_) = &self.crate_ {
+			crate_.clone()
+		} else {
+			util::path_from_strs(&["zeroize"])
+		}
+	}
+}
+
+impl Deref for Zeroize {
+	type Target = Trait;
+
+	fn deref(&self) -> &Self::Target {
+		&Trait::Zeroize
 	}
 }

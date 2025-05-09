@@ -1,22 +1,29 @@
 //! [`PartialEq`](trait@std::cmp::PartialEq) implementation.
 
+use std::ops::Deref;
+
 use proc_macro2::TokenStream;
 use quote::quote;
 
 use super::common_ord::build_incomparable_pattern;
-use crate::{Data, DeriveTrait, DeriveWhere, Item, SimpleType, SplitGenerics, TraitImpl};
+use crate::{
+	util, Data, DeriveTrait, DeriveWhere, Item, SimpleType, SplitGenerics, Trait, TraitImpl,
+};
 
-/// Dummy-struct implement [`Trait`](crate::Trait) for
-/// [`PartialEq`](trait@std::cmp::PartialEq).
+/// [`TraitImpl`] for [`PartialEq`](trait@std::cmp::PartialEq).
 pub struct PartialEq;
 
 impl TraitImpl for PartialEq {
-	fn as_str(&self) -> &'static str {
+	fn as_str() -> &'static str {
 		"PartialEq"
 	}
 
-	fn default_derive_trait(&self) -> DeriveTrait {
+	fn default_derive_trait() -> DeriveTrait {
 		DeriveTrait::PartialEq
+	}
+
+	fn path(&self) -> syn::Path {
+		util::path_from_strs(&["core", "cmp", "PartialEq"])
 	}
 
 	fn build_signature(
@@ -24,7 +31,6 @@ impl TraitImpl for PartialEq {
 		_derive_where: &DeriveWhere,
 		item: &Item,
 		_generics: &SplitGenerics<'_>,
-		trait_: &DeriveTrait,
 		body: &TokenStream,
 	) -> TokenStream {
 		let body = {
@@ -35,12 +41,12 @@ impl TraitImpl for PartialEq {
 				}
 				// If there is more than one variant and not all variants are empty, check for
 				// discriminant and match on variant data.
-				Item::Enum { variants, .. } if variants.len() > 1 && !item.is_empty(**trait_) => {
+				Item::Enum { variants, .. } if variants.len() > 1 && !item.is_empty(**self) => {
 					// Return `true` in the rest pattern if there are any empty variants
 					// that are not incomparable.
 					let rest = if variants
 						.iter()
-						.any(|variant| variant.is_empty(**trait_) && !variant.is_incomparable())
+						.any(|variant| variant.is_empty(**self) && !variant.is_incomparable())
 					{
 						quote! { true }
 					} else {
@@ -68,7 +74,7 @@ impl TraitImpl for PartialEq {
 				}
 				// If there is more than one variant and all are empty, check for
 				// discriminant and simply return `true` if it is not incomparable.
-				Item::Enum { variants, .. } if variants.len() > 1 && item.is_empty(**trait_) => {
+				Item::Enum { variants, .. } if variants.len() > 1 && item.is_empty(**self) => {
 					let incomparable = build_incomparable_pattern(variants).into_iter();
 					quote! {
 						if ::core::mem::discriminant(self) == ::core::mem::discriminant(__other) {
@@ -83,7 +89,7 @@ impl TraitImpl for PartialEq {
 				}
 				// If there is only one variant and it's empty or if the struct is empty, simply
 				// return `true`.
-				item if item.is_empty(**trait_) => {
+				item if item.is_empty(**self) => {
 					quote! { true }
 				}
 				_ => {
@@ -104,22 +110,17 @@ impl TraitImpl for PartialEq {
 		}
 	}
 
-	fn build_body(
-		&self,
-		_derive_where: &DeriveWhere,
-		trait_: &DeriveTrait,
-		data: &Data,
-	) -> TokenStream {
-		if data.is_empty(**trait_) || data.is_incomparable() {
+	fn build_body(&self, _derive_where: &DeriveWhere, data: &Data) -> TokenStream {
+		if data.is_empty(**self) || data.is_incomparable() {
 			TokenStream::new()
 		} else {
 			match data.simple_type() {
 				SimpleType::Struct(fields) | SimpleType::Tuple(fields) => {
 					let self_pattern = &fields.self_pattern;
 					let other_pattern = &fields.other_pattern;
-					let trait_path = trait_.path();
-					let self_ident = data.iter_self_ident(**trait_);
-					let other_ident = data.iter_other_ident(**trait_);
+					let trait_path = self.path();
+					let self_ident = data.iter_self_ident(**self);
+					let other_ident = data.iter_other_ident(**self);
 
 					quote! {
 						(#self_pattern, #other_pattern) =>
@@ -130,5 +131,13 @@ impl TraitImpl for PartialEq {
 				SimpleType::Union => unreachable!("unexpected trait for union"),
 			}
 		}
+	}
+}
+
+impl Deref for PartialEq {
+	type Target = Trait;
+
+	fn deref(&self) -> &Self::Target {
+		&Trait::PartialEq
 	}
 }
