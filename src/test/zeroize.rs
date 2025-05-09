@@ -302,3 +302,47 @@ fn enum_skip_drop() -> Result<()> {
 		},
 	)
 }
+
+#[test]
+#[cfg(feature = "zeroize-on-drop")]
+fn no_drop() -> Result<()> {
+	test_derive(
+		quote! {
+			#[derive_where(ZeroizeOnDrop(no_drop); T)]
+			struct Test<T, U>(T, std::marker::PhantomData<U>);
+		},
+		quote! {
+			const _: () = {
+				trait DeriveWhereAssertZeroizeOnDrop {
+					fn assert(&mut self);
+				}
+
+				impl<T, U> DeriveWhereAssertZeroizeOnDrop for Test <T, U>
+				where T: ::zeroize::ZeroizeOnDrop
+				{
+					fn assert(&mut self) {
+						trait AssertZeroizeOnDrop {
+							fn __derive_where_zeroize_on_drop(&mut self);
+						}
+
+						impl<T: ::zeroize::ZeroizeOnDrop + ?::core::marker::Sized> AssertZeroizeOnDrop for T {
+							fn __derive_where_zeroize_on_drop(&mut self) {}
+						}
+
+						match self {
+							Test (ref mut __field_0, ref mut __field_1) => {
+								__field_0.__derive_where_zeroize_on_drop();
+								__field_1.__derive_where_zeroize_on_drop();
+							}
+						}
+					}
+				}
+			};
+
+			#[automatically_derived]
+			impl<T, U> ::zeroize::ZeroizeOnDrop for Test<T, U>
+			where T: ::zeroize::ZeroizeOnDrop
+			{ }
+		},
+	)
+}

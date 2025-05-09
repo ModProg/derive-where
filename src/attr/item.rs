@@ -386,6 +386,8 @@ pub enum DeriveTrait {
 	ZeroizeOnDrop {
 		/// [`ZeroizeOnDrop`](https://docs.rs/zeroize/latest/zeroize/trait.ZeroizeOnDrop.html) path.
 		crate_: Option<Path>,
+		/// If `Drop` should be implemented.
+		no_drop: bool,
 	},
 }
 

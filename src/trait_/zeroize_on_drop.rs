@@ -1,17 +1,19 @@
 //! [`ZeroizeOnDrop`](https://docs.rs/zeroize/latest/zeroize/trait.ZeroizeOnDrop.html) implementation.
 
+use std::{borrow::Cow, iter};
+
 use proc_macro2::{Span, TokenStream};
 use quote::quote;
 use syn::{
-	punctuated::Punctuated, spanned::Spanned, Expr, ExprLit, ExprPath, Lit, Meta, Path, Result,
-	Token,
+	punctuated::Punctuated, spanned::Spanned, Expr, ExprLit, ExprPath, Ident, ImplGenerics, Lit,
+	Meta, Path, Result, Token, TypeGenerics, WhereClause,
 };
 
 use crate::{util, DeriveTrait, DeriveWhere, Error, Item, SplitGenerics, TraitImpl};
 #[cfg(feature = "zeroize-on-drop")]
 use crate::{Data, SimpleType};
 
-/// Dummy-struct implement [`Trait`](crate::Trait) for [`ZeroizeOnDrop`](https://docs.rs/zeroize/latest/zeroize/trait.ZeroizeOnDrop.html) .
+/// Dummy-struct implement [`Trait`](crate::Trait) for [`ZeroizeOnDrop`](https://docs.rs/zeroize/latest/zeroize/trait.ZeroizeOnDrop.html).
 pub struct ZeroizeOnDrop;
 
 impl TraitImpl for ZeroizeOnDrop {
@@ -20,7 +22,10 @@ impl TraitImpl for ZeroizeOnDrop {
 	}
 
 	fn default_derive_trait(&self) -> DeriveTrait {
-		DeriveTrait::ZeroizeOnDrop { crate_: None }
+		DeriveTrait::ZeroizeOnDrop {
+			crate_: None,
+			no_drop: false,
+		}
 	}
 
 	fn parse_derive_trait(
@@ -32,10 +37,26 @@ impl TraitImpl for ZeroizeOnDrop {
 		debug_assert!(!list.is_empty());
 
 		let mut crate_ = None;
+		#[cfg_attr(not(feature = "zeroize-on-drop"), allow(unused_mut))]
+		let mut no_drop = false;
 
 		for meta in list {
 			match &meta {
-				Meta::Path(path) => return Err(Error::option_trait(path.span(), self.as_str())),
+				Meta::Path(path) => {
+					#[cfg(feature = "zeroize-on-drop")]
+					if path.is_ident("no_drop") {
+						// Check for duplicate `no_drop` option.
+						if !no_drop {
+							no_drop = true;
+						} else {
+							return Err(Error::option_duplicate(path.span(), "no_drop"));
+						}
+
+						continue;
+					}
+
+					return Err(Error::option_trait(path.span(), self.as_str()));
+				}
 				Meta::NameValue(name_value) => {
 					if name_value.path.is_ident("crate") {
 						// Check for duplicate `crate` option.
@@ -70,7 +91,7 @@ impl TraitImpl for ZeroizeOnDrop {
 			}
 		}
 
-		Ok(DeriveTrait::ZeroizeOnDrop { crate_ })
+		Ok(DeriveTrait::ZeroizeOnDrop { crate_, no_drop })
 	}
 
 	#[allow(unused_variables)]
@@ -81,8 +102,56 @@ impl TraitImpl for ZeroizeOnDrop {
 		None
 	}
 
-	fn impl_path(&self, _trait_: &DeriveTrait) -> Path {
-		util::path_from_strs(&["core", "ops", "Drop"])
+	fn impl_item(
+		&self,
+		trait_: &DeriveTrait,
+		imp: &ImplGenerics<'_>,
+		ident: &Ident,
+		ty: &TypeGenerics<'_>,
+		where_clause: &Option<Cow<'_, WhereClause>>,
+		body: TokenStream,
+	) -> TokenStream {
+		let no_drop = if let DeriveTrait::ZeroizeOnDrop { no_drop, .. } = trait_ {
+			*no_drop
+		} else {
+			unreachable!("entered `ZeroizeOnDrop` with another trait")
+		};
+
+		let path = if no_drop {
+			Path {
+				leading_colon: None,
+				segments: Punctuated::from_iter(iter::once(util::path_segment(
+					"DeriveWhereAssertZeroizeOnDrop",
+				))),
+			}
+		} else {
+			util::path_from_strs(&["core", "ops", "Drop"])
+		};
+
+		let imp = quote! {
+			impl #imp #path for #ident #ty
+			#where_clause
+			{
+				#body
+			}
+		};
+
+		if no_drop {
+			quote! {
+				const _: () = {
+					trait DeriveWhereAssertZeroizeOnDrop {
+						fn assert(&mut self);
+					}
+
+					#imp
+				};
+			}
+		} else {
+			quote! {
+				#[automatically_derived]
+				#imp
+			}
+		}
 	}
 
 	fn build_signature(
@@ -99,26 +168,55 @@ impl TraitImpl for ZeroizeOnDrop {
 			},
 			#[cfg(feature = "zeroize-on-drop")]
 			_ => {
-				let crate_ = trait_.crate_();
-				let internal = util::path_segment("__internal");
+				let no_drop = if let DeriveTrait::ZeroizeOnDrop { no_drop, .. } = trait_ {
+					*no_drop
+				} else {
+					unreachable!("entered `ZeroizeOnDrop` with another trait")
+				};
 
-				let mut assert_zeroize = crate_.clone();
-				assert_zeroize
-					.segments
-					.extend([internal.clone(), util::path_segment("AssertZeroize")]);
+				if no_drop {
+					let mut zeroize_on_drop = trait_.crate_();
+					zeroize_on_drop
+						.segments
+						.push(util::path_segment("ZeroizeOnDrop"));
 
-				let mut assert_zeroize_on_drop = crate_;
-				assert_zeroize_on_drop
-					.segments
-					.extend([internal, util::path_segment("AssertZeroizeOnDrop")]);
+					quote! {
+						fn assert(&mut self) {
+							trait AssertZeroizeOnDrop {
+								fn __derive_where_zeroize_on_drop(&mut self);
+							}
 
-				quote! {
-					fn drop(&mut self) {
-						use #assert_zeroize;
-						use #assert_zeroize_on_drop;
+							impl<T: #zeroize_on_drop + ?::core::marker::Sized> AssertZeroizeOnDrop for T {
+								fn __derive_where_zeroize_on_drop(&mut self) {}
+							}
 
-						match self {
-							#body
+							match self {
+								#body
+							}
+						}
+					}
+				} else {
+					let crate_ = trait_.crate_();
+					let internal = util::path_segment("__internal");
+
+					let mut assert_zeroize = crate_.clone();
+					assert_zeroize
+						.segments
+						.extend([internal.clone(), util::path_segment("AssertZeroize")]);
+
+					let mut assert_zeroize_on_drop = crate_;
+					assert_zeroize_on_drop
+						.segments
+						.extend([internal, util::path_segment("AssertZeroizeOnDrop")]);
+
+					quote! {
+						fn drop(&mut self) {
+							use #assert_zeroize;
+							use #assert_zeroize_on_drop;
+
+							match self {
+								#body
+							}
 						}
 					}
 				}
@@ -147,28 +245,40 @@ impl TraitImpl for ZeroizeOnDrop {
 		data: &Data,
 	) -> TokenStream {
 		match data.simple_type() {
+			#[cfg(feature = "zeroize-on-drop")]
 			SimpleType::Struct(fields) | SimpleType::Tuple(fields) => {
-				#[cfg(feature = "zeroize-on-drop")]
-				{
-					let self_pattern = fields.self_pattern_mut();
-					let self_ident = data.iter_self_ident(**trait_);
+				let self_pattern = fields.self_pattern_mut();
+				let self_ident = data.iter_self_ident(**trait_);
 
+				let no_drop = if let DeriveTrait::ZeroizeOnDrop { no_drop, .. } = trait_ {
+					*no_drop
+				} else {
+					unreachable!("entered `ZeroizeOnDrop` with another trait")
+				};
+
+				if no_drop {
+					quote! {
+						#self_pattern => {
+							#(#self_ident.__derive_where_zeroize_on_drop();)*
+						}
+					}
+				} else {
 					quote! {
 						#self_pattern => {
 							#(#self_ident.zeroize_or_on_drop();)*
 						}
 					}
 				}
-				#[cfg(not(feature = "zeroize-on-drop"))]
-				{
-					// Use unused variables.
-					let _ = fields;
+			}
+			#[cfg(not(feature = "zeroize-on-drop"))]
+			SimpleType::Struct(fields) | SimpleType::Tuple(fields) => {
+				// Use unused variables.
+				let _ = fields;
 
-					let path = util::path_from_root_and_strs(trait_.crate_(), &["Zeroize"]);
+				let path = util::path_from_root_and_strs(trait_.crate_(), &["Zeroize"]);
 
-					quote! {
-						#path::zeroize(self);
-					}
+				quote! {
+					#path::zeroize(self);
 				}
 			}
 			SimpleType::Unit(_) => TokenStream::new(),

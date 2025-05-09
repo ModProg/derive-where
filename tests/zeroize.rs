@@ -140,6 +140,26 @@ fn deref() {
 	})
 }
 
+#[test]
+#[cfg(feature = "zeroize-on-drop")]
+fn no_drop() {
+	use zeroize::Zeroizing;
+
+	#[derive_where(ZeroizeOnDrop(no_drop))]
+	struct Test<T: Zeroize>(Zeroizing<T>);
+
+	// Test that `Drop` isn't implemented by `derive_where`.
+	impl<T: Zeroize> Drop for Test<T> {
+		fn drop(&mut self) {}
+	}
+
+	let mut test = Test(42.into());
+
+	let _ = AssertZeroizeOnDrop(&test);
+
+	util::test_drop(Test(42.into()), |test| assert_eq!(*test.0, 0))
+}
+
 mod hygiene {
 	use derive_where::derive_where;
 

@@ -15,8 +15,14 @@ mod zeroize;
 #[cfg(feature = "zeroize")]
 mod zeroize_on_drop;
 
+use std::borrow::Cow;
+
 use proc_macro2::{Span, TokenStream};
-use syn::{punctuated::Punctuated, spanned::Spanned, Meta, Path, Result, Token, TypeParamBound};
+use quote::quote;
+use syn::{
+	punctuated::Punctuated, spanned::Spanned, Ident, ImplGenerics, Meta, Path, Result, Token,
+	TypeGenerics, TypeParamBound, WhereClause,
+};
 
 use crate::{Data, DeriveTrait, DeriveWhere, Error, Item, SplitGenerics};
 
@@ -127,8 +133,17 @@ impl TraitImpl for Trait {
 		self.implementation().additional_impl(trait_)
 	}
 
-	fn impl_path(&self, trait_: &DeriveTrait) -> Path {
-		self.implementation().impl_path(trait_)
+	fn impl_item(
+		&self,
+		trait_: &DeriveTrait,
+		imp: &ImplGenerics<'_>,
+		ident: &Ident,
+		ty: &TypeGenerics<'_>,
+		where_clause: &Option<Cow<'_, WhereClause>>,
+		body: TokenStream,
+	) -> TokenStream {
+		self.implementation()
+			.impl_item(trait_, imp, ident, ty, where_clause, body)
 	}
 
 	fn build_signature(
@@ -189,8 +204,25 @@ pub trait TraitImpl {
 
 	/// Trait to implement. Only used for [`ZeroizeOnDrop`](https://docs.rs/zeroize/latest/zeroize/trait.ZeroizeOnDrop.html)
 	/// because it implements [`Drop`] and not itself.
-	fn impl_path(&self, trait_: &DeriveTrait) -> Path {
-		trait_.path()
+	fn impl_item(
+		&self,
+		trait_: &DeriveTrait,
+		imp: &ImplGenerics<'_>,
+		ident: &Ident,
+		ty: &TypeGenerics<'_>,
+		where_clause: &Option<Cow<'_, WhereClause>>,
+		body: TokenStream,
+	) -> TokenStream {
+		let path = trait_.path();
+
+		quote! {
+			#[automatically_derived]
+			impl #imp #path for #ident #ty
+			#where_clause
+			{
+				#body
+			}
+		}
 	}
 
 	/// Build method signature for this [`Trait`].

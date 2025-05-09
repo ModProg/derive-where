@@ -272,9 +272,11 @@
 //! and can be implemented without [`Zeroize`], otherwise it only implements
 //! [`Drop`] and requires [`Zeroize`] to be implemented.
 //!
-//! [`ZeroizeOnDrop`] has one option:
+//! [`ZeroizeOnDrop`] has two options:
 //! - `crate`: an item-level option which specifies a path to the [`zeroize`]
 //!   crate in case of a re-export or rename.
+//! - `no_drop`: an item-level option which will not implement [`Drop`] but
+//!   instead only assert that every field implements [`ZeroizeOnDrop`].
 //!
 //! ```
 //! # #[cfg(feature = "zeroize-on-drop")]
@@ -642,15 +644,7 @@ fn generate_impl(
 	let body = generate_body(derive_where, trait_, item, generics);
 
 	let ident = item.ident();
-	let path = trait_.impl_path(trait_);
-	let mut output = quote! {
-		#[automatically_derived]
-		impl #imp #path for #ident #ty
-		#where_clause
-		{
-			#body
-		}
-	};
+	let mut output = trait_.impl_item(trait_, imp, ident, ty, &where_clause, body);
 
 	if let Some((path, body)) = trait_.additional_impl(trait_) {
 		output.extend(quote! {

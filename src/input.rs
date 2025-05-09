@@ -183,8 +183,16 @@ impl<'a> Input<'a> {
 				{
 					// `Zeroize(crate = ..)` or `ZeroizeOnDrop(crate = ..)` is used.
 					if let DeriveTrait::Zeroize { crate_: Some(_) }
-					| DeriveTrait::ZeroizeOnDrop { crate_: Some(_) } = *trait_
+					| DeriveTrait::ZeroizeOnDrop {
+						crate_: Some(_), ..
+					} = *trait_
 					{
+						continue;
+					}
+
+					// `ZeroizeOnDrop(no_drop)` is used.
+					#[cfg(feature = "zeroize-on-drop")]
+					if let DeriveTrait::ZeroizeOnDrop { no_drop: true, .. } = *trait_ {
 						continue;
 					}
 
