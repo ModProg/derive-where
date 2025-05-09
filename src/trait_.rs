@@ -1,30 +1,33 @@
 //! Individual implementation for all traits.
 
-mod clone;
+pub mod clone;
 mod common_ord;
-mod copy;
-mod debug;
-mod default;
-mod eq;
-mod hash;
-mod ord;
-mod partial_eq;
-mod partial_ord;
+pub mod copy;
+pub mod debug;
+pub mod default;
+pub mod eq;
+pub mod hash;
+pub mod ord;
+pub mod partial_eq;
+pub mod partial_ord;
 #[cfg(feature = "zeroize")]
-mod zeroize;
+pub mod zeroize;
 #[cfg(feature = "zeroize")]
-mod zeroize_on_drop;
+pub mod zeroize_on_drop;
 
-use std::borrow::Cow;
+use std::{borrow::Cow, ops::Deref};
 
 use proc_macro2::{Span, TokenStream};
 use quote::quote;
 use syn::{
-	punctuated::Punctuated, spanned::Spanned, Ident, ImplGenerics, Meta, Path, Result, Token,
-	TypeGenerics, TypeParamBound, WhereClause,
+	parse::{Parse, ParseStream},
+	punctuated::Punctuated,
+	spanned::Spanned,
+	Ident, ImplGenerics, Meta, Path, Result, Token, TraitBound, TraitBoundModifier, TypeGenerics,
+	TypeParamBound, WhereClause,
 };
 
-use crate::{Data, DeriveTrait, DeriveWhere, Error, Item, SplitGenerics};
+use crate::{util::MetaListExt, Data, DeriveWhere, Error, Item, SplitGenerics};
 
 /// Type implementing [`TraitImpl`] for every trait.
 #[derive(Clone, Copy, Eq, PartialEq)]
@@ -56,26 +59,27 @@ pub enum Trait {
 	ZeroizeOnDrop,
 }
 
-impl Trait {
-	/// Return dummy-struct for the internal implementation.
-	fn implementation(&self) -> &dyn TraitImpl {
-		match self {
-			Trait::Clone => &clone::Clone,
-			Trait::Copy => &copy::Copy,
-			Trait::Debug => &debug::Debug,
-			Trait::Default => &default::Default,
-			Trait::Eq => &eq::Eq,
-			Trait::Hash => &hash::Hash,
-			Trait::Ord => &ord::Ord,
-			Trait::PartialEq => &partial_eq::PartialEq,
-			Trait::PartialOrd => &partial_ord::PartialOrd,
+macro_rules! trait_dispatch {
+	($self:expr, $method:ident($($par:expr),*)) => {
+		match $self {
+			Trait::Clone => clone::Clone::$method($($par),*),
+			Trait::Copy => copy::Copy::$method($($par),*),
+			Trait::Debug => debug::Debug::$method($($par),*),
+			Trait::Default => default::Default::$method($($par),*),
+			Trait::Eq => eq::Eq::$method($($par),*),
+			Trait::Hash => hash::Hash::$method($($par),*),
+			Trait::Ord => ord::Ord::$method($($par),*),
+			Trait::PartialEq => partial_eq::PartialEq::$method($($par),*),
+			Trait::PartialOrd => partial_ord::PartialOrd::$method($($par),*),
 			#[cfg(feature = "zeroize")]
-			Trait::Zeroize => &zeroize::Zeroize,
+			Trait::Zeroize => zeroize::Zeroize::$method($($par),*),
 			#[cfg(feature = "zeroize")]
-			Trait::ZeroizeOnDrop => &zeroize_on_drop::ZeroizeOnDrop,
+			Trait::ZeroizeOnDrop => zeroize_on_drop::ZeroizeOnDrop::$method($($par),*),
 		}
-	}
+	};
+}
 
+impl Trait {
 	/// Create [`Trait`] from [`Path`].
 	pub fn from_path(path: &Path) -> Result<Self> {
 		if let Some(ident) = path.get_ident() {
@@ -102,103 +106,189 @@ impl Trait {
 			Err(Error::trait_(path.span()))
 		}
 	}
-}
 
-impl TraitImpl for Trait {
-	fn as_str(&self) -> &'static str {
-		self.implementation().as_str()
+	/// Re-direct to [`TraitImpl::as_str()`].
+	pub fn as_str(&self) -> &'static str {
+		trait_dispatch!(self, as_str())
 	}
 
-	fn default_derive_trait(&self) -> DeriveTrait {
-		self.implementation().default_derive_trait()
+	/// Re-direct to [`TraitImpl::default_derive_trait()`].
+	pub fn default_derive_trait(&self) -> DeriveTrait {
+		trait_dispatch!(self, default_derive_trait())
 	}
 
-	fn parse_derive_trait(
+	/// Re-direct to [`TraitImpl::parse_derive_trait()`].
+	pub fn parse_derive_trait(
 		&self,
 		span: Span,
 		list: Punctuated<Meta, Token![,]>,
 	) -> Result<DeriveTrait> {
-		self.implementation().parse_derive_trait(span, list)
+		trait_dispatch!(self, parse_derive_trait(span, list))
 	}
 
-	fn supports_union(&self) -> bool {
-		self.implementation().supports_union()
+	/// Re-direct to [`TraitImpl::supports_union()`].
+	pub fn supports_union(&self) -> bool {
+		trait_dispatch!(self, supports_union())
 	}
 
-	fn additional_where_bounds(&self, data: &Item) -> Option<TypeParamBound> {
-		self.implementation().additional_where_bounds(data)
+	/// Re-direct to [`TraitImpl::additional_where_bounds()`].
+	pub fn additional_where_bounds(&self, data: &Item) -> Option<TypeParamBound> {
+		trait_dispatch!(self, additional_where_bounds(data))
+	}
+}
+
+/// Trait to implement.
+#[derive(Eq, PartialEq)]
+pub enum DeriveTrait {
+	/// [`Clone`].
+	Clone,
+	/// [`Copy`].
+	Copy,
+	/// [`Debug`](std::fmt::Debug).
+	Debug,
+	/// [`Default`].
+	Default,
+	/// [`Eq`].
+	Eq,
+	/// [`Hash`](std::hash::Hash).
+	Hash,
+	/// [`Ord`].
+	Ord,
+	/// [`PartialEq`].
+	PartialEq,
+	/// [`PartialOrd`].
+	PartialOrd,
+	/// [`Zeroize`](https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html).
+	#[cfg(feature = "zeroize")]
+	Zeroize(zeroize::Zeroize),
+	/// [`ZeroizeOnDrop`](https://docs.rs/zeroize/latest/zeroize/trait.ZeroizeOnDrop.html).
+	#[cfg(feature = "zeroize")]
+	ZeroizeOnDrop(zeroize_on_drop::ZeroizeOnDrop),
+}
+
+impl Deref for DeriveTrait {
+	type Target = dyn TraitImpl;
+
+	fn deref(&self) -> &Self::Target {
+		use DeriveTrait::*;
+
+		match self {
+			Clone => &clone::Clone,
+			Copy => &copy::Copy,
+			Debug => &debug::Debug,
+			Default => &default::Default,
+			Eq => &eq::Eq,
+			Hash => &hash::Hash,
+			Ord => &ord::Ord,
+			PartialEq => &partial_eq::PartialEq,
+			PartialOrd => &partial_ord::PartialOrd,
+			#[cfg(feature = "zeroize")]
+			Zeroize(trait_) => trait_,
+			#[cfg(feature = "zeroize")]
+			ZeroizeOnDrop(trait_) => trait_,
+		}
+	}
+}
+
+impl PartialEq<Trait> for &DeriveTrait {
+	fn eq(&self, other: &Trait) -> bool {
+		let trait_: &Trait = self;
+		trait_ == other
+	}
+}
+
+impl DeriveTrait {
+	/// Returns where-clause bounds for the trait in respect of the item type.
+	pub fn where_bounds(&self, data: &Item) -> Punctuated<TypeParamBound, Token![+]> {
+		let mut list = Punctuated::new();
+
+		list.push(TypeParamBound::Trait(TraitBound {
+			paren_token: None,
+			modifier: TraitBoundModifier::None,
+			lifetimes: None,
+			path: self.path(),
+		}));
+
+		// Add bounds specific to the trait.
+		if let Some(bound) = self.additional_where_bounds(data) {
+			list.push(bound)
+		}
+
+		list
 	}
 
-	fn additional_impl(&self, trait_: &DeriveTrait) -> Option<(Path, TokenStream)> {
-		self.implementation().additional_impl(trait_)
-	}
+	/// Create [`DeriveTrait`] from [`ParseStream`].
+	pub fn from_stream(span: Span, data: &syn::Data, input: ParseStream) -> Result<(Span, Self)> {
+		match Meta::parse(input) {
+			Ok(meta) => {
+				let trait_ = Trait::from_path(meta.path())?;
 
-	fn impl_item(
-		&self,
-		trait_: &DeriveTrait,
-		imp: &ImplGenerics<'_>,
-		ident: &Ident,
-		ty: &TypeGenerics<'_>,
-		where_clause: &Option<Cow<'_, WhereClause>>,
-		body: TokenStream,
-	) -> TokenStream {
-		self.implementation()
-			.impl_item(trait_, imp, ident, ty, where_clause, body)
-	}
+				if let syn::Data::Union(_) = data {
+					// Make sure this `Trait` supports unions.
+					if !trait_.supports_union() {
+						return Err(Error::union(span));
+					}
+				}
 
-	fn build_signature(
-		&self,
-		derive_where: &DeriveWhere,
-		item: &Item,
-		generics: &SplitGenerics<'_>,
-		trait_: &DeriveTrait,
-		body: &TokenStream,
-	) -> TokenStream {
-		self.implementation()
-			.build_signature(derive_where, item, generics, trait_, body)
-	}
+				match &meta {
+					Meta::Path(path) => Ok((path.span(), trait_.default_derive_trait())),
+					Meta::List(list) => {
+						let nested = list.parse_non_empty_nested_metas()?;
 
-	fn build_body(
-		&self,
-		derive_where: &DeriveWhere,
-		trait_: &DeriveTrait,
-		data: &Data,
-	) -> TokenStream {
-		self.implementation().build_body(derive_where, trait_, data)
+						// This will return an error if no options are supported.
+						Ok((list.span(), trait_.parse_derive_trait(meta.span(), nested)?))
+					}
+					Meta::NameValue(name_value) => Err(Error::option_syntax(name_value.span())),
+				}
+			}
+			Err(error) => Err(Error::trait_syntax(error.span())),
+		}
 	}
 }
 
 /// Single trait implementation. Parses attributes and constructs `impl`s.
-pub trait TraitImpl {
+pub trait TraitImpl: Deref<Target = Trait> {
 	/// [`str`] representation of this [`Trait`].
 	/// Used to compare against [`Ident`](struct@syn::Ident)s and create error
 	/// messages.
-	fn as_str(&self) -> &'static str;
+	fn as_str() -> &'static str
+	where
+		Self: Sized;
 
 	/// Associated [`DeriveTrait`].
-	fn default_derive_trait(&self) -> DeriveTrait;
+	fn default_derive_trait() -> DeriveTrait
+	where
+		Self: Sized;
 
 	/// Parse a `derive_where` trait with it's options.
-	fn parse_derive_trait(
-		&self,
-		span: Span,
-		_list: Punctuated<Meta, Token![,]>,
-	) -> Result<DeriveTrait> {
-		Err(Error::options(span, self.as_str()))
+	fn parse_derive_trait(span: Span, _list: Punctuated<Meta, Token![,]>) -> Result<DeriveTrait>
+	where
+		Self: Sized,
+	{
+		Err(Error::options(span, Self::as_str()))
 	}
 
 	/// Returns `true` if [`Trait`] supports unions.
-	fn supports_union(&self) -> bool {
+	fn supports_union() -> bool
+	where
+		Self: Sized,
+	{
 		false
 	}
 
-	/// Additional bounds to add to [`WhereClause`](syn::WhereClause).
-	fn additional_where_bounds(&self, _data: &Item) -> Option<TypeParamBound> {
+	/// Additional bounds to add to [`WhereClause`].
+	fn additional_where_bounds(_data: &Item) -> Option<TypeParamBound>
+	where
+		Self: Sized,
+	{
 		None
 	}
 
+	/// Returns fully qualified [`Path`] for this trait.
+	fn path(&self) -> Path;
+
 	/// Additional implementation to add for this [`Trait`].
-	fn additional_impl(&self, _trait_: &DeriveTrait) -> Option<(Path, TokenStream)> {
+	fn additional_impl(&self) -> Option<(Path, TokenStream)> {
 		None
 	}
 
@@ -206,14 +296,13 @@ pub trait TraitImpl {
 	/// because it implements [`Drop`] and not itself.
 	fn impl_item(
 		&self,
-		trait_: &DeriveTrait,
 		imp: &ImplGenerics<'_>,
 		ident: &Ident,
 		ty: &TypeGenerics<'_>,
 		where_clause: &Option<Cow<'_, WhereClause>>,
 		body: TokenStream,
 	) -> TokenStream {
-		let path = trait_.path();
+		let path = self.path();
 
 		quote! {
 			#[automatically_derived]
@@ -231,19 +320,13 @@ pub trait TraitImpl {
 		_derive_where: &DeriveWhere,
 		_item: &Item,
 		_generics: &SplitGenerics<'_>,
-		_trait_: &DeriveTrait,
 		_body: &TokenStream,
 	) -> TokenStream {
 		TokenStream::new()
 	}
 
 	/// Build method body for this [`Trait`].
-	fn build_body(
-		&self,
-		_derive_where: &DeriveWhere,
-		_trait_: &DeriveTrait,
-		_data: &Data,
-	) -> TokenStream {
+	fn build_body(&self, _derive_where: &DeriveWhere, _data: &Data) -> TokenStream {
 		TokenStream::new()
 	}
 }

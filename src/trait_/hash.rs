@@ -1,21 +1,29 @@
 //! [`Hash`](trait@std::hash::Hash) implementation.
 
+use std::ops::Deref;
+
 use proc_macro2::TokenStream;
 use quote::quote;
 
-use crate::{Data, DataType, DeriveTrait, DeriveWhere, Item, SimpleType, SplitGenerics, TraitImpl};
+use crate::{
+	util, Data, DataType, DeriveTrait, DeriveWhere, Item, SimpleType, SplitGenerics, Trait,
+	TraitImpl,
+};
 
-/// Dummy-struct implement [`Trait`](crate::Trait) for
-/// [`Hash`](trait@std::hash::Hash).
+/// [`TraitImpl`] for [`Hash`](trait@std::hash::Hash).
 pub struct Hash;
 
 impl TraitImpl for Hash {
-	fn as_str(&self) -> &'static str {
+	fn as_str() -> &'static str {
 		"Hash"
 	}
 
-	fn default_derive_trait(&self) -> DeriveTrait {
+	fn default_derive_trait() -> DeriveTrait {
 		DeriveTrait::Hash
+	}
+
+	fn path(&self) -> syn::Path {
+		util::path_from_strs(&["core", "hash", "Hash"])
 	}
 
 	fn build_signature(
@@ -23,7 +31,6 @@ impl TraitImpl for Hash {
 		_derive_where: &DeriveWhere,
 		_item: &Item,
 		_generics: &SplitGenerics<'_>,
-		_trait_: &DeriveTrait,
 		body: &TokenStream,
 	) -> TokenStream {
 		quote! {
@@ -35,14 +42,9 @@ impl TraitImpl for Hash {
 		}
 	}
 
-	fn build_body(
-		&self,
-		_derive_where: &DeriveWhere,
-		trait_: &DeriveTrait,
-		data: &Data,
-	) -> TokenStream {
+	fn build_body(&self, _derive_where: &DeriveWhere, data: &Data) -> TokenStream {
 		let self_pattern = data.self_pattern();
-		let trait_path = trait_.path();
+		let trait_path = self.path();
 
 		// Add hashing the variant if this is an enum.
 		let discriminant = if let DataType::Variant { .. } = data.type_ {
@@ -53,7 +55,7 @@ impl TraitImpl for Hash {
 
 		match data.simple_type() {
 			SimpleType::Struct(_) | SimpleType::Tuple(_) => {
-				let self_ident = data.iter_self_ident(**trait_);
+				let self_ident = data.iter_self_ident(**self);
 
 				quote! {
 					#self_pattern => {
@@ -71,5 +73,13 @@ impl TraitImpl for Hash {
 			}
 			SimpleType::Union => unreachable!("unexpected trait for union"),
 		}
+	}
+}
+
+impl Deref for Hash {
+	type Target = Trait;
+
+	fn deref(&self) -> &Self::Target {
+		&Trait::Hash
 	}
 }

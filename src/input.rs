@@ -3,10 +3,13 @@
 use proc_macro2::Span;
 use syn::{DeriveInput, GenericParam, Generics, ImplGenerics, Result, TypeGenerics, WhereClause};
 
-#[cfg(feature = "zeroize")]
-use crate::DeriveTrait;
 #[cfg(not(feature = "nightly"))]
 use crate::Discriminant;
+#[cfg(feature = "zeroize")]
+use crate::{
+	trait_::{zeroize::Zeroize, zeroize_on_drop::ZeroizeOnDrop},
+	DeriveTrait,
+};
 use crate::{Data, DeriveWhere, Either, Error, Item, ItemAttr, Trait};
 
 /// Parsed input.
@@ -170,7 +173,7 @@ impl<'a> Input<'a> {
 				}
 
 				// Any field is skipped with a corresponding `Trait`.
-				if item.any_skip_trait(**trait_) {
+				if item.any_skip_trait(***trait_) {
 					continue;
 				}
 
@@ -181,18 +184,14 @@ impl<'a> Input<'a> {
 
 				#[cfg(feature = "zeroize")]
 				{
-					// `Zeroize(crate = ..)` or `ZeroizeOnDrop(crate = ..)` is used.
-					if let DeriveTrait::Zeroize { crate_: Some(_) }
-					| DeriveTrait::ZeroizeOnDrop {
-						crate_: Some(_), ..
-					} = *trait_
-					{
-						continue;
-					}
-
+					// `Zeroize(crate = ..)`, `ZeroizeOnDrop(crate = ..)` or
 					// `ZeroizeOnDrop(no_drop)` is used.
-					#[cfg(feature = "zeroize-on-drop")]
-					if let DeriveTrait::ZeroizeOnDrop { no_drop: true, .. } = *trait_ {
+					if let DeriveTrait::Zeroize(Zeroize { crate_: Some(_) })
+					| DeriveTrait::ZeroizeOnDrop(ZeroizeOnDrop {
+						crate_: Some(_), ..
+					})
+					| DeriveTrait::ZeroizeOnDrop(ZeroizeOnDrop { no_drop: true, .. }) = *trait_
+					{
 						continue;
 					}
 

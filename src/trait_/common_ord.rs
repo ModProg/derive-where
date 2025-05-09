@@ -13,21 +13,21 @@ use quote::quote;
 use syn::{parse_quote, Expr, ExprLit, LitInt, Path};
 
 #[cfg(not(feature = "nightly"))]
-use crate::{item::Representation, Discriminant, Trait};
-use crate::{Data, DeriveTrait, DeriveWhere, Item, SimpleType, SplitGenerics};
+use crate::{item::Representation, DeriveTrait, Discriminant};
+use crate::{Data, DeriveWhere, Item, SimpleType, SplitGenerics, Trait, TraitImpl};
 
 /// Build signature for [`PartialOrd`] and [`Ord`].
 pub fn build_ord_signature(
 	item: &Item,
 	#[cfg_attr(feature = "nightly", allow(unused_variables))] generics: &SplitGenerics<'_>,
 	#[cfg_attr(feature = "nightly", allow(unused_variables))] derive_where: &DeriveWhere,
-	trait_: &DeriveTrait,
+	trait_: &dyn TraitImpl,
 	body: &TokenStream,
 ) -> TokenStream {
 	let mut equal = quote! { ::core::cmp::Ordering::Equal };
 
 	// Add `Option` to `Ordering` if we are implementing `PartialOrd`.
-	if let DeriveTrait::PartialOrd = trait_ {
+	if let Trait::PartialOrd = **trait_ {
 		equal = quote! { ::core::option::Option::Some(#equal) };
 	}
 
@@ -108,9 +108,9 @@ pub fn build_ord_signature(
 				};
 
 				let path = trait_.path();
-				let method = match trait_ {
-					DeriveTrait::PartialOrd => quote! { partial_cmp },
-					DeriveTrait::Ord => quote! { cmp },
+				let method = match **trait_ {
+					Trait::PartialOrd => quote! { partial_cmp },
+					Trait::Ord => quote! { cmp },
 					_ => unreachable!("unsupported trait in `prepare_ord`"),
 				};
 
@@ -416,17 +416,17 @@ fn build_discriminant_comparison(
 }
 
 /// Build `match` arms for [`PartialOrd`] and [`Ord`].
-pub fn build_ord_body(trait_: &DeriveTrait, data: &Data) -> TokenStream {
+pub fn build_ord_body(trait_: &dyn TraitImpl, data: &Data) -> TokenStream {
 	let path = trait_.path();
 	let mut equal = quote! { ::core::cmp::Ordering::Equal };
 
 	// Add `Option` to `Ordering` if we are implementing `PartialOrd`.
-	let method = match trait_ {
-		DeriveTrait::PartialOrd => {
+	let method = match **trait_ {
+		Trait::PartialOrd => {
 			equal = quote! { ::core::option::Option::Some(#equal) };
 			quote! { partial_cmp }
 		}
-		DeriveTrait::Ord => quote! { cmp },
+		Trait::Ord => quote! { cmp },
 		_ => unreachable!("unsupported trait in `build_ord`"),
 	};
 

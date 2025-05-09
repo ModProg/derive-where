@@ -1,31 +1,33 @@
 //! [`Clone`](trait@std::clone::Clone) implementation.
 
+use std::ops::Deref;
+
 use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{TraitBound, TraitBoundModifier, TypeParamBound};
 
 use crate::{
-	data::Field, Data, DataType, DeriveTrait, DeriveWhere, Item, SimpleType, SplitGenerics, Trait,
-	TraitImpl,
+	data::Field, util, Data, DataType, DeriveTrait, DeriveWhere, Item, SimpleType, SplitGenerics,
+	Trait, TraitImpl,
 };
 
-/// Dummy-struct implement [`Trait`] for [`Clone`](trait@std::clone::Clone).
+/// [`TraitImpl`] for [`Clone`](trait@std::clone::Clone).
 pub struct Clone;
 
 impl TraitImpl for Clone {
-	fn as_str(&self) -> &'static str {
+	fn as_str() -> &'static str {
 		"Clone"
 	}
 
-	fn default_derive_trait(&self) -> DeriveTrait {
+	fn default_derive_trait() -> DeriveTrait {
 		DeriveTrait::Clone
 	}
 
-	fn supports_union(&self) -> bool {
+	fn supports_union() -> bool {
 		true
 	}
 
-	fn additional_where_bounds(&self, data: &Item) -> Option<TypeParamBound> {
+	fn additional_where_bounds(data: &Item) -> Option<TypeParamBound> {
 		// `Clone` for unions requires the `Copy` bound.
 		if let Item::Item(Data {
 			type_: DataType::Union(..),
@@ -43,12 +45,15 @@ impl TraitImpl for Clone {
 		}
 	}
 
+	fn path(&self) -> syn::Path {
+		util::path_from_strs(&["core", "clone", "Clone"])
+	}
+
 	fn build_signature(
 		&self,
 		derive_where: &DeriveWhere,
 		item: &Item,
 		_generics: &SplitGenerics<'_>,
-		_trait_: &DeriveTrait,
 		body: &TokenStream,
 	) -> TokenStream {
 		// Special implementation for items also implementing `Copy`.
@@ -87,12 +92,7 @@ impl TraitImpl for Clone {
 		}
 	}
 
-	fn build_body(
-		&self,
-		derive_where: &DeriveWhere,
-		trait_: &DeriveTrait,
-		data: &Data,
-	) -> TokenStream {
+	fn build_body(&self, derive_where: &DeriveWhere, data: &Data) -> TokenStream {
 		if (derive_where.generics.is_empty() || derive_where.any_custom_bound())
 			&& derive_where.contains(Trait::Copy)
 		{
@@ -103,7 +103,7 @@ impl TraitImpl for Clone {
 			SimpleType::Struct(fields) | SimpleType::Tuple(fields) => {
 				let self_pattern = &fields.self_pattern;
 				let item_path = &data.path;
-				let trait_path = trait_.path();
+				let trait_path = self.path();
 				let default_path = DeriveTrait::Default.path();
 
 				let fields = fields.fields.iter().map(
@@ -127,5 +127,13 @@ impl TraitImpl for Clone {
 			}
 			SimpleType::Union => TokenStream::new(),
 		}
+	}
+}
+
+impl Deref for Clone {
+	type Target = Trait;
+
+	fn deref(&self) -> &Self::Target {
+		&Trait::Clone
 	}
 }

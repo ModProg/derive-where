@@ -1,21 +1,28 @@
 //! [`Default`](trait@std::default::Default) implementation.
 
+use std::ops::Deref;
+
 use proc_macro2::TokenStream;
 use quote::quote;
 
-use crate::{Data, DeriveTrait, DeriveWhere, Item, SimpleType, SplitGenerics, TraitImpl};
+use crate::{
+	util, Data, DeriveTrait, DeriveWhere, Item, SimpleType, SplitGenerics, Trait, TraitImpl,
+};
 
-/// Dummy-struct implement [`Trait`](crate::Trait) for
-/// [`Default`](trait@std::default::Default).
+/// [`TraitImpl`] for [`Default`](trait@std::default::Default).
 pub struct Default;
 
 impl TraitImpl for Default {
-	fn as_str(&self) -> &'static str {
+	fn as_str() -> &'static str {
 		"Default"
 	}
 
-	fn default_derive_trait(&self) -> DeriveTrait {
+	fn default_derive_trait() -> DeriveTrait {
 		DeriveTrait::Default
+	}
+
+	fn path(&self) -> syn::Path {
+		util::path_from_strs(&["core", "default", "Default"])
 	}
 
 	fn build_signature(
@@ -23,7 +30,6 @@ impl TraitImpl for Default {
 		_derive_where: &DeriveWhere,
 		_item: &Item,
 		_generics: &SplitGenerics<'_>,
-		_trait_: &DeriveTrait,
 		body: &TokenStream,
 	) -> TokenStream {
 		quote! {
@@ -33,26 +39,21 @@ impl TraitImpl for Default {
 		}
 	}
 
-	fn build_body(
-		&self,
-		_derive_where: &DeriveWhere,
-		trait_: &DeriveTrait,
-		data: &Data,
-	) -> TokenStream {
+	fn build_body(&self, _derive_where: &DeriveWhere, data: &Data) -> TokenStream {
 		if data.is_default() {
 			let path = &data.path;
 
 			match data.simple_type() {
 				SimpleType::Struct(_) => {
-					let fields = data.iter_field_ident(**trait_);
-					let trait_path = trait_.path();
+					let fields = data.iter_field_ident(**self);
+					let trait_path = self.path();
 
 					quote! { #path { #(#fields: #trait_path::default()),* } }
 				}
 				SimpleType::Tuple(_) => {
-					let trait_path = trait_.path();
+					let trait_path = self.path();
 					let fields = data
-						.iter_fields(**trait_)
+						.iter_fields(**self)
 						.map(|_| quote! { #trait_path::default() });
 
 					quote! { #path(#(#fields),*) }
@@ -67,5 +68,13 @@ impl TraitImpl for Default {
 		else {
 			TokenStream::new()
 		}
+	}
+}
+
+impl Deref for Default {
+	type Target = Trait;
+
+	fn deref(&self) -> &Self::Target {
+		&Trait::Default
 	}
 }
