@@ -235,19 +235,28 @@ fn check_trait_bounds() -> Result<()> {
 				}
 			}
 
+			const _: () = {
+				trait DeriveWhereAssertEq {
+					fn assert(&self);
+				}
+
+				impl<T, U> DeriveWhereAssertEq for Test<T, U>
+				where T: ::core::cmp::Eq
+				{
+					fn assert(&self) {
+						struct __AssertEq<__T: ::core::cmp::Eq + ?::core::marker::Sized>(::core::marker::PhantomData<__T>);
+
+						// For some reason the comparison fails without the extra space at the end.
+						let _: __AssertEq<T >;
+						let _: __AssertEq<std::marker::PhantomData<U> >;
+					}
+				}
+			};
+
 			#[automatically_derived]
 			impl<T, U> ::core::cmp::Eq for Test<T, U>
 			where T: ::core::cmp::Eq
-			{
-				#[inline]
-				fn assert_receiver_is_total_eq(&self) {
-					struct __AssertEq<__T: ::core::cmp::Eq + ?::core::marker::Sized>(::core::marker::PhantomData<__T>);
-
-					// For some reason the comparison fails without the extra space at the end.
-					let _: __AssertEq<T >;
-					let _: __AssertEq<std::marker::PhantomData<U> >;
-				}
-			}
+			{ }
 
 			#[automatically_derived]
 			impl<T, U> ::core::hash::Hash for Test<T, U>
@@ -377,21 +386,32 @@ fn check_multiple_trait_bounds() -> Result<()> {
 				}
 			}
 
+			const _: () = {
+				trait DeriveWhereAssertEq {
+					fn assert(&self);
+				}
+
+				impl<T, U, V> DeriveWhereAssertEq for Test<T, U, V>
+				where
+					T: ::core::cmp::Eq,
+					U: ::core::cmp::Eq
+				{
+					fn assert(&self) {
+						struct __AssertEq<__T: ::core::cmp::Eq + ?::core::marker::Sized>(::core::marker::PhantomData<__T>);
+
+						// For some reason the comparison fails without the extra space at the end.
+						let _: __AssertEq<T >;
+						let _: __AssertEq<std::marker::PhantomData<(U, V)> >;
+					}
+				}
+			};
+
 			#[automatically_derived]
 			impl<T, U, V> ::core::cmp::Eq for Test<T, U, V>
 			where
 				T: ::core::cmp::Eq,
 				U: ::core::cmp::Eq
-			{
-				#[inline]
-				fn assert_receiver_is_total_eq(&self) {
-					struct __AssertEq<__T: ::core::cmp::Eq + ?::core::marker::Sized>(::core::marker::PhantomData<__T>);
-
-					// For some reason the comparison fails without the extra space at the end.
-					let _: __AssertEq<T >;
-					let _: __AssertEq<std::marker::PhantomData<(U, V)> >;
-				}
-			}
+			{ }
 
 			#[automatically_derived]
 			impl<T, U, V> ::core::hash::Hash for Test<T, U, V>

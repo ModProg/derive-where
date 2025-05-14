@@ -45,16 +45,23 @@ fn struct_() -> Result<()> {
 				}
 			}
 
-			#[automatically_derived]
-			impl<T> ::core::cmp::Eq for Test<T> {
-				#[inline]
-				fn assert_receiver_is_total_eq(&self) {
-					struct __AssertEq<__T: ::core::cmp::Eq + ?::core::marker::Sized>(::core::marker::PhantomData<__T>);
-
-					// For some reason the comparison fails without the extra space at the end.
-					let _: __AssertEq<std::marker::PhantomData<T> >;
+			const _: () = {
+				trait DeriveWhereAssertEq {
+					fn assert(&self);
 				}
-			}
+
+				impl<T> DeriveWhereAssertEq for Test<T> {
+					fn assert(&self) {
+						struct __AssertEq<__T: ::core::cmp::Eq + ?::core::marker::Sized>(::core::marker::PhantomData<__T>);
+
+						// For some reason the comparison fails without the extra space at the end.
+						let _: __AssertEq<std::marker::PhantomData<T> >;
+					}
+				}
+			};
+
+			#[automatically_derived]
+			impl<T> ::core::cmp::Eq for Test<T> { }
 
 			#[automatically_derived]
 			impl<T> ::core::hash::Hash for Test<T> {
@@ -141,16 +148,23 @@ fn tuple() -> Result<()> {
 				}
 			}
 
-			#[automatically_derived]
-			impl<T> ::core::cmp::Eq for Test<T> {
-				#[inline]
-				fn assert_receiver_is_total_eq(&self) {
-					struct __AssertEq<__T: ::core::cmp::Eq + ?::core::marker::Sized>(::core::marker::PhantomData<__T>);
-
-					// For some reason the comparison fails without the extra space at the end.
-					let _: __AssertEq<std::marker::PhantomData<T> >;
+			const _: () = {
+				trait DeriveWhereAssertEq {
+					fn assert(&self);
 				}
-			}
+
+				impl<T> DeriveWhereAssertEq for Test<T> {
+					fn assert(&self) {
+						struct __AssertEq<__T: ::core::cmp::Eq + ?::core::marker::Sized>(::core::marker::PhantomData<__T>);
+
+						// For some reason the comparison fails without the extra space at the end.
+						let _: __AssertEq<std::marker::PhantomData<T> >;
+					}
+				}
+			};
+
+			#[automatically_derived]
+			impl<T> ::core::cmp::Eq for Test<T> { }
 
 			#[automatically_derived]
 			impl<T> ::core::hash::Hash for Test<T> {
@@ -287,17 +301,24 @@ fn enum_() -> Result<()> {
 				}
 			}
 
-			#[automatically_derived]
-			impl<T> ::core::cmp::Eq for Test<T> {
-				#[inline]
-				fn assert_receiver_is_total_eq(&self) {
-					struct __AssertEq<__T: ::core::cmp::Eq + ?::core::marker::Sized>(::core::marker::PhantomData<__T>);
-
-					// For some reason the comparison fails without the extra space at the end.
-					let _: __AssertEq<std::marker::PhantomData<T> >;
-					let _: __AssertEq<std::marker::PhantomData<T> >;
+			const _: () = {
+				trait DeriveWhereAssertEq {
+					fn assert(&self);
 				}
-			}
+
+				impl<T> DeriveWhereAssertEq for Test<T> {
+					fn assert(&self) {
+						struct __AssertEq<__T: ::core::cmp::Eq + ?::core::marker::Sized>(::core::marker::PhantomData<__T>);
+
+						// For some reason the comparison fails without the extra space at the end.
+						let _: __AssertEq<std::marker::PhantomData<T> >;
+						let _: __AssertEq<std::marker::PhantomData<T> >;
+					}
+				}
+			};
+
+			#[automatically_derived]
+			impl<T> ::core::cmp::Eq for Test<T> { }
 
 			#[automatically_derived]
 			impl<T> ::core::hash::Hash for Test<T> {

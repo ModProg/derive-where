@@ -184,23 +184,28 @@ impl TraitImpl for ZeroizeOnDrop {
 						}
 					}
 				} else {
-					let crate_ = self.crate_();
-					let internal = util::path_segment("__internal");
-
-					let mut assert_zeroize = crate_.clone();
-					assert_zeroize
-						.segments
-						.extend([internal.clone(), util::path_segment("AssertZeroize")]);
-
-					let mut assert_zeroize_on_drop = crate_;
-					assert_zeroize_on_drop
-						.segments
-						.extend([internal, util::path_segment("AssertZeroizeOnDrop")]);
+					let zeroize = util::path_from_root_and_strs(self.crate_(), &["Zeroize"]);
+					let zeroize_on_drop = self.path();
 
 					quote! {
 						fn drop(&mut self) {
-							use #assert_zeroize;
-							use #assert_zeroize_on_drop;
+							trait AssertZeroizeOnDrop {
+								fn __derive_where_zeroize_or_on_drop(self);
+							}
+
+							impl<T: #zeroize_on_drop + ?::core::marker::Sized> AssertZeroizeOnDrop for &&mut T {
+								fn __derive_where_zeroize_or_on_drop(self) {}
+							}
+
+							trait AssertZeroize {
+								fn __derive_where_zeroize_or_on_drop(&mut self);
+							}
+
+							impl<T: #zeroize + ?::core::marker::Sized> AssertZeroize for T {
+								fn __derive_where_zeroize_or_on_drop(&mut self) {
+									#zeroize::zeroize(self);
+								}
+							}
 
 							match self {
 								#body
@@ -242,7 +247,7 @@ impl TraitImpl for ZeroizeOnDrop {
 				} else {
 					quote! {
 						#self_pattern => {
-							#(#self_ident.zeroize_or_on_drop();)*
+							#(#self_ident.__derive_where_zeroize_or_on_drop();)*
 						}
 					}
 				}

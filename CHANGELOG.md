@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `no_drop` item-level option to `ZeroizeOnDrop` which does not implement
   `Drop` but instead only asserts that every field implements `ZeroizeOnDrop`.
 
+### Fixed
+- Stop depending on unstable APIs for `Eq` for `ZeroizeOnDrop`.
+
 ## [1.4.0] - 2025-05-01
 
 ### Added
