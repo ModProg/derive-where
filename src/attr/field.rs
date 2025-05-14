@@ -4,7 +4,7 @@ use syn::{spanned::Spanned, Attribute, Meta, Result};
 
 use crate::{util::MetaListExt, DeriveWhere, Error, Skip, DERIVE_WHERE};
 #[cfg(feature = "zeroize")]
-use crate::{Trait, TraitImpl, ZeroizeFqs};
+use crate::{Trait, ZeroizeFqs};
 
 /// Attributes on field.
 #[derive(Default)]

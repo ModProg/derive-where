@@ -272,9 +272,12 @@
 //! and can be implemented without [`Zeroize`], otherwise it only implements
 //! [`Drop`] and requires [`Zeroize`] to be implemented.
 //!
-//! [`ZeroizeOnDrop`] has one option:
+//! [`ZeroizeOnDrop`] has two options:
 //! - `crate`: an item-level option which specifies a path to the [`zeroize`]
 //!   crate in case of a re-export or rename.
+//! - `no_drop`: an item-level option which will not implement [`Drop`] but
+//!   instead only assert that every field implements [`ZeroizeOnDrop`].
+//!   Requires the `zeroize-on-drop` feature.
 //!
 //! ```
 //! # #[cfg(feature = "zeroize-on-drop")]
@@ -412,15 +415,12 @@ use self::attr::ZeroizeFqs;
 #[cfg(not(feature = "nightly"))]
 use self::item::Discriminant;
 use self::{
-	attr::{
-		Default, DeriveTrait, DeriveWhere, FieldAttr, Incomparable, ItemAttr, Skip, SkipGroup,
-		VariantAttr,
-	},
+	attr::{Default, DeriveWhere, FieldAttr, Incomparable, ItemAttr, Skip, SkipGroup, VariantAttr},
 	data::{Data, DataType, Field, SimpleType},
 	error::Error,
 	input::Input,
 	item::Item,
-	trait_::{Trait, TraitImpl},
+	trait_::{DeriveTrait, Trait, TraitImpl},
 	util::Either,
 };
 
@@ -439,6 +439,7 @@ const DERIVE_WHERE_VISITED: &str = "derive_where_visited";
 ///     trait.
 ///   - `#[derive_where(ZeroizeOnDrop(crate = path))]`: Specify path to
 ///     [`ZeroizeOnDrop`] trait.
+///   - `#[derive_where(ZeroizeOnDrop(no_drop))]`: no [`Drop`] implementation.
 /// - `#[derive_where(skip_inner(EqHashOrd, ..))]`: Skip all fields in the item.
 ///   Optionally specify trait groups to constrain skipping fields. Only works
 ///   for structs, for enums use this on the variant-level.
@@ -642,17 +643,9 @@ fn generate_impl(
 	let body = generate_body(derive_where, trait_, item, generics);
 
 	let ident = item.ident();
-	let path = trait_.impl_path(trait_);
-	let mut output = quote! {
-		#[automatically_derived]
-		impl #imp #path for #ident #ty
-		#where_clause
-		{
-			#body
-		}
-	};
+	let mut output = trait_.impl_item(imp, ident, ty, &where_clause, body);
 
-	if let Some((path, body)) = trait_.additional_impl(trait_) {
+	if let Some((path, body)) = trait_.additional_impl() {
 		output.extend(quote! {
 			#[automatically_derived]
 			impl #imp #path for #ident #ty
@@ -675,16 +668,16 @@ fn generate_body(
 ) -> TokenStream {
 	match &item {
 		Item::Item(data) => {
-			let body = trait_.build_body(derive_where, trait_, data);
-			trait_.build_signature(derive_where, item, generics, trait_, &body)
+			let body = trait_.build_body(derive_where, data);
+			trait_.build_signature(derive_where, item, generics, &body)
 		}
 		Item::Enum { variants, .. } => {
 			let body: TokenStream = variants
 				.iter()
-				.map(|data| trait_.build_body(derive_where, trait_, data))
+				.map(|data| trait_.build_body(derive_where, data))
 				.collect();
 
-			trait_.build_signature(derive_where, item, generics, trait_, &body)
+			trait_.build_signature(derive_where, item, generics, &body)
 		}
 	}
 }
