@@ -292,8 +292,8 @@ pub trait TraitImpl: Deref<Target = Trait> {
 		None
 	}
 
-	/// Trait to implement. Only used for [`ZeroizeOnDrop`](https://docs.rs/zeroize/latest/zeroize/trait.ZeroizeOnDrop.html)
-	/// because it implements [`Drop`] and not itself.
+	/// Trait to implement. Only used by [`Eq`] and
+	/// [`ZeroizeOnDrop`](https://docs.rs/zeroize/latest/zeroize/trait.ZeroizeOnDrop.html).
 	fn impl_item(
 		&self,
 		imp: &ImplGenerics<'_>,

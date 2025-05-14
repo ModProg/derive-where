@@ -1,9 +1,10 @@
 //! [`Eq`](trait@std::cmp::Eq) implementation.
 
-use std::ops::Deref;
+use std::{borrow::Cow, ops::Deref};
 
 use proc_macro2::TokenStream;
 use quote::quote;
+use syn::{Ident, ImplGenerics, Path, TypeGenerics, WhereClause};
 
 use crate::{util, Data, DeriveTrait, DeriveWhere, Item, SplitGenerics, Trait, TraitImpl};
 
@@ -19,8 +20,35 @@ impl TraitImpl for Eq {
 		DeriveTrait::Eq
 	}
 
-	fn path(&self) -> syn::Path {
+	fn path(&self) -> Path {
 		util::path_from_strs(&["core", "cmp", "Eq"])
+	}
+
+	fn additional_impl(&self) -> Option<(Path, TokenStream)> {
+		Some((self.path(), quote! {}))
+	}
+
+	fn impl_item(
+		&self,
+		imp: &ImplGenerics<'_>,
+		ident: &Ident,
+		ty: &TypeGenerics<'_>,
+		where_clause: &Option<Cow<'_, WhereClause>>,
+		body: TokenStream,
+	) -> TokenStream {
+		quote! {
+			const _: () = {
+				trait DeriveWhereAssertEq {
+					fn assert(&self);
+				}
+
+				impl #imp DeriveWhereAssertEq for #ident #ty
+				#where_clause
+				{
+					#body
+				}
+			};
+		}
 	}
 
 	fn build_signature(
@@ -31,8 +59,7 @@ impl TraitImpl for Eq {
 		body: &TokenStream,
 	) -> TokenStream {
 		quote! {
-			#[inline]
-			fn assert_receiver_is_total_eq(&self) {
+			fn assert(&self) {
 				struct __AssertEq<__T: ::core::cmp::Eq + ?::core::marker::Sized>(::core::marker::PhantomData<__T>);
 
 				#body
