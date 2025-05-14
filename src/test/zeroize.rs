@@ -52,13 +52,28 @@ fn drop() -> Result<()> {
 			where T: ::zeroize::ZeroizeOnDrop
 			{
 				fn drop(&mut self) {
-					use ::zeroize::__internal::AssertZeroize;
-					use ::zeroize::__internal::AssertZeroizeOnDrop;
+					trait AssertZeroizeOnDrop {
+						fn __derive_where_zeroize_or_on_drop(self);
+					}
+
+					impl<T: ::zeroize::ZeroizeOnDrop + ?::core::marker::Sized> AssertZeroizeOnDrop for &&mut T {
+						fn __derive_where_zeroize_or_on_drop(self) {}
+					}
+
+					trait AssertZeroize {
+						fn __derive_where_zeroize_or_on_drop(&mut self);
+					}
+
+					impl<T: ::zeroize::Zeroize + ?::core::marker::Sized> AssertZeroize for T {
+						fn __derive_where_zeroize_or_on_drop(&mut self) {
+							::zeroize::Zeroize::zeroize(self);
+						}
+					}
 
 					match self {
 						Test(ref mut __field_0, ref mut __field_1) => {
-							__field_0.zeroize_or_on_drop();
-							__field_1.zeroize_or_on_drop();
+							__field_0.__derive_where_zeroize_or_on_drop();
+							__field_1.__derive_where_zeroize_or_on_drop();
 						}
 					}
 				}
@@ -92,13 +107,28 @@ fn both() -> Result<()> {
 		where T: ::zeroize::ZeroizeOnDrop
 		{
 			fn drop(&mut self) {
-				use ::zeroize::__internal::AssertZeroize;
-				use ::zeroize::__internal::AssertZeroizeOnDrop;
+				trait AssertZeroizeOnDrop {
+					fn __derive_where_zeroize_or_on_drop(self);
+				}
+
+				impl<T: ::zeroize::ZeroizeOnDrop + ?::core::marker::Sized> AssertZeroizeOnDrop for &&mut T {
+					fn __derive_where_zeroize_or_on_drop(self) {}
+				}
+
+				trait AssertZeroize {
+					fn __derive_where_zeroize_or_on_drop(&mut self);
+				}
+
+				impl<T: ::zeroize::Zeroize + ?::core::marker::Sized> AssertZeroize for T {
+					fn __derive_where_zeroize_or_on_drop(&mut self) {
+						::zeroize::Zeroize::zeroize(self);
+					}
+				}
 
 				match self {
 					Test(ref mut __field_0, ref mut __field_1) => {
-						__field_0.zeroize_or_on_drop();
-						__field_1.zeroize_or_on_drop();
+						__field_0.__derive_where_zeroize_or_on_drop();
+						__field_1.__derive_where_zeroize_or_on_drop();
 					}
 				}
 			}
@@ -188,12 +218,27 @@ fn crate_drop() -> Result<()> {
 			where T: zeroize_::ZeroizeOnDrop
 			{
 				fn drop(&mut self) {
-					use zeroize_::__internal::AssertZeroize;
-					use zeroize_::__internal::AssertZeroizeOnDrop;
+					trait AssertZeroizeOnDrop {
+						fn __derive_where_zeroize_or_on_drop(self);
+					}
+
+					impl<T: zeroize_::ZeroizeOnDrop + ?::core::marker::Sized> AssertZeroizeOnDrop for &&mut T {
+						fn __derive_where_zeroize_or_on_drop(self) {}
+					}
+
+					trait AssertZeroize {
+						fn __derive_where_zeroize_or_on_drop(&mut self);
+					}
+
+					impl<T: zeroize_::Zeroize + ?::core::marker::Sized> AssertZeroize for T {
+						fn __derive_where_zeroize_or_on_drop(&mut self) {
+							zeroize_::Zeroize::zeroize(self);
+						}
+					}
 
 					match self {
 						Test(ref mut __field_0) => {
-							__field_0.zeroize_or_on_drop();
+							__field_0.__derive_where_zeroize_or_on_drop();
 						}
 					}
 				}
@@ -285,12 +330,27 @@ fn enum_skip_drop() -> Result<()> {
 			#[automatically_derived]
 			impl <T> ::core::ops::Drop for Test<T> {
 				fn drop(&mut self) {
-					use ::zeroize::__internal::AssertZeroize;
-					use ::zeroize::__internal::AssertZeroizeOnDrop;
+					trait AssertZeroizeOnDrop {
+						fn __derive_where_zeroize_or_on_drop(self);
+					}
+
+					impl<T: ::zeroize::ZeroizeOnDrop + ?::core::marker::Sized> AssertZeroizeOnDrop for &&mut T {
+						fn __derive_where_zeroize_or_on_drop(self) {}
+					}
+
+					trait AssertZeroize {
+						fn __derive_where_zeroize_or_on_drop(&mut self);
+					}
+
+					impl<T: ::zeroize::Zeroize + ?::core::marker::Sized> AssertZeroize for T {
+						fn __derive_where_zeroize_or_on_drop(&mut self) {
+							::zeroize::Zeroize::zeroize(self);
+						}
+					}
 
 					match self {
 						Test::A(ref mut __field_0) => {
-							__field_0.zeroize_or_on_drop();
+							__field_0.__derive_where_zeroize_or_on_drop();
 						}
 						Test::B(ref mut __field_0) => { }
 					}
