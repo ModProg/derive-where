@@ -5,6 +5,8 @@ mod common_ord;
 pub mod copy;
 pub mod debug;
 pub mod default;
+#[cfg(feature = "serde")]
+pub mod deserialize;
 pub mod eq;
 pub mod hash;
 pub mod ord;
@@ -23,8 +25,8 @@ use syn::{
 	parse::{Parse, ParseStream},
 	punctuated::Punctuated,
 	spanned::Spanned,
-	Ident, ImplGenerics, Meta, Path, Result, Token, TraitBound, TraitBoundModifier, TypeGenerics,
-	TypeParamBound, WhereClause,
+	DeriveInput, Ident, ImplGenerics, Meta, Path, Result, Token, TraitBound, TraitBoundModifier,
+	TypeGenerics, TypeParamBound, WhereClause,
 };
 
 use crate::{util::MetaListExt, Data, DeriveWhere, Error, Item, SplitGenerics};
@@ -41,6 +43,9 @@ pub enum Trait {
 	Debug,
 	/// [`Default`].
 	Default,
+	/// [`Deserialize`](https://docs.rs/serde/latest/serde/derive.Deserialize.html).
+	#[cfg(feature = "serde")]
+	Deserialize,
 	/// [`Eq`].
 	Eq,
 	/// [`Hash`](std::hash::Hash).
@@ -66,6 +71,8 @@ macro_rules! trait_dispatch {
 			Trait::Copy => copy::Copy::$method($($par),*),
 			Trait::Debug => debug::Debug::$method($($par),*),
 			Trait::Default => default::Default::$method($($par),*),
+			#[cfg(feature = "serde")]
+			Trait::Deserialize => deserialize::Deserialize::$method($($par),*),
 			Trait::Eq => eq::Eq::$method($($par),*),
 			Trait::Hash => hash::Hash::$method($($par),*),
 			Trait::Ord => ord::Ord::$method($($par),*),
@@ -90,6 +97,8 @@ impl Trait {
 				"Copy" => Ok(Copy),
 				"Debug" => Ok(Debug),
 				"Default" => Ok(Default),
+				#[cfg(feature = "serde")]
+				"Deserialize" => Ok(Deserialize),
 				"Eq" => Ok(Eq),
 				"Hash" => Ok(Hash),
 				"Ord" => Ok(Ord),
@@ -148,6 +157,9 @@ pub enum DeriveTrait {
 	Debug,
 	/// [`Default`].
 	Default,
+	/// [`Deserialize`](https://docs.rs/serde/latest/serde/derive.Deserialize.html).
+	#[cfg(feature = "serde")]
+	Deserialize(deserialize::Deserialize),
 	/// [`Eq`].
 	Eq,
 	/// [`Hash`](std::hash::Hash).
@@ -177,6 +189,8 @@ impl Deref for DeriveTrait {
 			Copy => &copy::Copy,
 			Debug => &debug::Debug,
 			Default => &default::Default,
+			#[cfg(feature = "serde")]
+			Deserialize(trait_) => trait_,
 			Eq => &eq::Eq,
 			Hash => &hash::Hash,
 			Ord => &ord::Ord,
@@ -294,8 +308,11 @@ pub trait TraitImpl: Deref<Target = Trait> {
 
 	/// Trait to implement. Only used by [`Eq`] and
 	/// [`ZeroizeOnDrop`](https://docs.rs/zeroize/latest/zeroize/trait.ZeroizeOnDrop.html).
+	#[allow(clippy::too_many_arguments)]
 	fn impl_item(
 		&self,
+		_crate_: Option<&Path>,
+		_full_item: &DeriveInput,
 		imp: &ImplGenerics<'_>,
 		ident: &Ident,
 		ty: &TypeGenerics<'_>,

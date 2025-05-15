@@ -37,18 +37,28 @@ fn compiles(input: TokenStream) -> Result<()> {
 fn derive_where_internal(input: TokenStream) -> Result<TokenStream> {
 	// Save `Span` before we consume `input` when parsing it.
 	let span = input.span();
-	let item = syn::parse2::<DeriveInput>(input).expect("derive on unparsable item");
+	let full_item = syn::parse2::<DeriveInput>(input).expect("derive on unparsable item");
 
 	let Input {
+		crate_,
 		derive_wheres,
 		generics,
 		item,
 		..
-	} = Input::from_input(span, &item)?;
+	} = Input::from_input(span, &full_item)?;
 
 	Ok(derive_wheres
 		.iter()
 		.flat_map(|derive_where| iter::repeat(derive_where).zip(&derive_where.traits))
-		.map(|(derive_where, trait_)| generate_impl(derive_where, trait_, &item, &generics))
+		.map(|(derive_where, trait_)| {
+			generate_impl(
+				crate_.as_ref(),
+				&full_item,
+				derive_where,
+				trait_,
+				&item,
+				&generics,
+			)
+		})
 		.collect())
 }

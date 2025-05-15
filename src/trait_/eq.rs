@@ -4,7 +4,7 @@ use std::{borrow::Cow, ops::Deref};
 
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::{Ident, ImplGenerics, Path, TypeGenerics, WhereClause};
+use syn::{DeriveInput, Ident, ImplGenerics, Path, TypeGenerics, WhereClause};
 
 use crate::{util, Data, DeriveTrait, DeriveWhere, Item, SplitGenerics, Trait, TraitImpl};
 
@@ -30,6 +30,8 @@ impl TraitImpl for Eq {
 
 	fn impl_item(
 		&self,
+		_: Option<&Path>,
+		_: &DeriveInput,
 		imp: &ImplGenerics<'_>,
 		ident: &Ident,
 		ty: &TypeGenerics<'_>,

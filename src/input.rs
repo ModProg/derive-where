@@ -1,7 +1,9 @@
 //! Parses [`DeriveInput`] into something more useful.
 
 use proc_macro2::Span;
-use syn::{DeriveInput, GenericParam, Generics, ImplGenerics, Result, TypeGenerics, WhereClause};
+use syn::{
+	DeriveInput, GenericParam, Generics, ImplGenerics, Path, Result, TypeGenerics, WhereClause,
+};
 
 #[cfg(not(feature = "nightly"))]
 use crate::Discriminant;
@@ -14,6 +16,8 @@ use crate::{Data, DeriveWhere, Either, Error, Item, ItemAttr, Trait};
 
 /// Parsed input.
 pub struct Input<'a> {
+	/// Path to `derive_where` if set by `#[derive_where(crate = ...)]`.
+	pub crate_: Option<Path>,
 	/// `derive_where` attributes on the item.
 	pub derive_wheres: Vec<DeriveWhere>,
 	/// Generics necessary to define for an `impl`.
@@ -36,6 +40,7 @@ impl<'a> Input<'a> {
 	) -> Result<Self> {
 		// Parse `Attribute`s on item.
 		let ItemAttr {
+			crate_,
 			skip_inner,
 			derive_wheres,
 			incomparable,
@@ -208,6 +213,7 @@ impl<'a> Input<'a> {
 		let generics = SplitGenerics::new(generics);
 
 		Ok(Self {
+			crate_,
 			derive_wheres,
 			generics,
 			item,

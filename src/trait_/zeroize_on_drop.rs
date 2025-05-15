@@ -5,8 +5,8 @@ use std::{borrow::Cow, iter, ops::Deref};
 use proc_macro2::{Span, TokenStream};
 use quote::quote;
 use syn::{
-	punctuated::Punctuated, spanned::Spanned, Expr, ExprLit, ExprPath, Ident, ImplGenerics, Lit,
-	Meta, Path, Result, Token, TypeGenerics, WhereClause,
+	punctuated::Punctuated, spanned::Spanned, DeriveInput, Expr, ExprLit, ExprPath, Ident,
+	ImplGenerics, Lit, Meta, Path, Result, Token, TypeGenerics, WhereClause,
 };
 
 use crate::{util, DeriveTrait, DeriveWhere, Error, Item, SplitGenerics, Trait, TraitImpl};
@@ -109,6 +109,8 @@ impl TraitImpl for ZeroizeOnDrop {
 
 	fn impl_item(
 		&self,
+		_: Option<&Path>,
+		_: &DeriveInput,
 		imp: &ImplGenerics<'_>,
 		ident: &Ident,
 		ty: &TypeGenerics<'_>,

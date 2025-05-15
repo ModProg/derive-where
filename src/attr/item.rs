@@ -7,8 +7,8 @@ use syn::{
 	parse::{discouraged::Speculative, Parse, ParseStream},
 	punctuated::Punctuated,
 	spanned::Spanned,
-	Attribute, BoundLifetimes, Data, Ident, Meta, PredicateType, Result, Token, Type, TypePath,
-	WhereClause, WherePredicate,
+	Attribute, BoundLifetimes, Data, Ident, Meta, Path, PredicateType, Result, Token, Type,
+	TypePath, WhereClause, WherePredicate,
 };
 
 use crate::{trait_::DeriveTrait, Error, Incomparable, Item, Skip, SkipGroup, Trait, DERIVE_WHERE};
@@ -16,6 +16,8 @@ use crate::{trait_::DeriveTrait, Error, Incomparable, Item, Skip, SkipGroup, Tra
 /// Attributes on item.
 #[derive(Default)]
 pub struct ItemAttr {
+	/// Path to `derive_where` if set by `#[derive_where(crate = ...)]`.
+	pub crate_: Option<Path>,
 	/// [`Trait`]s to skip all fields for.
 	pub skip_inner: Skip,
 	/// Comparing item will yield `false` for [`PartialEq`] and [`None`] for
@@ -59,8 +61,9 @@ impl ItemAttr {
 									// Needs to be parsed after all traits are known.
 									incomparables.push(meta)
 								} else if meta.path().is_ident("crate") {
-									// Do nothing, we checked this before
-									// already.
+									let (path, _) = super::parse_crate(meta)
+										.expect("failed to parse previously parsed attribute");
+									self_.crate_ = Some(path);
 								}
 								// The list can have one item but still not be the `skip_inner`
 								// attribute, continue with parsing `DeriveWhere`.
