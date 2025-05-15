@@ -568,6 +568,9 @@ fn derive_where_internal(mut item: DeriveInput) -> Result<TokenStream> {
 	Ok(output)
 }
 
+/// Internally we re-direct the attribute macro to the derive macro. Unlike the
+/// attribute macro, the derive macro supports helper attributes and evaluates
+/// `cfg`s.
 #[doc(hidden)]
 #[proc_macro_derive(DeriveWhere, attributes(derive_where))]
 #[cfg_attr(feature = "nightly", allow_internal_unstable(core_intrinsics))]
