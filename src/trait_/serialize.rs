@@ -3,14 +3,14 @@
 use std::{borrow::Cow, ops::Deref};
 
 use proc_macro2::{Span, TokenStream};
-use quote::quote;
+use quote::format_ident;
 use syn::{
 	punctuated::Punctuated, Attribute, DeriveInput, Ident, ImplGenerics, Meta, Path, Result,
 	TypeGenerics, WhereClause,
 };
 
 use super::serde;
-use crate::{util, DeriveTrait, Trait, TraitImpl, DERIVE_WHERE};
+use crate::{util, DeriveTrait, Trait, TraitImpl};
 
 /// [`TraitImpl`] for [`Serialize`](https://docs.rs/serde/latest/serde/derive.Serialize.html).
 #[derive(Eq, PartialEq)]
@@ -58,19 +58,16 @@ impl TraitImpl for Serialize {
 		_: &ImplGenerics<'_>,
 		_: &Ident,
 		_: &TypeGenerics<'_>,
-		_: &Option<Cow<'_, WhereClause>>,
+		where_clause: &Option<Cow<'_, WhereClause>>,
 		_: TokenStream,
 	) -> TokenStream {
-		let derive_where = crate_
-			.map(Cow::Borrowed)
-			.unwrap_or_else(|| Cow::Owned(util::path_from_strs(&[DERIVE_WHERE])));
-		let serde = self.crate_();
-
-		quote! {
-			#[::core::prelude::v1::derive(#serde::Serialize)]
-			#[#derive_where::derive_where_serde]
-			#full_item
-		}
+		serde::impl_item(
+			crate_,
+			&self.crate_(),
+			format_ident!("Serialize"),
+			full_item,
+			where_clause,
+		)
 	}
 }
 

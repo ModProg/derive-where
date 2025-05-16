@@ -2,14 +2,18 @@
 //! [`Deserialize`](https://docs.rs/serde/latest/serde/derive.Deserialize.html) and
 //! [`Serialize`](https://docs.rs/serde/latest/serde/derive.Serialize.html).
 
-use proc_macro2::Span;
+use std::borrow::Cow;
+
+use proc_macro2::{Span, TokenStream};
+use quote::{quote, ToTokens};
 use syn::{
-	punctuated::Punctuated, spanned::Spanned, Attribute, Expr, ExprLit, Lit, Meta, Path, Token,
+	punctuated::Punctuated, spanned::Spanned, Attribute, DeriveInput, Expr, ExprLit, Ident, Lit,
+	Meta, Path, Token, WhereClause,
 };
 
-use crate::{Error, Result, Trait};
+use crate::{util, Error, Result, Trait, DERIVE_WHERE};
 
-/// Parses
+/// Parse `#[serde(crate = "...")]`.
 pub fn parse_derive_trait(
 	trait_: Trait,
 	attrs: &[Attribute],
@@ -70,4 +74,30 @@ pub fn parse_derive_trait(
 	}
 
 	Ok(crate_)
+}
+
+/// Implement Serde trait.
+pub fn impl_item(
+	derive_where: Option<&Path>,
+	serde: &Path,
+	trait_: Ident,
+	full_item: &DeriveInput,
+	where_clause: &Option<Cow<'_, WhereClause>>,
+) -> TokenStream {
+	let derive_where = derive_where
+		.map(Cow::Borrowed)
+		.unwrap_or_else(|| Cow::Owned(util::path_from_strs(&[DERIVE_WHERE])));
+
+	let bound = if let Some(where_clause) = where_clause {
+		where_clause.predicates.to_token_stream().to_string()
+	} else {
+		String::new()
+	};
+
+	quote! {
+		#[::core::prelude::v1::derive(#serde::#trait_)]
+		#[serde(bound = #bound)]
+		#[#derive_where::derive_where_serde]
+		#full_item
+	}
 }
