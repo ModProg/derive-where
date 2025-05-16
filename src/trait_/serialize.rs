@@ -67,7 +67,7 @@ impl TraitImpl for Serialize {
 		let serde = self.crate_();
 
 		quote! {
-			#[derive(#serde::Serialize)]
+			#[::core::prelude::v1::derive(#serde::Serialize)]
 			#[#derive_where::derive_where_serde]
 			#full_item
 		}
