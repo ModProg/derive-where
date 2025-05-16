@@ -74,7 +74,7 @@ impl Error {
 	}
 
 	/// Unsupported option in attribute.
-	#[cfg(any(feature = "serde", feature = "zeroize"))]
+	#[cfg(feature = "zeroize")]
 	pub fn option_trait(span: Span, attribute: &str) -> syn::Error {
 		syn::Error::new(span, format!("`{}` doesn't support this option", attribute))
 	}
@@ -167,7 +167,8 @@ impl Error {
 		)
 	}
 
-	/// Invalid value for the `derive_where` or `Zeroize` `crate` option.
+	/// Invalid value for the `derive_where`, `serde` or `Zeroize` `crate`
+	/// option.
 	pub fn path(span: Span, parse_error: syn::Error) -> syn::Error {
 		syn::Error::new(span, format!("expected path, {}", parse_error))
 	}

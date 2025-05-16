@@ -70,12 +70,12 @@ impl ItemAttr {
 								else {
 									self_
 										.derive_wheres
-										.push(DeriveWhere::from_attr(span, data, attr)?);
+										.push(DeriveWhere::from_attr(attrs, span, data, attr)?);
 								}
 							}
 							_ => self_
 								.derive_wheres
-								.push(DeriveWhere::from_attr(span, data, attr)?),
+								.push(DeriveWhere::from_attr(attrs, span, data, attr)?),
 						}
 					}
 					// Anything list that isn't using `,` as separator, is because we expect
@@ -83,7 +83,7 @@ impl ItemAttr {
 					else {
 						self_
 							.derive_wheres
-							.push(DeriveWhere::from_attr(span, data, attr)?)
+							.push(DeriveWhere::from_attr(attrs, span, data, attr)?)
 					}
 				} else {
 					return Err(Error::option_syntax(attr.meta.span()));
@@ -167,7 +167,7 @@ pub struct DeriveWhere {
 
 impl DeriveWhere {
 	/// Create [`DeriveWhere`] from [`Attribute`].
-	fn from_attr(span: Span, data: &Data, attr: &Attribute) -> Result<Self> {
+	fn from_attr(attrs: &[Attribute], span: Span, data: &Data, attr: &Attribute) -> Result<Self> {
 		attr.parse_args_with(|input: ParseStream| {
 			// Parse the attribute input, this should either be:
 			// - Comma separated traits.
@@ -184,7 +184,7 @@ impl DeriveWhere {
 				// Start with parsing a trait.
 				// Not checking for duplicates here, we do that after merging `derive_where`s
 				// with the same bounds.
-				let (span, trait_) = DeriveTrait::from_stream(span, data, input)?;
+				let (span, trait_) = DeriveTrait::from_stream(attrs, span, data, input)?;
 				spans.push(span);
 				traits.push(trait_);
 

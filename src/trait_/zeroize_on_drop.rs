@@ -5,8 +5,8 @@ use std::{borrow::Cow, iter, ops::Deref};
 use proc_macro2::{Span, TokenStream};
 use quote::quote;
 use syn::{
-	punctuated::Punctuated, spanned::Spanned, DeriveInput, Expr, ExprLit, ExprPath, Ident,
-	ImplGenerics, Lit, Meta, Path, Result, Token, TypeGenerics, WhereClause,
+	punctuated::Punctuated, spanned::Spanned, Attribute, DeriveInput, Expr, ExprLit, ExprPath,
+	Ident, ImplGenerics, Lit, Meta, Path, Result, Token, TypeGenerics, WhereClause,
 };
 
 use crate::{util, DeriveTrait, DeriveWhere, Error, Item, SplitGenerics, Trait, TraitImpl};
@@ -34,9 +34,16 @@ impl TraitImpl for ZeroizeOnDrop {
 		})
 	}
 
-	fn parse_derive_trait(_span: Span, list: Punctuated<Meta, Token![,]>) -> Result<DeriveTrait> {
-		// This is already checked in `DeriveTrait::from_stream`.
-		debug_assert!(!list.is_empty());
+	fn parse_derive_trait(
+		_: &[Attribute],
+		_: Span,
+		list: Option<Punctuated<Meta, Token![,]>>,
+	) -> Result<DeriveTrait> {
+		let list = if let Some(list) = list {
+			list
+		} else {
+			return Ok(Self::default_derive_trait());
+		};
 
 		let mut crate_ = None;
 		#[cfg_attr(not(feature = "zeroize-on-drop"), allow(unused_mut))]

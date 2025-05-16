@@ -5,8 +5,8 @@ use std::{borrow::Cow, ops::Deref};
 use proc_macro2::{Span, TokenStream};
 use quote::quote;
 use syn::{
-	punctuated::Punctuated, DeriveInput, Ident, ImplGenerics, Meta, Path, Result, TypeGenerics,
-	WhereClause,
+	punctuated::Punctuated, Attribute, DeriveInput, Ident, ImplGenerics, Meta, Path, Result,
+	TypeGenerics, WhereClause,
 };
 
 use super::serde;
@@ -34,12 +34,16 @@ impl TraitImpl for Serialize {
 		DeriveTrait::Serialize(Self { crate_: None })
 	}
 
-	fn parse_derive_trait(span: Span, list: Punctuated<Meta, syn::Token![,]>) -> Result<DeriveTrait>
+	fn parse_derive_trait(
+		attrs: &[Attribute],
+		span: Span,
+		list: Option<Punctuated<Meta, syn::Token![,]>>,
+	) -> Result<DeriveTrait>
 	where
 		Self: Sized,
 	{
 		Ok(DeriveTrait::Serialize(Self {
-			crate_: serde::parse_derive_trait(Trait::Serialize, span, list)?,
+			crate_: serde::parse_derive_trait(Trait::Serialize, attrs, span, list)?,
 		}))
 	}
 

@@ -1,5 +1,3 @@
-#[cfg(feature = "serde")]
-extern crate serde_ as serde;
 #[cfg(feature = "zeroize")]
 extern crate zeroize_ as zeroize;
 

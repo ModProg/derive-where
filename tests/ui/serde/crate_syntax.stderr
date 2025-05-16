@@ -1,0 +1,29 @@
+error: unexpected option syntax
+ --> tests/ui/serde/crate_syntax.rs:6:9
+  |
+6 | #[serde(crate)]
+  |         ^^^^^
+
+error: unexpected option syntax
+  --> tests/ui/serde/crate_syntax.rs:10:9
+   |
+10 | #[serde(crate())]
+   |         ^^^^^^^
+
+error: unexpected option syntax
+  --> tests/ui/serde/crate_syntax.rs:14:17
+   |
+14 | #[serde(crate = ())]
+   |                 ^^
+
+error: expected path, expected identifier
+  --> tests/ui/serde/crate_syntax.rs:18:17
+   |
+18 | #[serde(crate = "1")]
+   |                 ^^^
+
+error: duplicate `crate` option
+  --> tests/ui/serde/crate_syntax.rs:23:9
+   |
+23 | #[serde(crate = "serde_")]
+   |         ^^^^^^^^^^^^^^^^

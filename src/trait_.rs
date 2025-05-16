@@ -29,8 +29,8 @@ use syn::{
 	parse::{Parse, ParseStream},
 	punctuated::Punctuated,
 	spanned::Spanned,
-	DeriveInput, Ident, ImplGenerics, Meta, Path, Result, Token, TraitBound, TraitBoundModifier,
-	TypeGenerics, TypeParamBound, WhereClause,
+	Attribute, DeriveInput, Ident, ImplGenerics, Meta, Path, Result, Token, TraitBound,
+	TraitBoundModifier, TypeGenerics, TypeParamBound, WhereClause,
 };
 
 use crate::{util::MetaListExt, Data, DeriveWhere, Error, Item, SplitGenerics};
@@ -148,10 +148,11 @@ impl Trait {
 	/// Re-direct to [`TraitImpl::parse_derive_trait()`].
 	pub fn parse_derive_trait(
 		&self,
+		attrs: &[Attribute],
 		span: Span,
-		list: Punctuated<Meta, Token![,]>,
+		list: Option<Punctuated<Meta, Token![,]>>,
 	) -> Result<DeriveTrait> {
-		trait_dispatch!(self, parse_derive_trait(span, list))
+		trait_dispatch!(self, parse_derive_trait(attrs, span, list))
 	}
 
 	/// Re-direct to [`TraitImpl::supports_union()`].
@@ -256,7 +257,12 @@ impl DeriveTrait {
 	}
 
 	/// Create [`DeriveTrait`] from [`ParseStream`].
-	pub fn from_stream(span: Span, data: &syn::Data, input: ParseStream) -> Result<(Span, Self)> {
+	pub fn from_stream(
+		attrs: &[Attribute],
+		span: Span,
+		data: &syn::Data,
+		input: ParseStream,
+	) -> Result<(Span, Self)> {
 		match Meta::parse(input) {
 			Ok(meta) => {
 				let trait_ = Trait::from_path(meta.path())?;
@@ -269,12 +275,18 @@ impl DeriveTrait {
 				}
 
 				match &meta {
-					Meta::Path(path) => Ok((path.span(), trait_.default_derive_trait())),
+					Meta::Path(path) => Ok((
+						path.span(),
+						trait_.parse_derive_trait(attrs, meta.span(), None)?,
+					)),
 					Meta::List(list) => {
 						let nested = list.parse_non_empty_nested_metas()?;
 
 						// This will return an error if no options are supported.
-						Ok((list.span(), trait_.parse_derive_trait(meta.span(), nested)?))
+						Ok((
+							list.span(),
+							trait_.parse_derive_trait(attrs, meta.span(), Some(nested))?,
+						))
 					}
 					Meta::NameValue(name_value) => Err(Error::option_syntax(name_value.span())),
 				}
@@ -299,11 +311,19 @@ pub trait TraitImpl: Deref<Target = Trait> {
 		Self: Sized;
 
 	/// Parse a `derive_where` trait with it's options.
-	fn parse_derive_trait(span: Span, _list: Punctuated<Meta, Token![,]>) -> Result<DeriveTrait>
+	fn parse_derive_trait(
+		_attrs: &[Attribute],
+		span: Span,
+		list: Option<Punctuated<Meta, Token![,]>>,
+	) -> Result<DeriveTrait>
 	where
 		Self: Sized,
 	{
-		Err(Error::options(span, Self::as_str()))
+		if list.is_some() {
+			Err(Error::options(span, Self::as_str()))
+		} else {
+			Ok(Self::default_derive_trait())
+		}
 	}
 
 	/// Returns `true` if [`Trait`] supports unions.
