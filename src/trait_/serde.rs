@@ -35,38 +35,40 @@ pub fn parse_derive_trait(
 			if let Ok(nested) =
 				list.parse_args_with(Punctuated::<Meta, Token![,]>::parse_terminated)
 			{
-				if nested.len() != 1 {
-					continue;
-				}
-
-				let meta = &nested[0];
-
-				if !meta.path().is_ident("crate") {
-					continue;
-				}
-
-				match &meta {
-					Meta::NameValue(name_value) => {
-						// Check for duplicate `crate` option.
-						if crate_.is_none() {
-							let path = match &name_value.value {
-								Expr::Lit(ExprLit {
-									lit: Lit::Str(lit_str),
-									..
-								}) => match lit_str.parse::<Path>() {
-									Ok(path) => path,
-									Err(error) => return Err(Error::path(lit_str.span(), error)),
-								},
-								_ => return Err(Error::option_syntax(name_value.value.span())),
-							};
-
-							crate_ = Some(path);
-						} else {
-							return Err(Error::option_duplicate(name_value.span(), "crate"));
-						}
+				for meta in nested {
+					if meta.path().is_ident("bound") {
+						return Err(Error::serde_bound(meta.span()));
 					}
-					_ => {
-						return Err(Error::option_syntax(meta.span()));
+
+					if !meta.path().is_ident("crate") {
+						continue;
+					}
+
+					match &meta {
+						Meta::NameValue(name_value) => {
+							// Check for duplicate `crate` option.
+							if crate_.is_none() {
+								let path = match &name_value.value {
+									Expr::Lit(ExprLit {
+										lit: Lit::Str(lit_str),
+										..
+									}) => match lit_str.parse::<Path>() {
+										Ok(path) => path,
+										Err(error) => {
+											return Err(Error::path(lit_str.span(), error))
+										}
+									},
+									_ => return Err(Error::option_syntax(name_value.value.span())),
+								};
+
+								crate_ = Some(path);
+							} else {
+								return Err(Error::option_duplicate(name_value.span(), "crate"));
+							}
+						}
+						_ => {
+							return Err(Error::option_syntax(meta.span()));
+						}
 					}
 				}
 			}

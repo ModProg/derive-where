@@ -307,6 +307,12 @@ impl Error {
 		syn::Error::new(serde, "Found unused `#[serde(...)]`")
 	}
 
+	/// Conflicting `serde(bound ...)` when deriving `De/Serialize`.
+	#[cfg(feature = "serde")]
+	pub fn serde_bound(serde: Span) -> syn::Error {
+		syn::Error::new(serde, "Found conflicting `#[serde(bound ...)]`")
+	}
+
 	/// List of available [`Trait`](crate::Trait)s.
 	fn trait_list() -> String {
 		[
