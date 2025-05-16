@@ -8,11 +8,15 @@ use std::{
 	ptr,
 };
 
+use serde_::{Deserialize, Serialize};
 #[cfg(feature = "zeroize")]
 use zeroize_::Zeroize;
 #[cfg(feature = "zeroize-on-drop")]
 use zeroize_::ZeroizeOnDrop;
 
+#[derive(Deserialize, Serialize)]
+#[serde(crate = "serde_")]
+#[serde(bound = "")]
 pub struct Wrapper<T = ()> {
 	data: i32,
 	hack: PhantomData<T>,

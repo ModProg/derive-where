@@ -65,6 +65,7 @@ impl TraitImpl for Serialize {
 			crate_,
 			&self.crate_(),
 			format_ident!("Serialize"),
+			format_ident!("serialize"),
 			full_item,
 			where_clause,
 		)

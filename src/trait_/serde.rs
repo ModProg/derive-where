@@ -81,6 +81,7 @@ pub fn impl_item(
 	derive_where: Option<&Path>,
 	serde: &Path,
 	trait_: Ident,
+	bound: Ident,
 	full_item: &DeriveInput,
 	where_clause: &Option<Cow<'_, WhereClause>>,
 ) -> TokenStream {
@@ -88,7 +89,7 @@ pub fn impl_item(
 		.map(Cow::Borrowed)
 		.unwrap_or_else(|| Cow::Owned(util::path_from_strs(&[DERIVE_WHERE])));
 
-	let bound = if let Some(where_clause) = where_clause {
+	let bounds = if let Some(where_clause) = where_clause {
 		where_clause.predicates.to_token_stream().to_string()
 	} else {
 		String::new()
@@ -96,7 +97,7 @@ pub fn impl_item(
 
 	quote! {
 		#[::core::prelude::v1::derive(#serde::#trait_)]
-		#[serde(bound = #bound)]
+		#[serde(bound(#bound = #bounds))]
 		#[#derive_where::derive_where_serde]
 		#full_item
 	}

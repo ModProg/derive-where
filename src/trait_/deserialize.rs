@@ -66,6 +66,7 @@ impl TraitImpl for Deserialize {
 			crate_,
 			&self.crate_(),
 			format_ident!("Deserialize"),
+			format_ident!("deserialize"),
 			full_item,
 			where_clause,
 		)
