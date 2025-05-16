@@ -1,4 +1,4 @@
-20
+21
 ≥1
 APIs
 Changelog
@@ -12,6 +12,7 @@ invariants
 io
 MSRV
 Serde
+Serde's
 std's
 struct/S
 TODO

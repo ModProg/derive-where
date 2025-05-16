@@ -228,6 +228,13 @@
 //! Note that it is not possible to use `incomparable` with [`Eq`] or [`Ord`] as
 //! that would break their invariants.
 //!
+//! ## Serde `Deserialize` and `Serialize`
+//!
+//! Deriving [`Deserialize`] and [`Serialize`] works as expected. While
+//! derive-where does not offer any attribute options, regular `serde`
+//! attributes can be used. Derive-where will respect
+//! [`#[serde(crate = "...")]`](https://serde.rs/container-attrs.html#crate).
+//!
 //! ## `Zeroize` options
 //!
 //! `Zeroize` has two options:
@@ -298,11 +305,13 @@
 //! - [`Copy`]
 //! - [`Debug`]
 //! - [`Default`]
+//! - [`Deserialize`]: Only available with the `serde` crate feature.
 //! - [`Eq`]
 //! - [`Hash`]
 //! - [`Ord`]
 //! - [`PartialEq`]
 //! - [`PartialOrd`]
+//! - [`Serialize`]: Only available with the `serde` crate feature.
 //! - [`Zeroize`]: Only available with the `zeroize` crate feature.
 //! - [`ZeroizeOnDrop`]: Only available with the `zeroize` crate feature. If the
 //!   `zeroize-on-drop` feature is enabled, it implements [`ZeroizeOnDrop`],
@@ -379,11 +388,13 @@
 //! [LICENSE-APACHE]: https://github.com/ModProg/derive-where/blob/main/LICENSE-APACHE
 //! [`Debug`]: core::fmt::Debug
 //! [`Default`]: core::default::Default
+//! [`Deserialize`]: https://docs.rs/serde/latest/serde/derive.Deserialize.html
 //! [`Eq`]: core::cmp::Eq
 //! [`Hash`]: core::hash::Hash
 //! [`Ord`]: core::cmp::Ord
 //! [`PartialEq`]: core::cmp::PartialEq
 //! [`PartialOrd`]: core::cmp::PartialOrd
+//! [`Serialize`]: https://docs.rs/serde/latest/serde/derive.Serialize.html
 //! [`zeroize`]: https://docs.rs/zeroize
 //! [`Zeroize`]: https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html
 //! [`ZeroizeOnDrop`]: https://docs.rs/zeroize/latest/zeroize/trait.ZeroizeOnDrop.html
