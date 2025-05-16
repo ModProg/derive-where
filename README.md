@@ -278,11 +278,6 @@ supported.
 
 Unions only support [`Clone`] and [`Copy`].
 
-[`PartialOrd`] and [`Ord`] need to determine the discriminant type to
-function correctly. To protect against a potential future change to the
-default discriminant type, some compile-time validation is inserted to
-ascertain that the type remains `isize`.
-
 ### `no_std` support
 
 `no_std` support is provided by default.
