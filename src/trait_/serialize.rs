@@ -1,4 +1,4 @@
-//! [`Deserialize`](https://docs.rs/serde/latest/serde/derive.Deserialize.html) implementation.
+//! [`Serialize`](https://docs.rs/serde/latest/serde/derive.Serialize.html) implementation.
 
 use std::{borrow::Cow, ops::Deref};
 
@@ -12,39 +12,39 @@ use syn::{
 use super::serde;
 use crate::{util, DeriveTrait, Trait, TraitImpl, DERIVE_WHERE};
 
-/// [`TraitImpl`] for [`Deserialize`](https://docs.rs/serde/latest/serde/derive.Deserialize.html).
+/// [`TraitImpl`] for [`Serialize`](https://docs.rs/serde/latest/serde/derive.Serialize.html).
 #[derive(Eq, PartialEq)]
-pub struct Deserialize {
-	/// [`Deserialize`](https://docs.rs/serde/latest/serde/derive.Deserialize.html) path.
+pub struct Serialize {
+	/// [`Serialize`](https://docs.rs/serde/latest/serde/derive.Serialize.html) path.
 	pub crate_: Option<Path>,
 }
 
-impl TraitImpl for Deserialize {
+impl TraitImpl for Serialize {
 	fn as_str() -> &'static str
 	where
 		Self: Sized,
 	{
-		"Deserialize"
+		"Serialize"
 	}
 
 	fn default_derive_trait() -> super::DeriveTrait
 	where
 		Self: Sized,
 	{
-		DeriveTrait::Deserialize(Self { crate_: None })
+		DeriveTrait::Serialize(Self { crate_: None })
 	}
 
 	fn parse_derive_trait(span: Span, list: Punctuated<Meta, syn::Token![,]>) -> Result<DeriveTrait>
 	where
 		Self: Sized,
 	{
-		Ok(DeriveTrait::Deserialize(Self {
-			crate_: serde::parse_derive_trait(Trait::Deserialize, span, list)?,
+		Ok(DeriveTrait::Serialize(Self {
+			crate_: serde::parse_derive_trait(Trait::Serialize, span, list)?,
 		}))
 	}
 
 	fn path(&self) -> Path {
-		util::path_from_root_and_strs(self.crate_(), &["Deserialize"])
+		util::path_from_root_and_strs(self.crate_(), &["Serialize"])
 	}
 
 	fn impl_item(
@@ -63,14 +63,14 @@ impl TraitImpl for Deserialize {
 		let serde = self.crate_();
 
 		quote! {
-			#[derive(#serde::Deserialize)]
+			#[derive(#serde::Serialize)]
 			#[#derive_where::derive_where_serde]
 			#full_item
 		}
 	}
 }
 
-impl Deserialize {
+impl Serialize {
 	/// Returns the path to the root crate for this trait.
 	fn crate_(&self) -> Path {
 		if let Some(crate_) = &self.crate_ {
@@ -81,10 +81,10 @@ impl Deserialize {
 	}
 }
 
-impl Deref for Deserialize {
+impl Deref for Serialize {
 	type Target = Trait;
 
 	fn deref(&self) -> &Self::Target {
-		&Trait::Deserialize
+		&Trait::Serialize
 	}
 }

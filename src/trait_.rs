@@ -12,6 +12,10 @@ pub mod hash;
 pub mod ord;
 pub mod partial_eq;
 pub mod partial_ord;
+#[cfg(feature = "serde")]
+mod serde;
+#[cfg(feature = "serde")]
+pub mod serialize;
 #[cfg(feature = "zeroize")]
 pub mod zeroize;
 #[cfg(feature = "zeroize")]
@@ -56,6 +60,9 @@ pub enum Trait {
 	PartialEq,
 	/// [`PartialOrd`].
 	PartialOrd,
+	/// [`Serialize`](https://docs.rs/serde/latest/serde/derive.Serialize.html).
+	#[cfg(feature = "serde")]
+	Serialize,
 	/// [`Zeroize`](https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html).
 	#[cfg(feature = "zeroize")]
 	Zeroize,
@@ -78,6 +85,8 @@ macro_rules! trait_dispatch {
 			Trait::Ord => ord::Ord::$method($($par),*),
 			Trait::PartialEq => partial_eq::PartialEq::$method($($par),*),
 			Trait::PartialOrd => partial_ord::PartialOrd::$method($($par),*),
+			#[cfg(feature = "serde")]
+			Trait::Serialize => serialize::Serialize::$method($($par),*),
 			#[cfg(feature = "zeroize")]
 			Trait::Zeroize => zeroize::Zeroize::$method($($par),*),
 			#[cfg(feature = "zeroize")]
@@ -99,15 +108,25 @@ impl Trait {
 				"Default" => Ok(Default),
 				#[cfg(feature = "serde")]
 				"Deserialize" => Ok(Deserialize),
+				#[cfg(not(feature = "serde"))]
+				"Deserialize" => Err(Error::serde_feature(path.span())),
 				"Eq" => Ok(Eq),
 				"Hash" => Ok(Hash),
 				"Ord" => Ok(Ord),
 				"PartialEq" => Ok(PartialEq),
 				"PartialOrd" => Ok(PartialOrd),
+				#[cfg(feature = "serde")]
+				"Serialize" => Ok(Serialize),
+				#[cfg(not(feature = "serde"))]
+				"Serialize" => Err(Error::serde_feature(path.span())),
 				#[cfg(feature = "zeroize")]
 				"Zeroize" => Ok(Zeroize),
+				#[cfg(not(feature = "zeroize"))]
+				"Zeroize" => Err(Error::zeroize_feature(path.span())),
 				#[cfg(feature = "zeroize")]
 				"ZeroizeOnDrop" => Ok(ZeroizeOnDrop),
+				#[cfg(not(feature = "zeroize"))]
+				"ZeroizeOnDrop" => Err(Error::zeroize_feature(path.span())),
 				"crate" => Err(Error::crate_(path.span())),
 				_ => Err(Error::trait_(path.span())),
 			}
@@ -170,6 +189,9 @@ pub enum DeriveTrait {
 	PartialEq,
 	/// [`PartialOrd`].
 	PartialOrd,
+	/// [`Serialize`](https://docs.rs/serde/latest/serde/derive.Serialize.html).
+	#[cfg(feature = "serde")]
+	Serialize(serialize::Serialize),
 	/// [`Zeroize`](https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html).
 	#[cfg(feature = "zeroize")]
 	Zeroize(zeroize::Zeroize),
@@ -196,6 +218,8 @@ impl Deref for DeriveTrait {
 			Ord => &ord::Ord,
 			PartialEq => &partial_eq::PartialEq,
 			PartialOrd => &partial_ord::PartialOrd,
+			#[cfg(feature = "serde")]
+			Serialize(trait_) => trait_,
 			#[cfg(feature = "zeroize")]
 			Zeroize(trait_) => trait_,
 			#[cfg(feature = "zeroize")]

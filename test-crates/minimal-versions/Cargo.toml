@@ -11,9 +11,16 @@ version = "0.0.0"
 [features]
 nightly = ["derive-where/nightly"]
 safe = ["derive-where/safe"]
+serde = ["derive-where/serde", "serde_", "serde_derive"]
 zeroize = ["derive-where/zeroize", "zeroize_"]
 zeroize-on-drop = ["derive-where/zeroize-on-drop", "zeroize"]
 
 [dependencies]
 derive-where = { path = "../.." }
-zeroize_ = { version = "1.5", package = "zeroize", default-features = false, optional = true }
+serde_ = { package = "serde", version = "1", default-features = false, features = [
+	"derive",
+], optional = true }
+# The actual minimum supported version is v1.0.81, but we need `#[serde(crate = "serde_")]`, which
+# requires v1.0.90.
+serde_derive = { version = "1.0.90", optional = true }
+zeroize_ = { package = "zeroize", version = "1.5", default-features = false, optional = true }

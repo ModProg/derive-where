@@ -10,11 +10,20 @@ struct NoOption<T>(PhantomData<T>);
 #[derive_where()]
 struct EmptyAttribute<T>(PhantomData<T>);
 
+#[derive_where(,)]
+struct OnlyComma<T>(PhantomData<T>);
+
 #[derive_where(crate(derive_where_))]
 struct WrongCrateSyntax<T>(PhantomData<T>);
 
 #[derive_where(crate = "struct Test")]
 struct InvalidPathDeprecated<T>(PhantomData<T>);
+
+#[derive_where(crate = struct Test)]
+struct InvalidPath<T>(PhantomData<T>);
+
+#[derive_where(skip_inner, Clone)]
+struct SkipInnerWithTrait<T>(PhantomData<T>);
 
 // The error message here shows that `crate = ..` should be in it's own
 // attribute instead of an error pointing out this is duplicate. This is not
@@ -31,6 +40,18 @@ struct OnlyCrate<T>(PhantomData<T>);
 
 #[derive_where(crate = ::derive_where)]
 struct DefaultCrate<T>(PhantomData<T>);
+
+#[derive_where(,Clone)]
+struct StartWithComma<T>(PhantomData<T>);
+
+#[derive_where(Clone,,)]
+struct DuplicateCommaAtEnd<T>(PhantomData<T>);
+
+#[derive_where("Clone")]
+struct InvalidTrait<T>(PhantomData<T>);
+
+#[derive_where(T)]
+struct GenericInsteadTrait<T, U>(T, PhantomData<U>);
 
 #[derive_where(Debug = invalid; T)]
 struct WrongOptionSyntax<T, U>(T, PhantomData<U>);

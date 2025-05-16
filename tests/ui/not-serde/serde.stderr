@@ -1,0 +1,5 @@
+error: cannot find attribute `serde` in this scope
+ --> tests/ui/not-serde/serde.rs:6:3
+  |
+6 | #[serde(crate = "serde_")]
+  |   ^^^^^

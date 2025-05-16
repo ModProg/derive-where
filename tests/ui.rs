@@ -6,6 +6,10 @@ fn ui() {
 	use trybuild::TestCases;
 
 	TestCases::new().compile_fail("tests/ui/*.rs");
+	#[cfg(feature = "serde")]
+	TestCases::new().compile_fail("tests/ui/serde/*.rs");
+	#[cfg(not(feature = "serde"))]
+	TestCases::new().compile_fail("tests/ui/not-serde/*.rs");
 	#[cfg(not(feature = "zeroize"))]
 	TestCases::new().compile_fail("tests/ui/not-zeroize/*.rs");
 	#[cfg(feature = "zeroize")]

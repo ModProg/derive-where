@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `no_drop` item-level option to `ZeroizeOnDrop` which does not implement
   `Drop` but instead only asserts that every field implements `ZeroizeOnDrop`.
 
+### Changed
+- Error messages now point to crate features instead of reporting traits as
+  unsupported.
+
 ### Fixed
 - Stop depending on unstable APIs for `Eq` for `ZeroizeOnDrop`.
 

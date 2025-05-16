@@ -271,7 +271,7 @@ impl SkipGroup {
 			| Trait::PartialEq
 			| Trait::PartialOrd => true,
 			#[cfg(feature = "serde")]
-			Trait::Deserialize => false,
+			Trait::Deserialize | Trait::Serialize => false,
 			#[cfg(feature = "zeroize")]
 			Trait::Zeroize | Trait::ZeroizeOnDrop => true,
 		}

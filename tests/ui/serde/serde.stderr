@@ -1,0 +1,5 @@
+error: Found unused `#[serde(...)]`
+ --> tests/ui/serde/serde.rs:8:1
+  |
+8 | #[serde(crate = "serde_")]
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^

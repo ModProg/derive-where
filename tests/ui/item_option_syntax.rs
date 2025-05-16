@@ -5,6 +5,9 @@ use derive_where::derive_where;
 #[derive_where()]
 struct EmptyAttribute<T>(PhantomData<T>);
 
+#[derive_where = "invalid"]
+struct WrongAttributeSyntax<T>(PhantomData<T>);
+
 #[derive_where(Debug = "option")]
 struct WrongOptionSyntax<T>(PhantomData<T>);
 

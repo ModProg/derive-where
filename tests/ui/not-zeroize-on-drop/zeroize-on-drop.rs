@@ -5,6 +5,6 @@ use std::marker::PhantomData;
 use derive_where::derive_where;
 
 #[derive_where(ZeroizeOnDrop(no_drop))]
-struct InvalidOption<T>(PhantomData<T>);
+struct UnsupportedOption<T>(PhantomData<T>);
 
 fn main() {}

@@ -32,6 +32,9 @@ struct UnderridingSkip<T>(
 #[derive_where(Clone; T)]
 struct NoSupportedTrait<T>(#[derive_where(skip)] PhantomData<T>);
 
+#[derive_where(Copy; T)]
+struct UnsupportedTrait<T>(#[derive_where(skip(Copy))] PhantomData<T>);
+
 #[derive_where(Debug)]
 struct DuplicateTraitSame<T>(#[derive_where(skip(Debug, Debug))] PhantomData<T>);
 

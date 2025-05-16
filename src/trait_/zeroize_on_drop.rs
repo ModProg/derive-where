@@ -45,16 +45,18 @@ impl TraitImpl for ZeroizeOnDrop {
 		for meta in list {
 			match &meta {
 				Meta::Path(path) => {
-					#[cfg(feature = "zeroize-on-drop")]
 					if path.is_ident("no_drop") {
 						// Check for duplicate `no_drop` option.
+						#[cfg(feature = "zeroize-on-drop")]
 						if !no_drop {
 							no_drop = true;
+							continue;
 						} else {
 							return Err(Error::option_duplicate(path.span(), "no_drop"));
 						}
 
-						continue;
+						#[cfg(not(feature = "zeroize-on-drop"))]
+						return Err(Error::zeroize_on_drop_feature(path.span()));
 					}
 
 					return Err(Error::option_trait(path.span(), Self::as_str()));

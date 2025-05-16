@@ -74,7 +74,7 @@ impl Error {
 	}
 
 	/// Unsupported option in attribute.
-	#[cfg(feature = "zeroize")]
+	#[cfg(any(feature = "serde", feature = "zeroize"))]
 	pub fn option_trait(span: Span, attribute: &str) -> syn::Error {
 		syn::Error::new(span, format!("`{}` doesn't support this option", attribute))
 	}
@@ -191,6 +191,24 @@ impl Error {
 		)
 	}
 
+	/// Requires crate feature `serde`.
+	#[cfg(not(feature = "serde"))]
+	pub fn serde_feature(span: Span) -> syn::Error {
+		syn::Error::new(span, "requires crate feature `serde`")
+	}
+
+	/// Requires crate feature `zeroize`.
+	#[cfg(not(feature = "zeroize"))]
+	pub fn zeroize_feature(span: Span) -> syn::Error {
+		syn::Error::new(span, "requires crate feature `zeroize`")
+	}
+
+	/// Requires crate feature `zeroize-on-drop`.
+	#[cfg(all(feature = "zeroize", not(feature = "zeroize-on-drop")))]
+	pub fn zeroize_on_drop_feature(span: Span) -> syn::Error {
+		syn::Error::new(span, "requires crate feature `zeroize-on-drop`")
+	}
+
 	/// Invalid delimiter in `derive_where` attribute for
 	/// [`Trait`](crate::Trait)s.
 	pub fn derive_where_delimiter(span: Span) -> syn::Error {
@@ -282,6 +300,12 @@ impl Error {
 		syn::Error::new(skip_clone, "Cannot skip `Clone` while deriving `Copy`")
 	}
 
+	/// Unsupported `serde(...)` without deriving `De/Serialize`.
+	#[cfg(feature = "serde")]
+	pub fn serde_without_serde(serde: Span) -> syn::Error {
+		syn::Error::new(serde, "Found unused `#[serde(...)]`")
+	}
+
 	/// List of available [`Trait`](crate::Trait)s.
 	fn trait_list() -> String {
 		[
@@ -289,14 +313,14 @@ impl Error {
 			"Copy",
 			"Debug",
 			"Default",
+			"Deserialize",
 			"Eq",
 			"Hash",
 			"Ord",
 			"PartialEq",
 			"PartialOrd",
-			#[cfg(feature = "zeroize")]
+			"Serialize",
 			"Zeroize",
-			#[cfg(feature = "zeroize")]
 			"ZeroizeOnDrop",
 		]
 		.join(", ")
@@ -304,15 +328,7 @@ impl Error {
 
 	/// List of available [`SkipGroup`](crate::SkipGroup)s.
 	fn skip_group_list() -> String {
-		[
-			"Clone",
-			"Debug",
-			"EqHashOrd",
-			"Hash",
-			#[cfg(feature = "zeroize")]
-			"Zeroize",
-		]
-		.join(", ")
+		["Clone", "Debug", "EqHashOrd", "Hash", "Zeroize"].join(", ")
 	}
 
 	/// Unsupported `Zeroize` option if [`Zeroize`](https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html) isn't implemented.

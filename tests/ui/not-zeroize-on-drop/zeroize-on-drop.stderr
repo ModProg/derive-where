@@ -1,4 +1,4 @@
-error: `ZeroizeOnDrop` doesn't support this option
+error: requires crate feature `zeroize-on-drop`
  --> tests/ui/not-zeroize-on-drop/zeroize-on-drop.rs:7:30
   |
 7 | #[derive_where(ZeroizeOnDrop(no_drop))]

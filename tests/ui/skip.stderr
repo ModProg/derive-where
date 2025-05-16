@@ -34,39 +34,45 @@ error: no trait that can be skipped is being implemented
 33 | struct NoSupportedTrait<T>(#[derive_where(skip)] PhantomData<T>);
    |                                           ^^^^
 
-error: duplicate `Debug` constraint on `skip`
-  --> tests/ui/skip.rs:36:57
+error: unsupported skip group, expected one of Clone, Debug, EqHashOrd, Hash, Zeroize
+  --> tests/ui/skip.rs:36:48
    |
-36 | struct DuplicateTraitSame<T>(#[derive_where(skip(Debug, Debug))] PhantomData<T>);
+36 | struct UnsupportedTrait<T>(#[derive_where(skip(Copy))] PhantomData<T>);
+   |                                                ^^^^
+
+error: duplicate `Debug` constraint on `skip`
+  --> tests/ui/skip.rs:39:57
+   |
+39 | struct DuplicateTraitSame<T>(#[derive_where(skip(Debug, Debug))] PhantomData<T>);
    |                                                         ^^^^^
 
 error: duplicate `Debug` constraint on `skip`
-  --> tests/ui/skip.rs:41:22
+  --> tests/ui/skip.rs:44:22
    |
-41 |     #[derive_where(skip(Debug))]
+44 |     #[derive_where(skip(Debug))]
    |                         ^^^^^
 
 error: trait to be skipped isn't being implemented
-  --> tests/ui/skip.rs:46:50
+  --> tests/ui/skip.rs:49:50
    |
-46 | struct MissingDeriveTrait<T>(#[derive_where(skip(Debug))] PhantomData<T>);
+49 | struct MissingDeriveTrait<T>(#[derive_where(skip(Debug))] PhantomData<T>);
    |                                                  ^^^^^
 
 error: Cannot skip `Clone` while deriving `Copy`
-  --> tests/ui/skip.rs:49:50
+  --> tests/ui/skip.rs:52:50
    |
-49 | struct SkipCloneWhileCopy<T>(#[derive_where(skip(Clone))] PhantomData<T>);
+52 | struct SkipCloneWhileCopy<T>(#[derive_where(skip(Clone))] PhantomData<T>);
    |                                                  ^^^^^
 
 error[E0277]: the trait bound `NonDefault<T>: Default` is not satisfied
-  --> tests/ui/skip.rs:53:1
+  --> tests/ui/skip.rs:56:1
    |
-53 | #[derive_where(Clone)]
+56 | #[derive_where(Clone)]
    | ^^^^^^^^^^^^^^^^^^^^^^ the trait `Default` is not implemented for `NonDefault<T>`
    |
    = note: this error originates in the derive macro `::derive_where::DeriveWhere` (in Nightly builds, run with -Z macro-backtrace for more info)
 help: consider annotating `NonDefault<T>` with `#[derive(Default)]`
    |
-51 + #[derive(Default)]
-52 | struct NonDefault<T>(PhantomData<T>);
+54 + #[derive(Default)]
+55 | struct NonDefault<T>(PhantomData<T>);
    |

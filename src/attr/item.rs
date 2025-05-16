@@ -96,6 +96,18 @@ impl ItemAttr {
 			return Err(Error::none(span));
 		}
 
+		// Check for `#[serde(...)]` attributes without `De/Serialize`.
+		#[cfg(feature = "serde")]
+		if !self_.derive_wheres.iter().any(|derive_where| {
+			derive_where.contains(Trait::Deserialize) | derive_where.contains(Trait::Serialize)
+		}) {
+			for attr in attrs {
+				if attr.path().is_ident("serde") {
+					return Err(Error::serde_without_serde(attr.span()));
+				}
+			}
+		}
+
 		// Merge `DeriveWhere`s with the same bounds.
 		self_
 			.derive_wheres
