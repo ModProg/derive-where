@@ -541,7 +541,14 @@ fn derive_where_internal(mut item: DeriveInput) -> Result<TokenStream> {
 }
 
 #[doc(hidden)]
-#[proc_macro_derive(DeriveWhere, attributes(derive_where))]
+#[cfg_attr(
+	not(feature = "serde"),
+	proc_macro_derive(DeriveWhere, attributes(derive_where))
+)]
+#[cfg_attr(
+	feature = "serde",
+	proc_macro_derive(DeriveWhere, attributes(derive_where, serde))
+)]
 #[cfg_attr(feature = "nightly", allow_internal_unstable(core_intrinsics))]
 pub fn derive_where_actual(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 	let input = TokenStream::from(input);
