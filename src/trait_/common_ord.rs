@@ -1,13 +1,11 @@
 //! Common implementation help for [`PartialOrd`] and [`Ord`].
 
 #[cfg(not(feature = "nightly"))]
-use std::{borrow::Cow, ops::Deref};
+use std::borrow::Cow;
 
 use proc_macro2::TokenStream;
 #[cfg(not(feature = "nightly"))]
 use proc_macro2::{Literal, Span};
-#[cfg(not(feature = "nightly"))]
-use quote::format_ident;
 use quote::quote;
 #[cfg(not(feature = "nightly"))]
 use syn::{parse_quote, Expr, ExprLit, LitInt, Path};
@@ -147,72 +145,23 @@ pub fn build_ord_signature(
 							unreachable!("we should only generate this code with multiple variants")
 						}
 						Discriminant::Unit => {
-							let mut discriminants = None;
-
-							// Validation is only needed if custom discriminants are defined.
-							let validate = (variants
-								.iter()
-								.any(|variant| variant.discriminant.is_some()))
-							.then(|| {
-								let discriminants =
-									discriminants.insert(build_discriminants(variants));
-								let discriminants = discriminants.iter().zip(variants).map(
-									|(discriminant, variant)| {
-										let name =
-											format_ident!("__VALIDATE_ISIZE_{}", variant.ident);
-										let discriminant = discriminant.deref();
-
-										quote! {
-											const #name: isize = #discriminant;
-										}
-									},
-								);
-
-								quote! {
-									#(#discriminants)*
-								}
-							});
-
 							if derive_where.contains(Trait::Copy) {
 								quote! {
-									#validate
-
 									#path::#method(&(*self as isize), &(*__other as isize))
 								}
 							} else if derive_where.contains(Trait::Clone) {
 								let clone = DeriveTrait::Clone.path();
 								quote! {
-									#validate
-
 									#path::#method(&(#clone::clone(self) as isize), &(#clone::clone(__other) as isize))
 								}
 							} else {
-								let discriminants = discriminants
-									.get_or_insert_with(|| build_discriminants(variants));
-								build_discriminant_comparison(
-									None,
-									validate,
-									item,
-									generics,
-									variants,
-									discriminants,
-									&path,
-									&method,
+								build_discriminant_order(
+									None, item, generics, variants, &path, &method,
 								)
 							}
 						}
 						Discriminant::Data => {
-							let discriminants = build_discriminants(variants);
-							build_discriminant_comparison(
-								None,
-								None,
-								item,
-								generics,
-								variants,
-								&discriminants,
-								&path,
-								&method,
-							)
+							build_discriminant_order(None, item, generics, variants, &path, &method)
 						}
 						Discriminant::UnitRepr(repr) => {
 							if derive_where.contains(Trait::Copy) {
@@ -227,14 +176,11 @@ pub fn build_ord_signature(
 							} else {
 								#[cfg(feature = "safe")]
 								let body_else = {
-									let discriminants = build_discriminants(variants);
-									build_discriminant_comparison(
+									build_discriminant_order(
 										Some(*repr),
-										None,
 										item,
 										generics,
 										variants,
-										&discriminants,
 										&path,
 										&method,
 									)
@@ -260,19 +206,14 @@ pub fn build_ord_signature(
 							}
 						}
 						#[cfg(feature = "safe")]
-						Discriminant::DataRepr(repr) => {
-							let discriminants = build_discriminants(variants);
-							build_discriminant_comparison(
-								Some(*repr),
-								None,
-								item,
-								generics,
-								variants,
-								&discriminants,
-								&path,
-								&method,
-							)
-						}
+						Discriminant::DataRepr(repr) => build_discriminant_order(
+							Some(*repr),
+							item,
+							generics,
+							variants,
+							&path,
+							&method,
+						),
 					};
 
 					if let Some(body_equal) = body_equal {
@@ -313,9 +254,16 @@ pub fn build_ord_signature(
 	}
 }
 
-/// Builds list of discriminant values for all variants.
+/// Create `discriminant()` function and use it to do the comparison.
 #[cfg(not(feature = "nightly"))]
-fn build_discriminants<'a>(variants: &'a [Data<'_>]) -> Vec<Cow<'a, Expr>> {
+fn build_discriminant_order(
+	repr: Option<Representation>,
+	item: &Item,
+	generics: &SplitGenerics<'_>,
+	variants: &[Data<'_>],
+	path: &Path,
+	method: &TokenStream,
+) -> TokenStream {
 	let mut discriminants = Vec::<Cow<Expr>>::with_capacity(variants.len());
 	let mut last_expression: Option<(Option<usize>, usize)> = None;
 
@@ -356,38 +304,14 @@ fn build_discriminants<'a>(variants: &'a [Data<'_>]) -> Vec<Cow<'a, Expr>> {
 		discriminants.push(discriminant);
 	}
 
-	discriminants
-}
-
-/// Uses list of discriminant values to compare variants.
-#[cfg(not(feature = "nightly"))]
-#[allow(clippy::too_many_arguments)]
-fn build_discriminant_comparison(
-	repr: Option<Representation>,
-	validate: Option<TokenStream>,
-	item: &Item,
-	generics: &SplitGenerics<'_>,
-	variants: &[Data<'_>],
-	discriminants: &[Cow<'_, Expr>],
-	path: &Path,
-	method: &TokenStream,
-) -> TokenStream {
 	let variants = variants
 		.iter()
 		.zip(discriminants)
 		.map(|(variant, discriminant)| {
 			let pattern = variant.self_pattern();
 
-			if validate.is_some() {
-				let discriminant = format_ident!("__VALIDATE_ISIZE_{}", variant.ident);
-
-				quote! {
-					#pattern => #discriminant
-				}
-			} else {
-				quote! {
-					#pattern => #discriminant
-				}
+			quote! {
+				#pattern => #discriminant
 			}
 		});
 
@@ -404,8 +328,6 @@ fn build_discriminant_comparison(
 
 	quote! {
 		const fn __discriminant #imp(__this: &#item #ty) -> #repr #where_clause {
-			#validate
-
 			match __this {
 				#(#variants),*
 			}

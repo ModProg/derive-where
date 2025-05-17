@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `no_drop` item-level option to `ZeroizeOnDrop` which does not implement
   `Drop` but instead only asserts that every field implements `ZeroizeOnDrop`.
 
+### Changed
+- Remove unnecessary validation of the default discriminant type for enums.
+
 ### Fixed
 - Stop depending on unstable APIs for `Eq` for `ZeroizeOnDrop`.
 
