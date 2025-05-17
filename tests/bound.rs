@@ -10,7 +10,7 @@ use self::util::{AssertClone, AssertCopy};
 #[test]
 fn bound() {
 	#[derive_where(Clone, Copy; T)]
-	struct Test<T, U>(T, std::marker::PhantomData<U>);
+	struct Test<T, U>(T, PhantomData<U>);
 
 	let test_1 = Test(42, PhantomData::<()>);
 

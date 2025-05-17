@@ -11,9 +11,15 @@ version = "0.0.0"
 [features]
 nightly = ["derive-where/nightly"]
 safe = ["derive-where/safe"]
+serde_ = ["derive-where/serde", "serde", "serde_derive", "syn"]
 zeroize = ["derive-where/zeroize", "zeroize_"]
 zeroize-on-drop = ["derive-where/zeroize-on-drop", "zeroize"]
 
 [dependencies]
 derive-where = { path = "../.." }
-zeroize_ = { version = "1.5", package = "zeroize", default-features = false, optional = true }
+serde = { version = "1", default-features = false, features = ["derive"], optional = true }
+# Fails to parse item in earlier versions.
+serde_derive = { version = "1.0.28", optional = true }
+# `serde_derive` v1.0.28 doesn't compile with earlier versions.
+syn = { version = "0.12.3", default-features = false, optional = true }
+zeroize_ = { package = "zeroize", version = "1.5", default-features = false, optional = true }

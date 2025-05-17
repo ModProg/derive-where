@@ -29,11 +29,15 @@ jobs:
           - channel: nightly
             features: --features nightly 
           - channel: stable
+            features: --features serde
+          - channel: stable
             features: --features zeroize
           - channel: stable
             features: --features zeroize-on-drop
           - channel: nightly
             features: --features safe,nightly
+          - channel: stable
+            features: --features safe,serde
           - channel: stable
             features: --features safe,zeroize
           - channel: stable
@@ -42,6 +46,12 @@ jobs:
             features: --features nightly,zeroize
           - channel: nightly
             features: --features nightly,zeroize-on-drop
+          - channel: nightly
+            features: --features nightly,serde
+          - channel: stable
+            features: --features serde,zeroize
+          - channel: stable
+            features: --features serde,zeroize-on-drop
           - channel: nightly
             features: --all-features
 

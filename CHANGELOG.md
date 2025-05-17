@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - `no_drop` item-level option to `ZeroizeOnDrop` which does not implement
   `Drop` but instead only asserts that every field implements `ZeroizeOnDrop`.
+- Support deriving Serde's `Deserialize` and `Serialize` trait via Serde's own
+  proc-macro.
+
+### Changed
+- Error messages now point to crate features instead of reporting traits as
+  unsupported.
 
 ### Changed
 - Remove unnecessary validation of the default discriminant type for enums.

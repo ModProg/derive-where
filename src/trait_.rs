@@ -5,11 +5,17 @@ mod common_ord;
 pub mod copy;
 pub mod debug;
 pub mod default;
+#[cfg(feature = "serde")]
+pub mod deserialize;
 pub mod eq;
 pub mod hash;
 pub mod ord;
 pub mod partial_eq;
 pub mod partial_ord;
+#[cfg(feature = "serde")]
+mod serde;
+#[cfg(feature = "serde")]
+pub mod serialize;
 #[cfg(feature = "zeroize")]
 pub mod zeroize;
 #[cfg(feature = "zeroize")]
@@ -23,8 +29,8 @@ use syn::{
 	parse::{Parse, ParseStream},
 	punctuated::Punctuated,
 	spanned::Spanned,
-	Ident, ImplGenerics, Meta, Path, Result, Token, TraitBound, TraitBoundModifier, TypeGenerics,
-	TypeParamBound, WhereClause,
+	Attribute, DeriveInput, Ident, ImplGenerics, Meta, Path, Result, Token, TraitBound,
+	TraitBoundModifier, TypeGenerics, TypeParamBound, WhereClause,
 };
 
 use crate::{util::MetaListExt, Data, DeriveWhere, Error, Item, SplitGenerics};
@@ -41,6 +47,9 @@ pub enum Trait {
 	Debug,
 	/// [`Default`].
 	Default,
+	/// [`Deserialize`](https://docs.rs/serde/latest/serde/derive.Deserialize.html).
+	#[cfg(feature = "serde")]
+	Deserialize,
 	/// [`Eq`].
 	Eq,
 	/// [`Hash`](std::hash::Hash).
@@ -51,6 +60,9 @@ pub enum Trait {
 	PartialEq,
 	/// [`PartialOrd`].
 	PartialOrd,
+	/// [`Serialize`](https://docs.rs/serde/latest/serde/derive.Serialize.html).
+	#[cfg(feature = "serde")]
+	Serialize,
 	/// [`Zeroize`](https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html).
 	#[cfg(feature = "zeroize")]
 	Zeroize,
@@ -66,11 +78,15 @@ macro_rules! trait_dispatch {
 			Trait::Copy => copy::Copy::$method($($par),*),
 			Trait::Debug => debug::Debug::$method($($par),*),
 			Trait::Default => default::Default::$method($($par),*),
+			#[cfg(feature = "serde")]
+			Trait::Deserialize => deserialize::Deserialize::$method($($par),*),
 			Trait::Eq => eq::Eq::$method($($par),*),
 			Trait::Hash => hash::Hash::$method($($par),*),
 			Trait::Ord => ord::Ord::$method($($par),*),
 			Trait::PartialEq => partial_eq::PartialEq::$method($($par),*),
 			Trait::PartialOrd => partial_ord::PartialOrd::$method($($par),*),
+			#[cfg(feature = "serde")]
+			Trait::Serialize => serialize::Serialize::$method($($par),*),
 			#[cfg(feature = "zeroize")]
 			Trait::Zeroize => zeroize::Zeroize::$method($($par),*),
 			#[cfg(feature = "zeroize")]
@@ -90,15 +106,27 @@ impl Trait {
 				"Copy" => Ok(Copy),
 				"Debug" => Ok(Debug),
 				"Default" => Ok(Default),
+				#[cfg(feature = "serde")]
+				"Deserialize" => Ok(Deserialize),
+				#[cfg(not(feature = "serde"))]
+				"Deserialize" => Err(Error::serde_feature(path.span())),
 				"Eq" => Ok(Eq),
 				"Hash" => Ok(Hash),
 				"Ord" => Ok(Ord),
 				"PartialEq" => Ok(PartialEq),
 				"PartialOrd" => Ok(PartialOrd),
+				#[cfg(feature = "serde")]
+				"Serialize" => Ok(Serialize),
+				#[cfg(not(feature = "serde"))]
+				"Serialize" => Err(Error::serde_feature(path.span())),
 				#[cfg(feature = "zeroize")]
 				"Zeroize" => Ok(Zeroize),
+				#[cfg(not(feature = "zeroize"))]
+				"Zeroize" => Err(Error::zeroize_feature(path.span())),
 				#[cfg(feature = "zeroize")]
 				"ZeroizeOnDrop" => Ok(ZeroizeOnDrop),
+				#[cfg(not(feature = "zeroize"))]
+				"ZeroizeOnDrop" => Err(Error::zeroize_feature(path.span())),
 				"crate" => Err(Error::crate_(path.span())),
 				_ => Err(Error::trait_(path.span())),
 			}
@@ -120,10 +148,11 @@ impl Trait {
 	/// Re-direct to [`TraitImpl::parse_derive_trait()`].
 	pub fn parse_derive_trait(
 		&self,
+		attrs: &[Attribute],
 		span: Span,
-		list: Punctuated<Meta, Token![,]>,
+		list: Option<Punctuated<Meta, Token![,]>>,
 	) -> Result<DeriveTrait> {
-		trait_dispatch!(self, parse_derive_trait(span, list))
+		trait_dispatch!(self, parse_derive_trait(attrs, span, list))
 	}
 
 	/// Re-direct to [`TraitImpl::supports_union()`].
@@ -148,6 +177,9 @@ pub enum DeriveTrait {
 	Debug,
 	/// [`Default`].
 	Default,
+	/// [`Deserialize`](https://docs.rs/serde/latest/serde/derive.Deserialize.html).
+	#[cfg(feature = "serde")]
+	Deserialize(deserialize::Deserialize),
 	/// [`Eq`].
 	Eq,
 	/// [`Hash`](std::hash::Hash).
@@ -158,6 +190,9 @@ pub enum DeriveTrait {
 	PartialEq,
 	/// [`PartialOrd`].
 	PartialOrd,
+	/// [`Serialize`](https://docs.rs/serde/latest/serde/derive.Serialize.html).
+	#[cfg(feature = "serde")]
+	Serialize(serialize::Serialize),
 	/// [`Zeroize`](https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html).
 	#[cfg(feature = "zeroize")]
 	Zeroize(zeroize::Zeroize),
@@ -177,11 +212,15 @@ impl Deref for DeriveTrait {
 			Copy => &copy::Copy,
 			Debug => &debug::Debug,
 			Default => &default::Default,
+			#[cfg(feature = "serde")]
+			Deserialize(trait_) => trait_,
 			Eq => &eq::Eq,
 			Hash => &hash::Hash,
 			Ord => &ord::Ord,
 			PartialEq => &partial_eq::PartialEq,
 			PartialOrd => &partial_ord::PartialOrd,
+			#[cfg(feature = "serde")]
+			Serialize(trait_) => trait_,
 			#[cfg(feature = "zeroize")]
 			Zeroize(trait_) => trait_,
 			#[cfg(feature = "zeroize")]
@@ -218,7 +257,12 @@ impl DeriveTrait {
 	}
 
 	/// Create [`DeriveTrait`] from [`ParseStream`].
-	pub fn from_stream(span: Span, data: &syn::Data, input: ParseStream) -> Result<(Span, Self)> {
+	pub fn from_stream(
+		attrs: &[Attribute],
+		span: Span,
+		data: &syn::Data,
+		input: ParseStream,
+	) -> Result<(Span, Self)> {
 		match Meta::parse(input) {
 			Ok(meta) => {
 				let trait_ = Trait::from_path(meta.path())?;
@@ -231,12 +275,18 @@ impl DeriveTrait {
 				}
 
 				match &meta {
-					Meta::Path(path) => Ok((path.span(), trait_.default_derive_trait())),
+					Meta::Path(path) => Ok((
+						path.span(),
+						trait_.parse_derive_trait(attrs, meta.span(), None)?,
+					)),
 					Meta::List(list) => {
 						let nested = list.parse_non_empty_nested_metas()?;
 
 						// This will return an error if no options are supported.
-						Ok((list.span(), trait_.parse_derive_trait(meta.span(), nested)?))
+						Ok((
+							list.span(),
+							trait_.parse_derive_trait(attrs, meta.span(), Some(nested))?,
+						))
 					}
 					Meta::NameValue(name_value) => Err(Error::option_syntax(name_value.span())),
 				}
@@ -261,11 +311,19 @@ pub trait TraitImpl: Deref<Target = Trait> {
 		Self: Sized;
 
 	/// Parse a `derive_where` trait with it's options.
-	fn parse_derive_trait(span: Span, _list: Punctuated<Meta, Token![,]>) -> Result<DeriveTrait>
+	fn parse_derive_trait(
+		_attrs: &[Attribute],
+		span: Span,
+		list: Option<Punctuated<Meta, Token![,]>>,
+	) -> Result<DeriveTrait>
 	where
 		Self: Sized,
 	{
-		Err(Error::options(span, Self::as_str()))
+		if list.is_some() {
+			Err(Error::options(span, Self::as_str()))
+		} else {
+			Ok(Self::default_derive_trait())
+		}
 	}
 
 	/// Returns `true` if [`Trait`] supports unions.
@@ -294,8 +352,11 @@ pub trait TraitImpl: Deref<Target = Trait> {
 
 	/// Trait to implement. Only used by [`Eq`] and
 	/// [`ZeroizeOnDrop`](https://docs.rs/zeroize/latest/zeroize/trait.ZeroizeOnDrop.html).
+	#[allow(clippy::too_many_arguments)]
 	fn impl_item(
 		&self,
+		_crate_: Option<&Path>,
+		_full_item: &DeriveInput,
 		imp: &ImplGenerics<'_>,
 		ident: &Ident,
 		ty: &TypeGenerics<'_>,

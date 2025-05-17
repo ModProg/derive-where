@@ -6,20 +6,32 @@ error: empty `derive_where` found
   |
   = note: this error originates in the attribute macro `derive_where` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: unexpected option syntax
- --> tests/ui/item_option_syntax.rs:8:16
+error: key-value macro attributes are not supported
+ --> tests/ui/item_option_syntax.rs:8:1
   |
-8 | #[derive_where(Debug = "option")]
-  |                ^^^^^^^^^^^^^^^^
+8 | #[derive_where = "invalid"]
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-error: empty attribute option found
+error: unsupported trait syntax, expected one of Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Zeroize, ZeroizeOnDrop
+ --> tests/ui/item_option_syntax.rs:8:18
+  |
+8 | #[derive_where = "invalid"]
+  |                  ^^^^^^^^^
+
+error: unexpected option syntax
   --> tests/ui/item_option_syntax.rs:11:16
    |
-11 | #[derive_where(Debug())]
+11 | #[derive_where(Debug = "option")]
+   |                ^^^^^^^^^^^^^^^^
+
+error: empty attribute option found
+  --> tests/ui/item_option_syntax.rs:14:16
+   |
+14 | #[derive_where(Debug())]
    |                ^^^^^^^
 
 error: `Debug` doesn't support any options
-  --> tests/ui/item_option_syntax.rs:14:16
+  --> tests/ui/item_option_syntax.rs:17:16
    |
-14 | #[derive_where(Debug(option))]
+17 | #[derive_where(Debug(option))]
    |                ^^^^^^^^^^^^^

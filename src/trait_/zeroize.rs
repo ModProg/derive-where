@@ -5,8 +5,8 @@ use std::ops::Deref;
 use proc_macro2::{Span, TokenStream};
 use quote::quote;
 use syn::{
-	punctuated::Punctuated, spanned::Spanned, Expr, ExprLit, ExprPath, Lit, Meta, Path, Result,
-	Token,
+	punctuated::Punctuated, spanned::Spanned, Attribute, Expr, ExprLit, ExprPath, Lit, Meta, Path,
+	Result, Token,
 };
 
 use crate::{
@@ -29,9 +29,16 @@ impl TraitImpl for Zeroize {
 		DeriveTrait::Zeroize(Self { crate_: None })
 	}
 
-	fn parse_derive_trait(_span: Span, list: Punctuated<Meta, Token![,]>) -> Result<DeriveTrait> {
-		// This is already checked in `DeriveTrait::from_stream`.
-		debug_assert!(!list.is_empty());
+	fn parse_derive_trait(
+		_: &[Attribute],
+		_span: Span,
+		list: Option<Punctuated<Meta, Token![,]>>,
+	) -> Result<DeriveTrait> {
+		let list = if let Some(list) = list {
+			list
+		} else {
+			return Ok(Self::default_derive_trait());
+		};
 
 		let mut crate_ = None;
 

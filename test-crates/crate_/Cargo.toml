@@ -7,12 +7,16 @@ version = "0.0.0"
 [features]
 nightly = ["derive-where_/nightly"]
 safe = ["derive-where_/safe"]
+serde = ["derive-where_/serde", "serde_"]
 zeroize = ["derive-where_/zeroize", "zeroize_"]
 zeroize-on-drop = ["derive-where_/zeroize-on-drop", "zeroize"]
 
 [dependencies]
 derive-where_ = { path = "../..", package = "derive-where" }
-zeroize_ = { version = "1.5", package = "zeroize", default-features = false, optional = true }
+serde_ = { package = "serde", version = "1", default-features = false, features = [
+	"derive",
+], optional = true }
+zeroize_ = { package = "zeroize", version = "1.5", default-features = false, optional = true }
 
 [lib]
 doctest = false

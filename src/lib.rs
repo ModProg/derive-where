@@ -228,6 +228,13 @@
 //! Note that it is not possible to use `incomparable` with [`Eq`] or [`Ord`] as
 //! that would break their invariants.
 //!
+//! ## Serde `Deserialize` and `Serialize`
+//!
+//! Deriving [`Deserialize`] and [`Serialize`] works as expected. While
+//! derive-where does not offer any attribute options, regular `serde`
+//! attributes can be used. Derive-where will respect
+//! [`#[serde(crate = "...")]`](https://serde.rs/container-attrs.html#crate).
+//!
 //! ## `Zeroize` options
 //!
 //! `Zeroize` has two options:
@@ -298,11 +305,13 @@
 //! - [`Copy`]
 //! - [`Debug`]
 //! - [`Default`]
+//! - [`Deserialize`]: Only available with the `serde` crate feature.
 //! - [`Eq`]
 //! - [`Hash`]
 //! - [`Ord`]
 //! - [`PartialEq`]
 //! - [`PartialOrd`]
+//! - [`Serialize`]: Only available with the `serde` crate feature.
 //! - [`Zeroize`]: Only available with the `zeroize` crate feature.
 //! - [`ZeroizeOnDrop`]: Only available with the `zeroize` crate feature. If the
 //!   `zeroize-on-drop` feature is enabled, it implements [`ZeroizeOnDrop`],
@@ -379,11 +388,13 @@
 //! [LICENSE-APACHE]: https://github.com/ModProg/derive-where/blob/main/LICENSE-APACHE
 //! [`Debug`]: core::fmt::Debug
 //! [`Default`]: core::default::Default
+//! [`Deserialize`]: https://docs.rs/serde/latest/serde/derive.Deserialize.html
 //! [`Eq`]: core::cmp::Eq
 //! [`Hash`]: core::hash::Hash
 //! [`Ord`]: core::cmp::Ord
 //! [`PartialEq`]: core::cmp::PartialEq
 //! [`PartialOrd`]: core::cmp::PartialOrd
+//! [`Serialize`]: https://docs.rs/serde/latest/serde/derive.Serialize.html
 //! [`zeroize`]: https://docs.rs/zeroize
 //! [`Zeroize`]: https://docs.rs/zeroize/latest/zeroize/trait.Zeroize.html
 //! [`ZeroizeOnDrop`]: https://docs.rs/zeroize/latest/zeroize/trait.ZeroizeOnDrop.html
@@ -405,8 +416,8 @@ use input::SplitGenerics;
 use proc_macro2::TokenStream;
 use quote::{quote, quote_spanned, ToTokens};
 use syn::{
-	spanned::Spanned, Attribute, DataEnum, DataStruct, DataUnion, DeriveInput, Expr, ExprLit,
-	ExprPath, Fields, FieldsNamed, FieldsUnnamed, Lit, Meta, Path, Result, Variant,
+	spanned::Spanned, Attribute, DataEnum, DataStruct, DataUnion, DeriveInput, Fields, FieldsNamed,
+	FieldsUnnamed, Meta, Path, Result, Variant,
 };
 use util::MetaListExt;
 
@@ -500,39 +511,11 @@ fn derive_where_internal(mut item: DeriveInput) -> Result<TokenStream> {
 						let meta = nested.into_iter().next().expect("unexpected empty list");
 
 						if meta.path().is_ident("crate") {
-							if let Meta::NameValue(name_value) = meta {
-								let path = match &name_value.value {
-									Expr::Lit(ExprLit {
-										lit: Lit::Str(lit_str),
-										..
-									}) => match lit_str.parse::<Path>() {
-										Ok(path) => path,
-										Err(error) => {
-											return Err(Error::path(lit_str.span(), error))
-										}
-									},
-									Expr::Path(ExprPath { path, .. }) => path.clone(),
-									_ => return Err(Error::option_syntax(name_value.value.span())),
-								};
+							let (path, span) = attr::parse_crate(meta)?;
 
-								if path == util::path_from_strs(&[DERIVE_WHERE]) {
-									return Err(Error::path_unnecessary(
-										path.span(),
-										&format!("::{}", DERIVE_WHERE),
-									));
-								}
-
-								match crate_ {
-									Some(_) => {
-										return Err(Error::option_duplicate(
-											name_value.span(),
-											"crate",
-										))
-									}
-									None => crate_ = Some(path),
-								}
-							} else {
-								return Err(Error::option_syntax(meta.span()));
+							match crate_ {
+								Some(_) => return Err(Error::option_duplicate(span, "crate")),
+								None => crate_ = Some(path),
 							}
 						}
 					}
@@ -572,11 +555,18 @@ fn derive_where_internal(mut item: DeriveInput) -> Result<TokenStream> {
 /// attribute macro, the derive macro supports helper attributes and evaluates
 /// `cfg`s.
 #[doc(hidden)]
-#[proc_macro_derive(DeriveWhere, attributes(derive_where))]
+#[cfg_attr(
+	not(feature = "serde"),
+	proc_macro_derive(DeriveWhere, attributes(derive_where))
+)]
+#[cfg_attr(
+	feature = "serde",
+	proc_macro_derive(DeriveWhere, attributes(derive_where, serde))
+)]
 #[cfg_attr(feature = "nightly", allow_internal_unstable(core_intrinsics))]
 pub fn derive_where_actual(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 	let input = TokenStream::from(input);
-	let item = match syn::parse2::<DeriveInput>(input) {
+	let full_item = match syn::parse2::<DeriveInput>(input) {
 		Ok(item) => item,
 		Err(error) => {
 			return error.into_compile_error().into();
@@ -586,24 +576,34 @@ pub fn derive_where_actual(input: proc_macro::TokenStream) -> proc_macro::TokenS
 	let span = {
 		let clean_item = DeriveInput {
 			attrs: Vec::new(),
-			vis: item.vis.clone(),
-			ident: item.ident.clone(),
-			generics: item.generics.clone(),
-			data: item.data.clone(),
+			vis: full_item.vis.clone(),
+			ident: full_item.ident.clone(),
+			generics: full_item.generics.clone(),
+			data: full_item.data.clone(),
 		};
 
 		clean_item.span()
 	};
 
-	match Input::from_input(span, &item) {
+	match Input::from_input(span, &full_item) {
 		Ok(Input {
+			crate_,
 			derive_wheres,
 			generics,
 			item,
 		}) => derive_wheres
 			.iter()
 			.flat_map(|derive_where| iter::repeat(derive_where).zip(&derive_where.traits))
-			.map(|(derive_where, trait_)| generate_impl(derive_where, trait_, &item, &generics))
+			.map(|(derive_where, trait_)| {
+				generate_impl(
+					crate_.as_ref(),
+					&full_item,
+					derive_where,
+					trait_,
+					&item,
+					&generics,
+				)
+			})
 			.collect::<TokenStream>()
 			.into(),
 		Err(error) => error.into_compile_error().into(),
@@ -630,6 +630,8 @@ pub fn derive_where_visited(
 
 /// Generate implementation for a [`Trait`].
 fn generate_impl(
+	crate_: Option<&Path>,
+	full_item: &DeriveInput,
 	derive_where: &DeriveWhere,
 	trait_: &DeriveTrait,
 	item: &Item,
@@ -646,7 +648,7 @@ fn generate_impl(
 	let body = generate_body(derive_where, trait_, item, generics);
 
 	let ident = item.ident();
-	let mut output = trait_.impl_item(imp, ident, ty, &where_clause, body);
+	let mut output = trait_.impl_item(crate_, full_item, imp, ident, ty, &where_clause, body);
 
 	if let Some((path, body)) = trait_.additional_impl() {
 		output.extend(quote! {
@@ -736,4 +738,15 @@ fn input_without_derive_where_attributes(mut input: DeriveInput) -> DeriveInput 
 	}
 
 	input
+}
+
+/// This is used by the Serde implementation to remove the duplicate item.
+#[cfg(feature = "serde")]
+#[doc(hidden)]
+#[proc_macro_attribute]
+pub fn derive_where_serde(
+	_: proc_macro::TokenStream,
+	_: proc_macro::TokenStream,
+) -> proc_macro::TokenStream {
+	proc_macro::TokenStream::new()
 }

@@ -1,0 +1,11 @@
+error: requires crate feature `serde`
+ --> tests/ui/not-serde/support.rs:5:16
+  |
+5 | #[derive_where(Deserialize)]
+  |                ^^^^^^^^^^^
+
+error: requires crate feature `serde`
+ --> tests/ui/not-serde/support.rs:8:16
+  |
+8 | #[derive_where(Serialize)]
+  |                ^^^^^^^^^

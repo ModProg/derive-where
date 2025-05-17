@@ -1,5 +1,0 @@
-error: unsupported skip group, expected one of Clone, Debug, EqHashOrd, Hash
- --> tests/ui/not-zeroize/skip.rs:6:48
-  |
-6 | struct UnsupportedTrait<T>(#[derive_where(skip(Copy))] PhantomData<T>);
-  |                                                ^^^^

@@ -7,8 +7,8 @@ use syn::{
 	parse::{discouraged::Speculative, Parse, ParseStream},
 	punctuated::Punctuated,
 	spanned::Spanned,
-	Attribute, BoundLifetimes, Data, Ident, Meta, PredicateType, Result, Token, Type, TypePath,
-	WhereClause, WherePredicate,
+	Attribute, BoundLifetimes, Data, Ident, Meta, Path, PredicateType, Result, Token, Type,
+	TypePath, WhereClause, WherePredicate,
 };
 
 use crate::{trait_::DeriveTrait, Error, Incomparable, Item, Skip, SkipGroup, Trait, DERIVE_WHERE};
@@ -16,6 +16,8 @@ use crate::{trait_::DeriveTrait, Error, Incomparable, Item, Skip, SkipGroup, Tra
 /// Attributes on item.
 #[derive(Default)]
 pub struct ItemAttr {
+	/// Path to `derive_where` if set by `#[derive_where(crate = ...)]`.
+	pub crate_: Option<Path>,
 	/// [`Trait`]s to skip all fields for.
 	pub skip_inner: Skip,
 	/// Comparing item will yield `false` for [`PartialEq`] and [`None`] for
@@ -59,20 +61,21 @@ impl ItemAttr {
 									// Needs to be parsed after all traits are known.
 									incomparables.push(meta)
 								} else if meta.path().is_ident("crate") {
-									// Do nothing, we checked this before
-									// already.
+									let (path, _) = super::parse_crate(meta)
+										.expect("failed to parse previously parsed attribute");
+									self_.crate_ = Some(path);
 								}
 								// The list can have one item but still not be the `skip_inner`
 								// attribute, continue with parsing `DeriveWhere`.
 								else {
 									self_
 										.derive_wheres
-										.push(DeriveWhere::from_attr(span, data, attr)?);
+										.push(DeriveWhere::from_attr(attrs, span, data, attr)?);
 								}
 							}
 							_ => self_
 								.derive_wheres
-								.push(DeriveWhere::from_attr(span, data, attr)?),
+								.push(DeriveWhere::from_attr(attrs, span, data, attr)?),
 						}
 					}
 					// Anything list that isn't using `,` as separator, is because we expect
@@ -80,7 +83,7 @@ impl ItemAttr {
 					else {
 						self_
 							.derive_wheres
-							.push(DeriveWhere::from_attr(span, data, attr)?)
+							.push(DeriveWhere::from_attr(attrs, span, data, attr)?)
 					}
 				} else {
 					return Err(Error::option_syntax(attr.meta.span()));
@@ -91,6 +94,18 @@ impl ItemAttr {
 		// Check that we specified at least one `#[derive_where(..)]` with traits.
 		if self_.derive_wheres.is_empty() {
 			return Err(Error::none(span));
+		}
+
+		// Check for `#[serde(...)]` attributes without `De/Serialize`.
+		#[cfg(feature = "serde")]
+		if !self_.derive_wheres.iter().any(|derive_where| {
+			derive_where.contains(Trait::Deserialize) | derive_where.contains(Trait::Serialize)
+		}) {
+			for attr in attrs {
+				if attr.path().is_ident("serde") {
+					return Err(Error::serde_without_serde(attr.span()));
+				}
+			}
 		}
 
 		// Merge `DeriveWhere`s with the same bounds.
@@ -152,7 +167,7 @@ pub struct DeriveWhere {
 
 impl DeriveWhere {
 	/// Create [`DeriveWhere`] from [`Attribute`].
-	fn from_attr(span: Span, data: &Data, attr: &Attribute) -> Result<Self> {
+	fn from_attr(attrs: &[Attribute], span: Span, data: &Data, attr: &Attribute) -> Result<Self> {
 		attr.parse_args_with(|input: ParseStream| {
 			// Parse the attribute input, this should either be:
 			// - Comma separated traits.
@@ -169,7 +184,7 @@ impl DeriveWhere {
 				// Start with parsing a trait.
 				// Not checking for duplicates here, we do that after merging `derive_where`s
 				// with the same bounds.
-				let (span, trait_) = DeriveTrait::from_stream(span, data, input)?;
+				let (span, trait_) = DeriveTrait::from_stream(attrs, span, data, input)?;
 				spans.push(span);
 				traits.push(trait_);
 

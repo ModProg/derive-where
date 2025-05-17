@@ -14,94 +14,136 @@ error: empty `derive_where` found
    |
    = note: this error originates in the attribute macro `derive_where` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: unexpected option syntax
+error: unsupported trait syntax, expected one of Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Zeroize, ZeroizeOnDrop
   --> tests/ui/item.rs:13:16
    |
-13 | #[derive_where(crate(derive_where_))]
+13 | #[derive_where(,)]
+   |                ^
+
+error: unexpected option syntax
+  --> tests/ui/item.rs:16:16
+   |
+16 | #[derive_where(crate(derive_where_))]
    |                ^^^^^^^^^^^^^^^^^^^^
 
 error: expected path, expected identifier, found keyword `struct`
-  --> tests/ui/item.rs:16:24
+  --> tests/ui/item.rs:19:24
    |
-16 | #[derive_where(crate = "struct Test")]
+19 | #[derive_where(crate = "struct Test")]
    |                        ^^^^^^^^^^^^^
 
-error: the `crate` option has to be defined in it's own `#[derive_where(..)` attribute
-  --> tests/ui/item.rs:22:16
+error: unsupported trait syntax, expected one of Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Zeroize, ZeroizeOnDrop
+  --> tests/ui/item.rs:22:24
    |
-22 | #[derive_where(crate = derive_where_, crate = derive_where_)]
+22 | #[derive_where(crate = struct Test)]
+   |                        ^^^^^^
+
+error: unsupported trait, expected one of Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Zeroize, ZeroizeOnDrop
+  --> tests/ui/item.rs:25:16
+   |
+25 | #[derive_where(skip_inner, Clone)]
+   |                ^^^^^^^^^^
+
+error: the `crate` option has to be defined in it's own `#[derive_where(..)` attribute
+  --> tests/ui/item.rs:31:16
+   |
+31 | #[derive_where(crate = derive_where_, crate = derive_where_)]
    |                ^^^^^
 
 error: duplicate `crate` option
-  --> tests/ui/item.rs:26:16
+  --> tests/ui/item.rs:35:16
    |
-26 | #[derive_where(crate = derive_where_)]
+35 | #[derive_where(crate = derive_where_)]
    |                ^^^^^^^^^^^^^^^^^^^^^
 
 error: no traits found to implement, use `#[derive_where(..)` to specify some
-  --> tests/ui/item.rs:30:1
+  --> tests/ui/item.rs:39:1
    |
-30 | struct OnlyCrate<T>(PhantomData<T>);
+39 | struct OnlyCrate<T>(PhantomData<T>);
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: unnecessary path qualification, `::derive_where` is used by default
-  --> tests/ui/item.rs:32:24
+  --> tests/ui/item.rs:41:24
    |
-32 | #[derive_where(crate = ::derive_where)]
+41 | #[derive_where(crate = ::derive_where)]
    |                        ^^^^^^^^^^^^^^
 
-error: unexpected option syntax
-  --> tests/ui/item.rs:35:16
+error: unsupported trait syntax, expected one of Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Zeroize, ZeroizeOnDrop
+  --> tests/ui/item.rs:44:16
    |
-35 | #[derive_where(Debug = invalid; T)]
+44 | #[derive_where(,Clone)]
+   |                ^
+
+error: unsupported trait syntax, expected one of Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Zeroize, ZeroizeOnDrop
+  --> tests/ui/item.rs:47:22
+   |
+47 | #[derive_where(Clone,,)]
+   |                      ^
+
+error: unsupported trait syntax, expected one of Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Zeroize, ZeroizeOnDrop
+  --> tests/ui/item.rs:50:16
+   |
+50 | #[derive_where("Clone")]
+   |                ^^^^^^^
+
+error: unsupported trait, expected one of Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Zeroize, ZeroizeOnDrop
+  --> tests/ui/item.rs:53:16
+   |
+53 | #[derive_where(T)]
+   |                ^
+
+error: unexpected option syntax
+  --> tests/ui/item.rs:56:16
+   |
+56 | #[derive_where(Debug = invalid; T)]
    |                ^^^^^^^^^^^^^^^
 
 error: expected `,`
-  --> tests/ui/item.rs:38:24
+  --> tests/ui/item.rs:59:24
    |
-38 | #[derive_where(Clone; T;)]
+59 | #[derive_where(Clone; T;)]
    |                        ^
 
 error: expected type to bind to, expected one of: `for`, parentheses, `fn`, `unsafe`, `extern`, identifier, `::`, `<`, `dyn`, square brackets, `*`, `&`, `!`, `impl`, `_`, lifetime
-  --> tests/ui/item.rs:41:25
+  --> tests/ui/item.rs:62:25
    |
-41 | #[derive_where(Clone; T,,)]
+62 | #[derive_where(Clone; T,,)]
    |                         ^
 
 error: expected type to bind to, expected one of: `for`, parentheses, `fn`, `unsafe`, `extern`, identifier, `::`, `<`, `dyn`, square brackets, `*`, `&`, `!`, `impl`, `_`, lifetime
-  --> tests/ui/item.rs:44:23
+  --> tests/ui/item.rs:65:23
    |
-44 | #[derive_where(Clone; where)]
+65 | #[derive_where(Clone; where)]
    |                       ^^^^^
 
 error: expected `;` or `,
-  --> tests/ui/item.rs:47:22
+  --> tests/ui/item.rs:68:22
    |
-47 | #[derive_where(Clone Debug)]
+68 | #[derive_where(Clone Debug)]
    |                      ^^^^^
 
 error: expected `,`
-  --> tests/ui/item.rs:50:25
+  --> tests/ui/item.rs:71:25
    |
-50 | #[derive_where(Clone; T U)]
+71 | #[derive_where(Clone; T U)]
    |                         ^
 
 error: `#[derive_where(..)` was already applied to this item before, this occurs when using a qualified path for any `#[derive_where(..)`s except the first
-  --> tests/ui/item.rs:53:1
+  --> tests/ui/item.rs:74:1
    |
-53 | #[derive_where(Clone)]
+74 | #[derive_where(Clone)]
    | ^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: this error originates in the attribute macro `derive_where` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: duplicate trait with the same bound
-  --> tests/ui/item.rs:57:23
+  --> tests/ui/item.rs:78:23
    |
-57 | #[derive_where(Clone, Clone)]
+78 | #[derive_where(Clone, Clone)]
    |                       ^^^^^
 
 error: duplicate trait with the same bound
-  --> tests/ui/item.rs:61:16
+  --> tests/ui/item.rs:82:16
    |
-61 | #[derive_where(Clone)]
+82 | #[derive_where(Clone)]
    |                ^^^^^

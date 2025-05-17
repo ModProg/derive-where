@@ -34,20 +34,26 @@ error: no trait that can be skipped is being implemented
 31 | #[derive_where(skip_inner)]
    |                ^^^^^^^^^^
 
-error: duplicate `Debug` constraint on `skip`
-  --> tests/ui/item_skip.rs:35:34
+error: unsupported skip group, expected one of Clone, Debug, EqHashOrd, Hash, Zeroize
+  --> tests/ui/item_skip.rs:35:27
    |
-35 | #[derive_where(skip_inner(Debug, Debug))]
+35 | #[derive_where(skip_inner(Copy))]
+   |                           ^^^^
+
+error: duplicate `Debug` constraint on `skip`
+  --> tests/ui/item_skip.rs:39:34
+   |
+39 | #[derive_where(skip_inner(Debug, Debug))]
    |                                  ^^^^^
 
 error: duplicate `Debug` constraint on `skip`
-  --> tests/ui/item_skip.rs:40:27
-   |
-40 | #[derive_where(skip_inner(Debug))]
-   |                           ^^^^^
-
-error: trait to be skipped isn't being implemented
   --> tests/ui/item_skip.rs:44:27
    |
 44 | #[derive_where(skip_inner(Debug))]
+   |                           ^^^^^
+
+error: trait to be skipped isn't being implemented
+  --> tests/ui/item_skip.rs:48:27
+   |
+48 | #[derive_where(skip_inner(Debug))]
    |                           ^^^^^

@@ -28,10 +28,14 @@ jobs:
         features:
           - ""
           - --features safe
+          - --features serde
           - --features zeroize
           - --features zeroize-on-drop
+          - --features safe,serde
           - --features safe,zeroize
           - --features safe,zeroize-on-drop
+          - --features serde,zeroize
+          - --features serde,zeroize-on-drop
         include:
           - rust: 1.57.0
             msrv: true
@@ -39,6 +43,8 @@ jobs:
             features: --features nightly
           - rust: nightly
             features: --features safe,nightly
+          - rust: nightly
+            features: --features nightly,serde
           - rust: nightly
             features: --features nightly,zeroize
           - rust: nightly
@@ -83,10 +89,14 @@ jobs:
         features:
           - ""
           - --features safe
+          - --features serde
           - --features zeroize
           - --features zeroize-on-drop
+          - --features safe,serde
           - --features safe,zeroize
           - --features safe,zeroize-on-drop
+          - --features serde,zeroize
+          - --features serde,zeroize-on-drop
         include:
           - rust: 1.57.0
             msrv: true
@@ -94,6 +104,8 @@ jobs:
             features: --features nightly
           - rust: nightly
             features: --features safe,nightly
+          - rust: nightly
+            features: --features nightly,serde
           - rust: nightly
             features: --features nightly,zeroize
           - rust: nightly
@@ -127,9 +139,9 @@ jobs:
       matrix:
         rust:
           - version: 1.57.0
-            features: safe,zeroize-on-drop
+            features: safe,serde_,zeroize-on-drop
           - version: stable
-            features: safe,zeroize-on-drop
+            features: safe,serde_,zeroize-on-drop
 
     steps:
       - name: Checkout

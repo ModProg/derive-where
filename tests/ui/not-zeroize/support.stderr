@@ -1,0 +1,5 @@
+error: requires crate feature `zeroize`
+ --> tests/ui/not-zeroize/support.rs:5:16
+  |
+5 | #[derive_where(Zeroize)]
+  |                ^^^^^^^

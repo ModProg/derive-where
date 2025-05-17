@@ -200,6 +200,13 @@ assert!(!(StructExample <= StructExample));
 Note that it is not possible to use `incomparable` with [`Eq`] or [`Ord`] as
 that would break their invariants.
 
+### Serde `Deserialize` and `Serialize`
+
+Deriving [`Deserialize`] and [`Serialize`] works as expected. While
+derive-where does not offer any attribute options, regular `serde` attributes
+can be used. Derive-where will respect
+[`#[serde(crate = "...")]`](https://serde.rs/container-attrs.html#crate).
+
 ### `Zeroize` options
 
 `Zeroize` has two options:
@@ -259,11 +266,13 @@ The following traits can be derived with derive-where:
 - [`Copy`]
 - [`Debug`]
 - [`Default`]
+- [`Deserialize`]: Only available with the `serde` crate feature.
 - [`Eq`]
 - [`Hash`]
 - [`Ord`]
 - [`PartialEq`]
 - [`PartialOrd`]
+- [`Serialize`]: Only available with the `serde` crate feature.
 - [`Zeroize`]: Only available with the `zeroize` crate feature.
 - [`ZeroizeOnDrop`]: Only available with the `zeroize` crate feature. If the
   `zeroize-on-drop` feature is enabled, it implements [`ZeroizeOnDrop`],
@@ -347,6 +356,7 @@ conditions.
 [`core::intrinsics::discriminant_value`]: https://doc.rust-lang.org/core/intrinsics/fn.discriminant_value.html
 [`derive_where`]: https://docs.rs/derive-where/latest/derive_where/attr.derive_where.html
 [`Discriminant`]: https://doc.rust-lang.org/core/mem/struct.Discriminant.html
+[`Deserialize`]: https://docs.rs/serde/latest/serde/derive.Deserialize.html
 [`Drop`]: https://doc.rust-lang.org/core/ops/trait.Drop.html
 [`Eq`]: https://doc.rust-lang.org/core/cmp/trait.Eq.html
 [`i32`]: https://doc.rust-lang.org/core/primitive.i32.html
@@ -354,5 +364,6 @@ conditions.
 [`Ord`]: https://doc.rust-lang.org/core/cmp/trait.Ord.html
 [`PartialEq`]: https://doc.rust-lang.org/core/cmp/trait.PartialEq.html
 [`PartialOrd`]: https://doc.rust-lang.org/core/cmp/trait.PartialOrd.html
+[`Serialize`]: https://docs.rs/serde/latest/serde/derive.Serialize.html
 [`transmute`]: https://doc.rust-lang.org/core/mem/fn.transmute.html
 [`unreachable`]: https://doc.rust-lang.org/core/macro.unreachable.html
