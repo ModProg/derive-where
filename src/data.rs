@@ -244,7 +244,7 @@ impl<'a> Data<'a> {
 
 	/// Returns the [`Fields`] of this [`Data`]. If [`Data`] is a unit variant
 	/// or struct returns [`Pat`] instead.
-	pub fn fields(&self) -> Either<&Fields, &Pat> {
+	pub fn fields(&self) -> Either<&Fields<'_>, &Pat> {
 		match &self.type_ {
 			DataType::Struct(fields)
 			| DataType::Tuple(fields)
@@ -320,7 +320,7 @@ impl<'a> Data<'a> {
 	}
 
 	/// Return a [`SimpleType`].
-	pub fn simple_type(&self) -> SimpleType {
+	pub fn simple_type(&self) -> SimpleType<'_> {
 		match &self.type_ {
 			DataType::Struct(fields)
 			| DataType::Variant {
@@ -342,7 +342,7 @@ impl<'a> Data<'a> {
 	}
 
 	/// Returns an [`Iterator`] over [`Field`]s.
-	pub fn iter_fields(&self, trait_: Trait) -> impl '_ + DoubleEndedIterator<Item = &'_ Field> {
+	pub fn iter_fields(&self, trait_: Trait) -> impl DoubleEndedIterator<Item = &Field<'_>> {
 		if self.skip(trait_) {
 			[].iter()
 		} else {
@@ -355,19 +355,19 @@ impl<'a> Data<'a> {
 	}
 
 	/// Returns an [`Iterator`] over [`Member`]s.
-	pub fn iter_field_ident(&self, trait_: Trait) -> impl '_ + Iterator<Item = &'_ Member> {
+	pub fn iter_field_ident(&self, trait_: Trait) -> impl Iterator<Item = &Member<'_>> {
 		self.iter_fields(trait_).map(|field| &field.member)
 	}
 
 	/// Returns an [`Iterator`] over [`struct@Ident`]s used as temporary
 	/// variables for destructuring `self`.
-	pub fn iter_self_ident(&self, trait_: Trait) -> impl DoubleEndedIterator<Item = &'_ Ident> {
+	pub fn iter_self_ident(&self, trait_: Trait) -> impl DoubleEndedIterator<Item = &Ident> {
 		self.iter_fields(trait_).map(|field| &field.self_ident)
 	}
 
 	/// Returns an [`Iterator`] over [`struct@Ident`]s used as temporary
 	/// variables for destructuring `other`.
-	pub fn iter_other_ident(&self, trait_: Trait) -> impl DoubleEndedIterator<Item = &'_ Ident> {
+	pub fn iter_other_ident(&self, trait_: Trait) -> impl DoubleEndedIterator<Item = &Ident> {
 		self.iter_fields(trait_).map(|field| &field.other_ident)
 	}
 }
