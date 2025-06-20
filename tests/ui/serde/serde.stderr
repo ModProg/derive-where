@@ -1,9 +1,3 @@
-error: Found unused `#[serde(...)]`
- --> tests/ui/serde/serde.rs:6:1
-  |
-6 | #[serde(crate = "serde_")]
-  | ^^^^^^^^^^^^^^^^^^^^^^^^^^
-
 error: Found conflicting `#[serde(bound ...)]`
   --> tests/ui/serde/serde.rs:10:9
    |

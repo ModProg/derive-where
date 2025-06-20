@@ -301,12 +301,6 @@ impl Error {
 		syn::Error::new(skip_clone, "Cannot skip `Clone` while deriving `Copy`")
 	}
 
-	/// Unsupported `serde(...)` without deriving `De/Serialize`.
-	#[cfg(feature = "serde")]
-	pub fn serde_without_serde(serde: Span) -> syn::Error {
-		syn::Error::new(serde, "Found unused `#[serde(...)]`")
-	}
-
 	/// Conflicting `serde(bound ...)` when deriving `De/Serialize`.
 	#[cfg(feature = "serde")]
 	pub fn serde_bound(serde: Span) -> syn::Error {
