@@ -1,5 +1,5 @@
 error: Found conflicting `#[serde(bound ...)]`
- --> tests/ui/serde/serde.rs:6:9
-  |
-6 | #[serde(bound = "")]
-  |         ^^^^^^^^^^
+  --> tests/ui/serde/serde.rs:10:9
+   |
+10 | #[serde(bound = "")]
+   |         ^^^^^^^^^^
