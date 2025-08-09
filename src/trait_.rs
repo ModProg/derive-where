@@ -345,11 +345,6 @@ pub trait TraitImpl: Deref<Target = Trait> {
 	/// Returns fully qualified [`Path`] for this trait.
 	fn path(&self) -> Path;
 
-	/// Additional implementation to add for this [`Trait`].
-	fn additional_impl(&self) -> Option<(Path, TokenStream)> {
-		None
-	}
-
 	/// Trait to implement. Only used by [`Eq`] and
 	/// [`ZeroizeOnDrop`](https://docs.rs/zeroize/latest/zeroize/trait.ZeroizeOnDrop.html).
 	#[allow(clippy::too_many_arguments)]

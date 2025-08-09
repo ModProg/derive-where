@@ -648,20 +648,7 @@ fn generate_impl(
 	let body = generate_body(derive_where, trait_, item, generics);
 
 	let ident = item.ident();
-	let mut output = trait_.impl_item(crate_, full_item, imp, ident, ty, &where_clause, body);
-
-	if let Some((path, body)) = trait_.additional_impl() {
-		output.extend(quote! {
-			#[automatically_derived]
-			impl #imp #path for #ident #ty
-			#where_clause
-			{
-				#body
-			}
-		})
-	}
-
-	output
+	trait_.impl_item(crate_, full_item, imp, ident, ty, &where_clause, body)
 }
 
 /// Generate implementation method body for a [`Trait`].
