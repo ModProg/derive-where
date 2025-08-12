@@ -64,6 +64,7 @@ jobs:
         run: |
           cargo update -p zeroize --precise 1.6.0
           cargo update -p pretty_assertions --precise 1.4.0
+          cargo update -p glob --precise 0.3.2
       - name: Build
         run:
           cargo build --workspace ${{ matrix.features }}
