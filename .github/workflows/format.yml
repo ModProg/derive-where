@@ -20,7 +20,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Install Rust nightly
         run: |
           rustup toolchain install nightly --profile minimal --component rustfmt --allow-downgrade
@@ -35,7 +35,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - uses: taiki-e/install-action@v2
         with:
           tool: taplo-cli
