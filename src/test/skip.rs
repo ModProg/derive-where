@@ -106,7 +106,7 @@ fn variants_empty() -> Result<()> {
 	};
 	#[cfg(not(feature = "nightly"))]
 	let ord = quote! {
-		const fn __discriminant<T>(__this: &Test<T>) -> isize {
+		const fn __discriminant<T>(__this: &Test<T>) -> ::core::primitive::isize {
 			match __this {
 				Test::A(ref __field_0) => 0,
 				Test::B(ref __field_0) => 1
@@ -156,7 +156,7 @@ fn variants_partly_empty() -> Result<()> {
 	};
 	#[cfg(not(feature = "nightly"))]
 	let ord = quote! {
-		const fn __discriminant<T>(__this: &Test<T>) -> isize {
+		const fn __discriminant<T>(__this: &Test<T>) -> ::core::primitive::isize {
 			match __this {
 				Test::A(ref __field_0) => 0,
 				Test::B(ref __field_0, ref __field_1) => 1

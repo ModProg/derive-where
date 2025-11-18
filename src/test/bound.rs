@@ -296,7 +296,7 @@ fn check_trait_bounds() -> Result<()> {
 			where T: ::core::cmp::PartialEq
 			{
 				#[inline]
-				fn eq(&self, __other: &Self) -> bool {
+				fn eq(&self, __other: &Self) -> ::core::primitive::bool {
 					match (self, __other) {
 						(Test(ref __field_0, ref __field_1), Test(ref __other_field_0, ref __other_field_1)) =>
 							true
@@ -457,7 +457,7 @@ fn check_multiple_trait_bounds() -> Result<()> {
 				U: ::core::cmp::PartialEq
 			{
 				#[inline]
-				fn eq(&self, __other: &Self) -> bool {
+				fn eq(&self, __other: &Self) -> ::core::primitive::bool {
 					match (self, __other) {
 						(Test(ref __field_0, ref __field_1), Test(ref __other_field_0, ref __other_field_1)) =>
 							true

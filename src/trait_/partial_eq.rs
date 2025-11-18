@@ -104,7 +104,7 @@ impl TraitImpl for PartialEq {
 
 		quote! {
 			#[inline]
-			fn eq(&self, __other: &Self) -> bool {
+			fn eq(&self, __other: &Self) -> ::core::primitive::bool {
 				#body
 			}
 		}
