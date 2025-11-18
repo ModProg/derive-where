@@ -23,7 +23,7 @@ fn variants() -> Result<()> {
 			#[automatically_derived]
 			impl ::core::cmp::PartialEq for Test {
 				#[inline]
-				fn eq(&self, __other: &Self) -> bool {
+				fn eq(&self, __other: &Self) -> ::core::primitive::bool {
 					if ::core::mem::discriminant(self) == ::core::mem::discriminant(__other) {
 						match (self, __other) {
 							(Test::C(ref __field_0), Test::C(ref __other_field_0)) => true && ::core::cmp::PartialEq::eq(__field_0, __other_field_0),
@@ -58,7 +58,7 @@ fn variants() -> Result<()> {
 							_ => ::core::option::Option::Some(::core::cmp::Ordering::Equal),
 						}
 					} else {
-						const fn __discriminant(__this: &Test) -> isize {
+						const fn __discriminant(__this: &Test) -> ::core::primitive::isize {
 							match __this {
 								Test::A => 0,
 								Test::B(ref __field_0) => 1,
@@ -91,7 +91,7 @@ fn enum_empty_and_empty_incomparable_variants() -> Result<()> {
 			#[automatically_derived]
 			impl ::core::cmp::PartialEq for Test {
 				#[inline]
-				fn eq(&self, __other: &Self) -> bool {
+				fn eq(&self, __other: &Self) -> ::core::primitive::bool {
 					if ::core::mem::discriminant(self) == ::core::mem::discriminant(__other) {
 						if ::core::matches!(self, Test::A) {
 							return false;
@@ -133,7 +133,7 @@ fn enum_empty_and_non_empty_incomparable_variants() -> Result<()> {
 			#[automatically_derived]
 			impl ::core::cmp::PartialEq for Test {
 				#[inline]
-				fn eq(&self, __other: &Self) -> bool {
+				fn eq(&self, __other: &Self) -> ::core::primitive::bool {
 					if ::core::mem::discriminant(self) == ::core::mem::discriminant(__other) {
 						match (self , __other) {
 							(Test::A (..) , ..) => false,
@@ -177,7 +177,7 @@ fn enum_empty_and_multiple_incomparable_variants() -> Result<()> {
 			#[automatically_derived]
 			impl ::core::cmp::PartialEq for Test {
 				#[inline]
-				fn eq(&self, __other: &Self) -> bool {
+				fn eq(&self, __other: &Self) -> ::core::primitive::bool {
 					if ::core::mem::discriminant(self) == ::core::mem::discriminant(__other) {
 						match (self, __other) {
 							(Test::A | Test::C(..), ..) => false,
@@ -222,7 +222,7 @@ fn enum_skipped_and_incomparable_variant() -> Result<()> {
 			#[automatically_derived]
 			impl ::core::cmp::PartialEq for Test {
 				#[inline]
-				fn eq(&self, __other: &Self) -> bool {
+				fn eq(&self, __other: &Self) -> ::core::primitive::bool {
 					if ::core::mem::discriminant(self) == ::core::mem::discriminant(__other) {
 						if ::core::matches!(self, Test::A) {
 							return false;
@@ -264,7 +264,7 @@ fn enum_non_empty_and_incomparable_variant() -> Result<()> {
 			#[automatically_derived]
 			impl ::core::cmp::PartialEq for Test {
 				#[inline]
-				fn eq(&self, __other: &Self) -> bool {
+				fn eq(&self, __other: &Self) -> ::core::primitive::bool {
 					if ::core::mem::discriminant(self) == ::core::mem::discriminant(__other) {
 						match (self, __other) {
 							(Test::B(ref __field_0), Test::B(ref __other_field_0)) =>
@@ -316,7 +316,7 @@ fn enum_incomparable_and_skipped_variant() -> Result<()> {
 			#[automatically_derived]
 			impl ::core::cmp::PartialEq for Test {
 				#[inline]
-				fn eq(&self, __other: &Self) -> bool {
+				fn eq(&self, __other: &Self) -> ::core::primitive::bool {
 					if ::core::mem::discriminant(self) == ::core::mem::discriminant(__other) {
 						if ::core::matches!(self, Test::A(..)) {
 							return false;
@@ -355,7 +355,7 @@ fn items() -> Result<()> {
 			#[automatically_derived]
 			impl ::core::cmp::PartialEq for Test {
 				#[inline]
-				fn eq(&self, __other: &Self) -> bool {
+				fn eq(&self, __other: &Self) -> ::core::primitive::bool {
 					false
 				}
 			}
@@ -379,7 +379,7 @@ fn items() -> Result<()> {
 			#[automatically_derived]
 			impl ::core::cmp::PartialEq for Test {
 				#[inline]
-				fn eq(&self, __other: &Self) -> bool {
+				fn eq(&self, __other: &Self) -> ::core::primitive::bool {
 					false
 				}
 			}

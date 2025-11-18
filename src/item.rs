@@ -3,8 +3,8 @@
 use proc_macro2::Ident;
 #[cfg(not(feature = "nightly"))]
 use {
-	proc_macro2::{Span, TokenStream, TokenTree},
-	quote::ToTokens,
+	proc_macro2::{Span, TokenStream},
+	quote::{quote, ToTokens},
 	syn::{punctuated::Punctuated, spanned::Spanned, Attribute, Meta, Result, Token, Variant},
 };
 
@@ -252,7 +252,9 @@ impl Representation {
 			Representation::ISize => "isize",
 		};
 
-		TokenTree::from(Ident::new(ident, Span::call_site())).into()
+		let ident = Ident::new(ident, Span::call_site());
+
+		quote! {::core::primitive::#ident}
 	}
 }
 

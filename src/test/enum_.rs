@@ -86,7 +86,7 @@ fn one_data() -> Result<()> {
 			#[automatically_derived]
 			impl<T> ::core::cmp::PartialEq for Test<T> {
 				#[inline]
-				fn eq(&self, __other: &Self) -> bool {
+				fn eq(&self, __other: &Self) -> ::core::primitive::bool {
 					match (self, __other) {
 						(Test::A(ref __field_0), Test::A(ref __other_field_0)) =>
 							true && ::core::cmp::PartialEq::eq(__field_0, __other_field_0),
@@ -133,7 +133,7 @@ fn two_data() -> Result<()> {
 	};
 	#[cfg(not(feature = "nightly"))]
 	let partial_ord = quote! {
-		const fn __discriminant<T>(__this: &Test<T>) -> isize {
+		const fn __discriminant<T>(__this: &Test<T>) -> ::core::primitive::isize {
 			match __this {
 				Test::A(ref __field_0) => 0,
 				Test::B(ref __field_0) => 1
@@ -155,7 +155,7 @@ fn two_data() -> Result<()> {
 			#[automatically_derived]
 			impl<T> ::core::cmp::PartialEq for Test<T> {
 				#[inline]
-				fn eq(&self, __other: &Self) -> bool {
+				fn eq(&self, __other: &Self) -> ::core::primitive::bool {
 					if ::core::mem::discriminant(self) == ::core::mem::discriminant(__other) {
 						match (self, __other) {
 							(Test::A(ref __field_0), Test::A(ref __other_field_0)) =>
@@ -217,7 +217,7 @@ fn unit() -> Result<()> {
 	};
 	#[cfg(not(feature = "nightly"))]
 	let partial_ord = quote! {
-		const fn __discriminant<T>(__this: &Test<T>) -> isize {
+		const fn __discriminant<T>(__this: &Test<T>) -> ::core::primitive::isize {
 			match __this {
 				Test::A(ref __field_0) => 0,
 				Test::B => 1
@@ -239,7 +239,7 @@ fn unit() -> Result<()> {
 			#[automatically_derived]
 			impl<T> ::core::cmp::PartialEq for Test<T> {
 				#[inline]
-				fn eq(&self, __other: &Self) -> bool {
+				fn eq(&self, __other: &Self) -> ::core::primitive::bool {
 					if ::core::mem::discriminant(self) == ::core::mem::discriminant(__other) {
 						match (self, __other) {
 							(Test::A(ref __field_0), Test::A(ref __other_field_0)) =>
@@ -294,7 +294,7 @@ fn struct_unit() -> Result<()> {
 	};
 	#[cfg(not(feature = "nightly"))]
 	let partial_ord = quote! {
-		const fn __discriminant<T>(__this: &Test<T>) -> isize {
+		const fn __discriminant<T>(__this: &Test<T>) -> ::core::primitive::isize {
 			match __this {
 				Test::A(ref __field_0) => 0,
 				Test::B { } => 1
@@ -316,7 +316,7 @@ fn struct_unit() -> Result<()> {
 			#[automatically_derived]
 			impl<T> ::core::cmp::PartialEq for Test<T> {
 				#[inline]
-				fn eq(&self, __other: &Self) -> bool {
+				fn eq(&self, __other: &Self) -> ::core::primitive::bool {
 					if ::core::mem::discriminant(self) == ::core::mem::discriminant(__other) {
 						match (self, __other) {
 							(Test::A(ref __field_0), Test::A(ref __other_field_0)) =>
@@ -371,7 +371,7 @@ fn tuple_unit() -> Result<()> {
 	};
 	#[cfg(not(feature = "nightly"))]
 	let partial_ord = quote! {
-		const fn __discriminant<T>(__this: &Test<T>) -> isize {
+		const fn __discriminant<T>(__this: &Test<T>) -> ::core::primitive::isize {
 			match __this {
 				Test::A(ref __field_0) => 0,
 				Test::B() => 1
@@ -393,7 +393,7 @@ fn tuple_unit() -> Result<()> {
 			#[automatically_derived]
 			impl<T> ::core::cmp::PartialEq for Test<T> {
 				#[inline]
-				fn eq(&self, __other: &Self) -> bool {
+				fn eq(&self, __other: &Self) -> ::core::primitive::bool {
 					if ::core::mem::discriminant(self) == ::core::mem::discriminant(__other) {
 						match (self, __other) {
 							(Test::A(ref __field_0), Test::A(ref __other_field_0)) =>

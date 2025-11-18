@@ -89,7 +89,7 @@ fn struct_() -> Result<()> {
 			#[automatically_derived]
 			impl<T> ::core::cmp::PartialEq for Test<T> {
 				#[inline]
-				fn eq(&self, __other: &Self) -> bool {
+				fn eq(&self, __other: &Self) -> ::core::primitive::bool {
 					match (self, __other) {
 						(Test { field: ref __field_field }, Test { field: ref __other_field_field }) =>
 							true && ::core::cmp::PartialEq::eq(__field_field, __other_field_field),
@@ -192,7 +192,7 @@ fn tuple() -> Result<()> {
 			#[automatically_derived]
 			impl<T> ::core::cmp::PartialEq for Test<T> {
 				#[inline]
-				fn eq(&self, __other: &Self) -> bool {
+				fn eq(&self, __other: &Self) -> ::core::primitive::bool {
 					match (self, __other) {
 						(Test(ref __field_0), Test(ref __other_field_0)) =>
 							true && ::core::cmp::PartialEq::eq(__field_0, __other_field_0),
@@ -229,7 +229,7 @@ fn enum_() -> Result<()> {
 	};
 	#[cfg(not(feature = "nightly"))]
 	let ord = quote! {
-		const fn __discriminant<T>(__this: &Test<T>) -> isize {
+		const fn __discriminant<T>(__this: &Test<T>) -> ::core::primitive::isize {
 			match __this {
 				Test::A { field: ref __field_field } => 0,
 				Test::B { } => 1,
@@ -374,7 +374,7 @@ fn enum_() -> Result<()> {
 			#[automatically_derived]
 			impl<T> ::core::cmp::PartialEq for Test<T> {
 				#[inline]
-				fn eq(&self, __other: &Self) -> bool {
+				fn eq(&self, __other: &Self) -> ::core::primitive::bool {
 					if ::core::mem::discriminant(self) == ::core::mem::discriminant(__other) {
 						match (self, __other) {
 							(Test::A { field: ref __field_field }, Test::A { field: ref __other_field_field }) =>

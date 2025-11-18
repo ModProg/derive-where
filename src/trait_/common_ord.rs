@@ -147,12 +147,12 @@ pub fn build_ord_signature(
 						Discriminant::Unit => {
 							if derive_where.contains(Trait::Copy) {
 								quote! {
-									#path::#method(&(*self as isize), &(*__other as isize))
+									#path::#method(&(*self as ::core::primitive::isize), &(*__other as ::core::primitive::isize))
 								}
 							} else if derive_where.contains(Trait::Clone) {
 								let clone = DeriveTrait::Clone.path();
 								quote! {
-									#path::#method(&(#clone::clone(self) as isize), &(#clone::clone(__other) as isize))
+									#path::#method(&(#clone::clone(self) as ::core::primitive::isize), &(#clone::clone(__other) as ::core::primitive::isize))
 								}
 							} else {
 								build_discriminant_order(

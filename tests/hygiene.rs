@@ -15,6 +15,12 @@ use self::util::{
 	AssertPartialOrd, Wrapper,
 };
 
+#[allow(non_camel_case_types, unused)]
+struct bool;
+
+#[allow(non_camel_case_types, unused)]
+struct isize;
+
 trait Clone {
 	fn clone(&self) -> Self;
 }
@@ -85,7 +91,7 @@ where
 impl<T: std::cmp::PartialOrd> PartialOrd for T {}
 
 #[test]
-fn test() {
+fn test_struct() {
 	#[derive_where(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 	struct Test<T>(Wrapper<T>);
 
@@ -130,4 +136,15 @@ fn test() {
 	);
 	assert!(test_1 > Test(41.into()));
 	assert!(test_1 < test_ge);
+}
+
+#[test]
+fn test_enum() {
+	#[derive_where(Ord, PartialOrd, PartialEq, Eq)]
+	enum Test<T> {
+		A,
+		B,
+		C,
+		D(Wrapper<T>),
+	};
 }
