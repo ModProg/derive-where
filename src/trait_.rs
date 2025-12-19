@@ -71,6 +71,8 @@ pub enum Trait {
 	ZeroizeOnDrop,
 }
 
+/// Call a function on the corresponding trait struct matching the trait enum
+/// variant.
 macro_rules! trait_dispatch {
 	($self:expr, $method:ident($($par:expr),*)) => {
 		match $self {
