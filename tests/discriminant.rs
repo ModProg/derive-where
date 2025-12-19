@@ -1,4 +1,5 @@
-#![allow(clippy::enum_clike_unportable_variant)]
+#![allow(unknown_lints)] // make this not error on stable
+#![allow(clippy::enum_clike_unportable_variant, repr_c_enums_larger_than_int)]
 
 #[macro_use]
 mod util;
