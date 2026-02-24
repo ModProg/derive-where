@@ -238,6 +238,14 @@ impl DeriveWhere {
 		})
 	}
 
+	/// Returns `true` if all [`Generic`] are [`CustomBound`](Generic::CustomBound),
+	pub fn all_custom_bound(&self) -> bool {
+		self.generics.iter().all(|generic| match generic {
+			Generic::CustomBound(_) => true,
+			Generic::NoBound(_) => false,
+		})
+	}
+
 	/// Returns `true` if the given generic type parameter if present.
 	pub fn has_type_param(&self, type_param: &Ident) -> bool {
 		self.generics.iter().any(|generic| match generic {

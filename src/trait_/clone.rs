@@ -57,9 +57,7 @@ impl TraitImpl for Clone {
 		body: &TokenStream,
 	) -> TokenStream {
 		// Special implementation for items also implementing `Copy`.
-		if (derive_where.generics.is_empty() || derive_where.any_custom_bound())
-			&& derive_where.contains(Trait::Copy)
-		{
+		if (derive_where.all_custom_bound()) && derive_where.contains(Trait::Copy) {
 			return quote! {
 				#[inline]
 				fn clone(&self) -> Self { *self }
@@ -93,9 +91,7 @@ impl TraitImpl for Clone {
 	}
 
 	fn build_body(&self, derive_where: &DeriveWhere, data: &Data) -> TokenStream {
-		if (derive_where.generics.is_empty() || derive_where.any_custom_bound())
-			&& derive_where.contains(Trait::Copy)
-		{
+		if (derive_where.all_custom_bound()) && derive_where.contains(Trait::Copy) {
 			return TokenStream::new();
 		}
 

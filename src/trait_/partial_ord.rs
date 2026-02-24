@@ -33,9 +33,7 @@ impl TraitImpl for PartialOrd {
 		generics: &SplitGenerics<'_>,
 		body: &TokenStream,
 	) -> TokenStream {
-		let body = if (derive_where.generics.is_empty() || derive_where.any_custom_bound())
-			&& derive_where.contains(Trait::Ord)
-		{
+		let body = if (derive_where.all_custom_bound()) && derive_where.contains(Trait::Ord) {
 			quote! {
 				::core::option::Option::Some(::core::cmp::Ord::cmp(self, __other))
 			}
@@ -54,8 +52,7 @@ impl TraitImpl for PartialOrd {
 	fn build_body(&self, derive_where: &DeriveWhere, data: &Data) -> TokenStream {
 		if data.is_empty(**self)
 			|| data.is_incomparable()
-			|| ((derive_where.generics.is_empty() || derive_where.any_custom_bound())
-				&& derive_where.contains(Trait::Ord))
+			|| (derive_where.all_custom_bound() && derive_where.contains(Trait::Ord))
 		{
 			TokenStream::new()
 		} else {

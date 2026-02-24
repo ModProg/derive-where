@@ -81,3 +81,17 @@ fn ord_requirement() {
 	#[derive_where(Eq, Ord, PartialEq, PartialOrd; T::Type)]
 	struct Test<T: Trait>(T::Type);
 }
+
+#[test]
+fn ord_and_partial_ord() {
+	trait Trait {}
+	#[derive_where(PartialOrd, Ord, PartialEq, Eq; I: Trait, T)]
+	struct Foo<T, I>(T, PhantomData<I>);
+}
+
+#[test]
+fn copy_and_clone() {
+	trait Trait {}
+	#[derive_where(Copy, Clone; I: Trait, T)]
+	struct Foo<T, I>(T, PhantomData<I>);
+}
