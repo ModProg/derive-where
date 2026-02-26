@@ -238,7 +238,8 @@ impl DeriveWhere {
 		})
 	}
 
-	/// Returns `true` if all [`Generic`] are [`CustomBound`](Generic::CustomBound),
+	/// Returns `true` if all [`Generic`] are
+	/// [`CustomBound`](Generic::CustomBound)
 	pub fn all_custom_bound(&self) -> bool {
 		self.generics.iter().all(|generic| match generic {
 			Generic::CustomBound(_) => true,
