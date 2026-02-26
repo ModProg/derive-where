@@ -67,6 +67,7 @@ jobs:
           cargo update -p glob --precise 0.3.2
           cargo update -p proc-macro2 --precise 1.0.80
           cargo update -p quote --precise 1.0.35
+          cargo update -p unicode-ident --precise 1.0.22
       - name: Build
         run:
           cargo build --workspace ${{ matrix.features }}
@@ -130,6 +131,7 @@ jobs:
           cargo update -p pretty_assertions --precise 1.4.0
           cargo update -p proc-macro2 --precise 1.0.80
           cargo update -p quote --precise 1.0.35
+          cargo update -p unicode-ident --precise 1.0.22
       - name: Build
         run:
           cargo build --target thumbv6m-none-eabi ${{ matrix.features }} -p ensure-no-std
