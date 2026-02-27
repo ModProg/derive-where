@@ -68,6 +68,8 @@ jobs:
           cargo update -p proc-macro2 --precise 1.0.80
           cargo update -p quote --precise 1.0.35
           cargo update -p unicode-ident --precise 1.0.22
+          cargo update -p ryu --precise 1.0.20
+          cargo update -p itoa --precise 1.0.15
       - name: Build
         run:
           cargo build --workspace ${{ matrix.features }}
@@ -132,6 +134,8 @@ jobs:
           cargo update -p proc-macro2 --precise 1.0.80
           cargo update -p quote --precise 1.0.35
           cargo update -p unicode-ident --precise 1.0.22
+          cargo update -p ryu --precise 1.0.20
+          cargo update -p itoa --precise 1.0.15
       - name: Build
         run:
           cargo build --target thumbv6m-none-eabi ${{ matrix.features }} -p ensure-no-std
