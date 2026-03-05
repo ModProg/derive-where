@@ -6,11 +6,11 @@ error: traits other then `Clone` and `Copy` aren't supported by unions
 8 | | }
   | |_^
 
-error[E0277]: the trait bound `MissingCopy<T>: std::marker::Copy` is not satisfied
+error[E0277]: the trait bound `MissingCopy<T>: Copy` is not satisfied
   --> tests/ui/union.rs:10:1
    |
 10 | #[derive_where(Clone)]
-   | ^^^^^^^^^^^^^^^^^^^^^^ the trait `std::marker::Copy` is not implemented for `MissingCopy<T>`
+   | ^^^^^^^^^^^^^^^^^^^^^^ the trait `Copy` is not implemented for `MissingCopy<T>`
    |
 note: required by a bound in `__AssertCopy`
   --> tests/ui/union.rs:10:1
