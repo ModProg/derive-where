@@ -7,8 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- ## [Unreleased] -->
 ## [1.6.1] - 2026-03-13
+
 ### Fixed
-- Stop breaking compilation when Clone + Copy or PartialEq + Eq where used with automatic bounds ([#137](https://github.com/ModProg/derive-where/pull/137) by [spirali](https://github.com/spirali)).
+- Fix compilation when `Clone + Copy` or `PartialEq + Eq` where used with automatic bounds ([#137](https://github.com/ModProg/derive-where/pull/137) by [spirali](https://github.com/spirali)).
 
 ## [1.6.0] - 2025-08-06
 
