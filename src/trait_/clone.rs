@@ -4,7 +4,7 @@ use std::ops::Deref;
 
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::{TraitBound, TraitBoundModifier, TypeParamBound};
+use syn::{TraitBound, TraitBoundModifiers, TypeParamBound};
 
 use crate::{
 	data::Field, util, Data, DataType, DeriveTrait, DeriveWhere, Item, SimpleType, SplitGenerics,
@@ -36,9 +36,10 @@ impl TraitImpl for Clone {
 		{
 			Some(TypeParamBound::Trait(TraitBound {
 				paren_token: None,
-				modifier: TraitBoundModifier::None,
+				modifiers: TraitBoundModifiers::default(),
 				lifetimes: None,
 				path: Trait::Copy.default_derive_trait().path(),
+				maybe: None
 			}))
 		} else {
 			None
