@@ -1,56 +1,56 @@
-warning: `$DIR/target/tests/derive-where/.cargo/config` is deprecated in favor of `config.toml`
+warning: `tests/ui/target/tests/derive-where/.cargo/config` is deprecated in favor of `config.toml`
   |
   = help: if you need to support cargo 1.38 or earlier, you can symlink `config` to `config.toml`
 error[E0463]: can't find crate for `zeroize_`
- --> $DIR/zeroize.rs:1:1
+ --> tests/ui/zeroize.rs:1:1
   |
 1 | extern crate zeroize_ as zeroize;
   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ can't find crate
 
 error: requires crate feature `zeroize`
- --> $DIR/zeroize.rs:7:16
+ --> tests/ui/zeroize.rs:7:16
   |
 7 | #[derive_where(Zeroize(test))]
   |                ^^^^^^^
 
 error: requires crate feature `zeroize`
-  --> $DIR/zeroize.rs:10:16
+  --> tests/ui/zeroize.rs:10:16
    |
 10 | #[derive_where(Zeroize(test = "test"))]
    |                ^^^^^^^
 
 error: requires crate feature `zeroize`
-  --> $DIR/zeroize.rs:13:16
+  --> tests/ui/zeroize.rs:13:16
    |
 13 | #[derive_where(Zeroize("option"))]
    |                ^^^^^^^
 
 error: requires crate feature `zeroize`
-  --> $DIR/zeroize.rs:16:16
+  --> tests/ui/zeroize.rs:16:16
    |
 16 | #[derive_where(Zeroize(crate(zeroize_)))]
    |                ^^^^^^^
 
 error: requires crate feature `zeroize`
-  --> $DIR/zeroize.rs:19:16
+  --> tests/ui/zeroize.rs:19:16
    |
 19 | #[derive_where(Zeroize(crate = struct Test))]
    |                ^^^^^^^
 
 error: requires crate feature `zeroize`
-  --> $DIR/zeroize.rs:22:16
+  --> tests/ui/zeroize.rs:22:16
    |
 22 | #[derive_where(Zeroize(crate = "struct Test"))]
    |                ^^^^^^^
 
 error: requires crate feature `zeroize`
-  --> $DIR/zeroize.rs:25:16
+  --> tests/ui/zeroize.rs:25:16
    |
 25 | #[derive_where(Zeroize(crate = zeroize_, crate = zeroize_))]
    |                ^^^^^^^
 
 error: requires crate feature `zeroize`
-  --> $DIR/zeroize.rs:28:16
+  --> tests/ui/zeroize.rs:28:16
    |
 28 | #[derive_where(Zeroize(crate = ::zeroize))]
    |                ^^^^^^^

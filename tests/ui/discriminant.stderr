@@ -1,8 +1,8 @@
-warning: `$DIR/target/tests/derive-where/.cargo/config` is deprecated in favor of `config.toml`
+warning: `tests/ui/target/tests/derive-where/.cargo/config` is deprecated in favor of `config.toml`
   |
   = help: if you need to support cargo 1.38 or earlier, you can symlink `config` to `config.toml`
 error[E0539]: malformed `repr` attribute input
- --> $DIR/discriminant.rs:6:3
+ --> tests/ui/discriminant.rs:6:3
   |
 6 | #[repr(A)]
   |   ^^^^^-^
@@ -12,7 +12,7 @@ error[E0539]: malformed `repr` attribute input
   = note: for more information, visit <https://doc.rust-lang.org/reference/type-layout.html#representations>
 
 error[E0732]: `#[repr(inttype)]` must be specified for enums with explicit discriminants and non-unit variants
-  --> $DIR/discriminant.rs:12:1
+  --> tests/ui/discriminant.rs:12:1
    |
 12 | enum MissingIntegerRepr<T> {
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -20,7 +20,7 @@ error[E0732]: `#[repr(inttype)]` must be specified for enums with explicit discr
    |                         - explicit discriminant on non-unit variant specified here
 
 error[E0732]: `#[repr(inttype)]` must be specified for enums with explicit discriminants and non-unit variants
-  --> $DIR/discriminant.rs:18:1
+  --> tests/ui/discriminant.rs:18:1
    |
 18 | enum MissingIntegerReprC<T> {
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^

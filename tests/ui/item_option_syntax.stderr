@@ -1,8 +1,8 @@
-warning: `$DIR/target/tests/derive-where/.cargo/config` is deprecated in favor of `config.toml`
+warning: `tests/ui/target/tests/derive-where/.cargo/config` is deprecated in favor of `config.toml`
   |
   = help: if you need to support cargo 1.38 or earlier, you can symlink `config` to `config.toml`
 error: empty `derive_where` found
- --> $DIR/item_option_syntax.rs:5:1
+ --> tests/ui/item_option_syntax.rs:5:1
   |
 5 | #[derive_where()]
   | ^^^^^^^^^^^^^^^^^
@@ -10,31 +10,31 @@ error: empty `derive_where` found
   = note: this error originates in the attribute macro `derive_where` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: key-value macro attributes are not supported
- --> $DIR/item_option_syntax.rs:8:1
+ --> tests/ui/item_option_syntax.rs:8:1
   |
 8 | #[derive_where = "invalid"]
   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: unsupported trait syntax, expected one of Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Zeroize, ZeroizeOnDrop
- --> $DIR/item_option_syntax.rs:8:18
+ --> tests/ui/item_option_syntax.rs:8:18
   |
 8 | #[derive_where = "invalid"]
   |                  ^^^^^^^^^
 
 error: unexpected option syntax
-  --> $DIR/item_option_syntax.rs:11:16
+  --> tests/ui/item_option_syntax.rs:11:16
    |
 11 | #[derive_where(Debug = "option")]
    |                ^^^^^^^^^^^^^^^^
 
 error: empty attribute option found
-  --> $DIR/item_option_syntax.rs:14:16
+  --> tests/ui/item_option_syntax.rs:14:16
    |
 14 | #[derive_where(Debug())]
    |                ^^^^^^^
 
 error: `Debug` doesn't support any options
-  --> $DIR/item_option_syntax.rs:17:16
+  --> tests/ui/item_option_syntax.rs:17:16
    |
 17 | #[derive_where(Debug(option))]
    |                ^^^^^^^^^^^^^
