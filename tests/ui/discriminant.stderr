@@ -1,14 +1,18 @@
-error[E0552]: unrecognized representation hint
- --> tests/ui/discriminant.rs:6:8
+warning: `$DIR/target/tests/derive-where/.cargo/config` is deprecated in favor of `config.toml`
+  |
+  = help: if you need to support cargo 1.38 or earlier, you can symlink `config` to `config.toml`
+error[E0539]: malformed `repr` attribute input
+ --> $DIR/discriminant.rs:6:3
   |
 6 | #[repr(A)]
-  |        ^
+  |   ^^^^^-^
+  |        |
+  |        valid arguments are `align`, `packed`, `Rust`, `C`, `simd`, `transparent`, `i8`, `u8`, `i16`, `u16`, `i32`, `u32`, `i64`, `u64`, `i128`, `u128`, `isize` or `usize`
   |
-  = help: valid reprs are `Rust` (default), `C`, `align`, `packed`, `transparent`, `simd`, `i8`, `u8`, `i16`, `u16`, `i32`, `u32`, `i64`, `u64`, `i128`, `u128`, `isize`, `usize`
-  = note: for more information, visit <https://doc.rust-lang.org/reference/type-layout.html?highlight=repr#representations>
+  = note: for more information, visit <https://doc.rust-lang.org/reference/type-layout.html#representations>
 
 error[E0732]: `#[repr(inttype)]` must be specified for enums with explicit discriminants and non-unit variants
-  --> tests/ui/discriminant.rs:12:1
+  --> $DIR/discriminant.rs:12:1
    |
 12 | enum MissingIntegerRepr<T> {
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -16,7 +20,7 @@ error[E0732]: `#[repr(inttype)]` must be specified for enums with explicit discr
    |                         - explicit discriminant on non-unit variant specified here
 
 error[E0732]: `#[repr(inttype)]` must be specified for enums with explicit discriminants and non-unit variants
-  --> tests/ui/discriminant.rs:18:1
+  --> $DIR/discriminant.rs:18:1
    |
 18 | enum MissingIntegerReprC<T> {
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^

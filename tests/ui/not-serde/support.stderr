@@ -1,11 +1,14 @@
+warning: `$DIR/target/tests/derive-where/.cargo/config` is deprecated in favor of `config.toml`
+  |
+  = help: if you need to support cargo 1.38 or earlier, you can symlink `config` to `config.toml`
 error: requires crate feature `serde`
- --> tests/ui/not-serde/support.rs:5:16
+ --> $DIR/support.rs:5:16
   |
 5 | #[derive_where(Deserialize)]
   |                ^^^^^^^^^^^
 
 error: requires crate feature `serde`
- --> tests/ui/not-serde/support.rs:8:16
+ --> $DIR/support.rs:8:16
   |
 8 | #[derive_where(Serialize)]
   |                ^^^^^^^^^

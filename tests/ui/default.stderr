@@ -1,17 +1,20 @@
+warning: `$DIR/target/tests/derive-where/.cargo/config` is deprecated in favor of `config.toml`
+  |
+  = help: if you need to support cargo 1.38 or earlier, you can symlink `config` to `config.toml`
 error: unknown option
- --> tests/ui/default.rs:6:42
+ --> $DIR/default.rs:6:42
   |
 6 | struct DefaultOnStruct<T>(#[derive_where(default)] PhantomData<T>);
   |                                          ^^^^^^^
 
 error: `default` is only supported if `Default` is being implemented
-  --> tests/ui/default.rs:10:17
+  --> $DIR/default.rs:10:17
    |
 10 |     #[derive_where(default)]
    |                    ^^^^^^^
 
 error: required `default` option on a variant if `Default` is being implemented
-  --> tests/ui/default.rs:15:1
+  --> $DIR/default.rs:15:1
    |
 15 | / enum MissingDefault<T> {
 16 | |     A(PhantomData<T>),
@@ -19,19 +22,19 @@ error: required `default` option on a variant if `Default` is being implemented
    | |_^
 
 error: multiple `default` options in enum
-  --> tests/ui/default.rs:23:17
+  --> $DIR/default.rs:23:17
    |
 23 |     #[derive_where(default)]
    |                    ^^^^^^^
 
 error: duplicate `default` option
-  --> tests/ui/default.rs:29:26
+  --> $DIR/default.rs:29:26
    |
 29 |     #[derive_where(default, default)]
    |                             ^^^^^^^
 
 error: duplicate `default` option
-  --> tests/ui/default.rs:36:17
+  --> $DIR/default.rs:36:17
    |
 36 |     #[derive_where(default)]
    |                    ^^^^^^^

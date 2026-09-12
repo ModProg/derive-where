@@ -1,5 +1,8 @@
+warning: `$DIR/target/tests/derive-where/.cargo/config` is deprecated in favor of `config.toml`
+  |
+  = help: if you need to support cargo 1.38 or earlier, you can symlink `config` to `config.toml`
 error: traits other then `Clone` and `Copy` aren't supported by unions
- --> tests/ui/union.rs:6:1
+ --> $DIR/union.rs:6:1
   |
 6 | / union UnsupportedTrait<T> {
 7 | |     a: Option<PhantomData<T>>,
@@ -7,13 +10,13 @@ error: traits other then `Clone` and `Copy` aren't supported by unions
   | |_^
 
 error[E0277]: the trait bound `MissingCopy<T>: Copy` is not satisfied
-  --> tests/ui/union.rs:10:1
+  --> $DIR/union.rs:10:1
    |
 10 | #[derive_where(Clone)]
    | ^^^^^^^^^^^^^^^^^^^^^^ the trait `Copy` is not implemented for `MissingCopy<T>`
    |
 note: required by a bound in `__AssertCopy`
-  --> tests/ui/union.rs:10:1
+  --> $DIR/union.rs:10:1
    |
 10 | #[derive_where(Clone)]
    | ^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `__AssertCopy`

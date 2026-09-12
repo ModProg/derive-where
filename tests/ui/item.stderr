@@ -1,5 +1,8 @@
+warning: `$DIR/target/tests/derive-where/.cargo/config` is deprecated in favor of `config.toml`
+  |
+  = help: if you need to support cargo 1.38 or earlier, you can symlink `config` to `config.toml`
 error: empty `derive_where` found
- --> tests/ui/item.rs:7:1
+ --> $DIR/item.rs:7:1
   |
 7 | #[derive_where]
   | ^^^^^^^^^^^^^^^
@@ -7,7 +10,7 @@ error: empty `derive_where` found
   = note: this error originates in the attribute macro `derive_where` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: empty `derive_where` found
-  --> tests/ui/item.rs:10:1
+  --> $DIR/item.rs:10:1
    |
 10 | #[derive_where()]
    | ^^^^^^^^^^^^^^^^^
@@ -15,121 +18,121 @@ error: empty `derive_where` found
    = note: this error originates in the attribute macro `derive_where` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: unsupported trait syntax, expected one of Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Zeroize, ZeroizeOnDrop
-  --> tests/ui/item.rs:13:16
+  --> $DIR/item.rs:13:16
    |
 13 | #[derive_where(,)]
    |                ^
 
 error: unexpected option syntax
-  --> tests/ui/item.rs:16:16
+  --> $DIR/item.rs:16:16
    |
 16 | #[derive_where(crate(derive_where_))]
    |                ^^^^^^^^^^^^^^^^^^^^
 
 error: expected path, expected identifier, found keyword `struct`
-  --> tests/ui/item.rs:19:24
+  --> $DIR/item.rs:19:24
    |
 19 | #[derive_where(crate = "struct Test")]
    |                        ^^^^^^^^^^^^^
 
 error: unsupported trait syntax, expected one of Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Zeroize, ZeroizeOnDrop
-  --> tests/ui/item.rs:22:24
+  --> $DIR/item.rs:22:24
    |
 22 | #[derive_where(crate = struct Test)]
    |                        ^^^^^^
 
 error: unsupported trait, expected one of Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Zeroize, ZeroizeOnDrop
-  --> tests/ui/item.rs:25:16
+  --> $DIR/item.rs:25:16
    |
 25 | #[derive_where(skip_inner, Clone)]
    |                ^^^^^^^^^^
 
 error: the `crate` option has to be defined in it's own `#[derive_where(..)` attribute
-  --> tests/ui/item.rs:31:16
+  --> $DIR/item.rs:31:16
    |
 31 | #[derive_where(crate = derive_where_, crate = derive_where_)]
    |                ^^^^^
 
 error: duplicate `crate` option
-  --> tests/ui/item.rs:35:16
+  --> $DIR/item.rs:35:16
    |
 35 | #[derive_where(crate = derive_where_)]
    |                ^^^^^^^^^^^^^^^^^^^^^
 
 error: no traits found to implement, use `#[derive_where(..)` to specify some
-  --> tests/ui/item.rs:39:1
+  --> $DIR/item.rs:39:1
    |
 39 | struct OnlyCrate<T>(PhantomData<T>);
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: unnecessary path qualification, `::derive_where` is used by default
-  --> tests/ui/item.rs:41:24
+  --> $DIR/item.rs:41:24
    |
 41 | #[derive_where(crate = ::derive_where)]
    |                        ^^^^^^^^^^^^^^
 
 error: unsupported trait syntax, expected one of Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Zeroize, ZeroizeOnDrop
-  --> tests/ui/item.rs:44:16
+  --> $DIR/item.rs:44:16
    |
 44 | #[derive_where(,Clone)]
    |                ^
 
 error: unsupported trait syntax, expected one of Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Zeroize, ZeroizeOnDrop
-  --> tests/ui/item.rs:47:22
+  --> $DIR/item.rs:47:22
    |
 47 | #[derive_where(Clone,,)]
    |                      ^
 
 error: unsupported trait syntax, expected one of Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Zeroize, ZeroizeOnDrop
-  --> tests/ui/item.rs:50:16
+  --> $DIR/item.rs:50:16
    |
 50 | #[derive_where("Clone")]
    |                ^^^^^^^
 
 error: unsupported trait, expected one of Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Zeroize, ZeroizeOnDrop
-  --> tests/ui/item.rs:53:16
+  --> $DIR/item.rs:53:16
    |
 53 | #[derive_where(T)]
    |                ^
 
 error: unexpected option syntax
-  --> tests/ui/item.rs:56:16
+  --> $DIR/item.rs:56:16
    |
 56 | #[derive_where(Debug = invalid; T)]
    |                ^^^^^^^^^^^^^^^
 
 error: expected `,`
-  --> tests/ui/item.rs:59:24
+  --> $DIR/item.rs:59:24
    |
 59 | #[derive_where(Clone; T;)]
    |                        ^
 
-error: expected type to bind to, expected one of: `for`, parentheses, `fn`, `unsafe`, `extern`, identifier, `::`, `<`, `dyn`, square brackets, `*`, `&`, `!`, `impl`, `_`, lifetime
-  --> tests/ui/item.rs:62:25
+error: expected type to bind to, expected one of: `for`, parentheses, `unsafe`, `fn`, `extern`, identifier, `::`, `<`, `dyn`, square brackets, `*`, `&`, `!`, `impl`, `_`, lifetime
+  --> $DIR/item.rs:62:25
    |
 62 | #[derive_where(Clone; T,,)]
    |                         ^
 
-error: expected type to bind to, expected one of: `for`, parentheses, `fn`, `unsafe`, `extern`, identifier, `::`, `<`, `dyn`, square brackets, `*`, `&`, `!`, `impl`, `_`, lifetime
-  --> tests/ui/item.rs:65:23
+error: expected type to bind to, expected one of: `for`, parentheses, `unsafe`, `fn`, `extern`, identifier, `::`, `<`, `dyn`, square brackets, `*`, `&`, `!`, `impl`, `_`, lifetime
+  --> $DIR/item.rs:65:23
    |
 65 | #[derive_where(Clone; where)]
    |                       ^^^^^
 
 error: expected `;` or `,
-  --> tests/ui/item.rs:68:22
+  --> $DIR/item.rs:68:22
    |
 68 | #[derive_where(Clone Debug)]
    |                      ^^^^^
 
 error: expected `,`
-  --> tests/ui/item.rs:71:25
+  --> $DIR/item.rs:71:25
    |
 71 | #[derive_where(Clone; T U)]
    |                         ^
 
 error: `#[derive_where(..)` was already applied to this item before, this occurs when using a qualified path for any `#[derive_where(..)`s except the first
-  --> tests/ui/item.rs:74:1
+  --> $DIR/item.rs:74:1
    |
 74 | #[derive_where(Clone)]
    | ^^^^^^^^^^^^^^^^^^^^^^
@@ -137,13 +140,13 @@ error: `#[derive_where(..)` was already applied to this item before, this occurs
    = note: this error originates in the attribute macro `derive_where` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: duplicate trait with the same bound
-  --> tests/ui/item.rs:78:23
+  --> $DIR/item.rs:78:23
    |
 78 | #[derive_where(Clone, Clone)]
    |                       ^^^^^
 
 error: duplicate trait with the same bound
-  --> tests/ui/item.rs:82:16
+  --> $DIR/item.rs:82:16
    |
 82 | #[derive_where(Clone)]
    |                ^^^^^

@@ -1,71 +1,74 @@
+warning: `$DIR/target/tests/derive-where/.cargo/config` is deprecated in favor of `config.toml`
+  |
+  = help: if you need to support cargo 1.38 or earlier, you can symlink `config` to `config.toml`
 error: duplicate `skip` option
- --> tests/ui/skip.rs:6:50
+ --> $DIR/skip.rs:6:50
   |
 6 | struct DuplicateSkipSame<T>(#[derive_where(skip, skip)] PhantomData<T>);
   |                                                  ^^^^
 
 error: duplicate `skip` option
-  --> tests/ui/skip.rs:11:17
+  --> $DIR/skip.rs:11:17
    |
 11 |     #[derive_where(skip)]
    |                    ^^^^
 
 error: empty attribute option found
-  --> tests/ui/skip.rs:16:36
+  --> $DIR/skip.rs:16:36
    |
 16 | struct EmptySkip<T>(#[derive_where(skip())] PhantomData<T>);
    |                                    ^^^^^^
 
 error: unexpected constraint on `skip` when unconstrained `skip` already used
-  --> tests/ui/skip.rs:21:17
+  --> $DIR/skip.rs:21:17
    |
 21 |     #[derive_where(skip(Debug))]
    |                    ^^^^^^^^^^^
 
 error: duplicate `skip` option
-  --> tests/ui/skip.rs:28:17
+  --> $DIR/skip.rs:28:17
    |
 28 |     #[derive_where(skip)]
    |                    ^^^^
 
 error: no trait that can be skipped is being implemented
-  --> tests/ui/skip.rs:33:43
+  --> $DIR/skip.rs:33:43
    |
 33 | struct NoSupportedTrait<T>(#[derive_where(skip)] PhantomData<T>);
    |                                           ^^^^
 
 error: unsupported skip group, expected one of Clone, Debug, EqHashOrd, Hash, Zeroize
-  --> tests/ui/skip.rs:36:48
+  --> $DIR/skip.rs:36:48
    |
 36 | struct UnsupportedTrait<T>(#[derive_where(skip(Copy))] PhantomData<T>);
    |                                                ^^^^
 
 error: duplicate `Debug` constraint on `skip`
-  --> tests/ui/skip.rs:39:57
+  --> $DIR/skip.rs:39:57
    |
 39 | struct DuplicateTraitSame<T>(#[derive_where(skip(Debug, Debug))] PhantomData<T>);
    |                                                         ^^^^^
 
 error: duplicate `Debug` constraint on `skip`
-  --> tests/ui/skip.rs:44:22
+  --> $DIR/skip.rs:44:22
    |
 44 |     #[derive_where(skip(Debug))]
    |                         ^^^^^
 
 error: trait to be skipped isn't being implemented
-  --> tests/ui/skip.rs:49:50
+  --> $DIR/skip.rs:49:50
    |
 49 | struct MissingDeriveTrait<T>(#[derive_where(skip(Debug))] PhantomData<T>);
    |                                                  ^^^^^
 
 error: Cannot skip `Clone` while deriving `Copy`
-  --> tests/ui/skip.rs:52:50
+  --> $DIR/skip.rs:52:50
    |
 52 | struct SkipCloneWhileCopy<T>(#[derive_where(skip(Clone))] PhantomData<T>);
    |                                                  ^^^^^
 
 error[E0277]: the trait bound `NonDefault<T>: Default` is not satisfied
-  --> tests/ui/skip.rs:56:1
+  --> $DIR/skip.rs:56:1
    |
 56 | #[derive_where(Clone)]
    | ^^^^^^^^^^^^^^^^^^^^^^ the trait `Default` is not implemented for `NonDefault<T>`

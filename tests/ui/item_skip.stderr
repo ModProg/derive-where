@@ -1,59 +1,62 @@
+warning: `$DIR/target/tests/derive-where/.cargo/config` is deprecated in favor of `config.toml`
+  |
+  = help: if you need to support cargo 1.38 or earlier, you can symlink `config` to `config.toml`
 error: enums don't support `skip_inner`, use it on a variant instead
- --> tests/ui/item_skip.rs:6:16
+ --> $DIR/item_skip.rs:6:16
   |
 6 | #[derive_where(skip_inner)]
   |                ^^^^^^^^^^
 
 error: duplicate `skip_inner` option
-  --> tests/ui/item_skip.rs:13:16
+  --> $DIR/item_skip.rs:13:16
    |
 13 | #[derive_where(skip_inner)]
    |                ^^^^^^^^^^
 
 error: empty attribute option found
-  --> tests/ui/item_skip.rs:17:16
+  --> $DIR/item_skip.rs:17:16
    |
 17 | #[derive_where(skip_inner())]
    |                ^^^^^^^^^^^^
 
 error: unexpected constraint on `skip` when unconstrained `skip` already used
-  --> tests/ui/item_skip.rs:22:16
+  --> $DIR/item_skip.rs:22:16
    |
 22 | #[derive_where(skip_inner(Debug))]
    |                ^^^^^^^^^^^^^^^^^
 
 error: duplicate `skip_inner` option
-  --> tests/ui/item_skip.rs:27:16
+  --> $DIR/item_skip.rs:27:16
    |
 27 | #[derive_where(skip_inner)]
    |                ^^^^^^^^^^
 
 error: no trait that can be skipped is being implemented
-  --> tests/ui/item_skip.rs:31:16
+  --> $DIR/item_skip.rs:31:16
    |
 31 | #[derive_where(skip_inner)]
    |                ^^^^^^^^^^
 
 error: unsupported skip group, expected one of Clone, Debug, EqHashOrd, Hash, Zeroize
-  --> tests/ui/item_skip.rs:35:27
+  --> $DIR/item_skip.rs:35:27
    |
 35 | #[derive_where(skip_inner(Copy))]
    |                           ^^^^
 
 error: duplicate `Debug` constraint on `skip`
-  --> tests/ui/item_skip.rs:39:34
+  --> $DIR/item_skip.rs:39:34
    |
 39 | #[derive_where(skip_inner(Debug, Debug))]
    |                                  ^^^^^
 
 error: duplicate `Debug` constraint on `skip`
-  --> tests/ui/item_skip.rs:44:27
+  --> $DIR/item_skip.rs:44:27
    |
 44 | #[derive_where(skip_inner(Debug))]
    |                           ^^^^^
 
 error: trait to be skipped isn't being implemented
-  --> tests/ui/item_skip.rs:48:27
+  --> $DIR/item_skip.rs:48:27
    |
 48 | #[derive_where(skip_inner(Debug))]
    |                           ^^^^^
