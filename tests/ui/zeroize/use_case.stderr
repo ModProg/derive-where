@@ -1,11 +1,20 @@
-error: this can be handled by standard `#[derive(..)]`, use a `skip` or `incomparable` attribute, implement `Default` on an enum, or different generic type parameters
- --> tests/ui/zeroize/use_case.rs:5:16
+warning: `$DIR/target/tests/derive-where/.cargo/config` is deprecated in favor of `config.toml`
+  |
+  = help: if you need to support cargo 1.38 or earlier, you can symlink `config` to `config.toml`
+error[E0463]: can't find crate for `zeroize_`
+ --> $DIR/use_case.rs:1:1
+  |
+1 | extern crate zeroize_ as zeroize;
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ can't find crate
+
+error: requires crate feature `zeroize`
+ --> $DIR/use_case.rs:5:23
   |
 5 | #[derive_where(Clone, Zeroize(crate = zeroize_); T)]
-  |                ^^^^^
+  |                       ^^^^^^^
 
-error: this can be handled by standard `#[derive(..)]`, use a `skip` or `incomparable` attribute, implement `Default` on an enum, or different generic type parameters
- --> tests/ui/zeroize/use_case.rs:8:16
+error: requires crate feature `zeroize`
+ --> $DIR/use_case.rs:8:23
   |
 8 | #[derive_where(Clone, Zeroize; T)]
-  |                ^^^^^
+  |                       ^^^^^^^
