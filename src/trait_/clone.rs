@@ -39,7 +39,7 @@ impl TraitImpl for Clone {
 				modifiers: TraitBoundModifiers::default(),
 				lifetimes: None,
 				path: Trait::Copy.default_derive_trait().path(),
-				maybe: None
+				maybe: None,
 			}))
 		} else {
 			None

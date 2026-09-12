@@ -88,8 +88,8 @@ impl<'a> Input<'a> {
 					found_incomparable |= variant.is_incomparable();
 				}
 
-				// Make sure a variant has the `option` attribute if `Default` is being
-				// implemented.
+				// Make sure a variant has the `option` attribute if `Default`
+				// is being implemented.
 				if !found_default
 					&& derive_wheres
 						.iter()
@@ -98,8 +98,8 @@ impl<'a> Input<'a> {
 					return Err(Error::default_missing(span));
 				}
 
-				// Empty enums aren't allowed unless they implement `Default` or are
-				// incomparable.
+				// Empty enums aren't allowed unless they implement `Default` or
+				// are incomparable.
 				if !found_default
 					&& !found_incomparable
 					&& variants.iter().all(|variant| match variant.fields() {
@@ -128,8 +128,8 @@ impl<'a> Input<'a> {
 			.map(Item::Item)?,
 		};
 
-		// Don't allow generic constraints be the same as generics on item unless there
-		// is a use-case for it.
+		// Don't allow generic constraints be the same as generics on item
+		// unless there is a use-case for it.
 		// Count number of generic type parameters.
 		let generics_len = generics
 			.params
@@ -141,23 +141,24 @@ impl<'a> Input<'a> {
 			.count();
 
 		'outer: for derive_where in &derive_wheres {
-			// No point in starting to compare both if not even the length is the same.
-			// This can be easily circumvented by doing the following:
-			// `#[derive_where(..; T: Clone)]`, or `#[derive_where(..; T, T)]`, which
-			// apparently is valid Rust syntax: `where T: Clone, T: Clone`, we are only here
+			// No point in starting to compare both if not even the length is
+			// the same. This can be easily circumvented by doing the
+			// following: `#[derive_where(..; T: Clone)]`, or
+			// `#[derive_where(..; T, T)]`, which apparently is valid Rust
+			// syntax: `where T: Clone, T: Clone`, we are only here
 			// to help though.
 			if derive_where.generics.len() != generics_len {
 				continue;
 			}
 
-			// No point in starting to check if there is no use-case if a custom bound was
-			// used, which is a use-case.
+			// No point in starting to check if there is no use-case if a custom
+			// bound was used, which is a use-case.
 			if derive_where.any_custom_bound() {
 				continue;
 			}
 
-			// Check if every generic type parameter present on the item is defined in this
-			// `DeriveWhere`.
+			// Check if every generic type parameter present on the item is
+			// defined in this `DeriveWhere`.
 			for generic_param in &generics.params {
 				// Only check generic type parameters.
 				if let GenericParam::Type(type_param) = generic_param {
@@ -167,8 +168,8 @@ impl<'a> Input<'a> {
 				}
 			}
 
-			// The `for` loop should short-circuit to the `'outer` loop if not all generic
-			// type parameters were found.
+			// The `for` loop should short-circuit to the `'outer` loop if not
+			// all generic type parameters were found.
 
 			// Don't allow no use-case compared to std `derive`.
 			for (span, trait_) in derive_where.spans.iter().zip(&derive_where.traits) {

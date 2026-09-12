@@ -42,8 +42,8 @@ impl TraitImpl for PartialEq {
 				// If there is more than one variant and not all variants are empty, check for
 				// discriminant and match on variant data.
 				Item::Enum { variants, .. } if variants.len() > 1 && !item.is_empty(**self) => {
-					// Return `true` in the rest pattern if there are any empty variants
-					// that are not incomparable.
+					// Return `true` in the rest pattern if there are any empty
+					// variants that are not incomparable.
 					let rest = if variants
 						.iter()
 						.any(|variant| variant.is_empty(**self) && !variant.is_incomparable())
