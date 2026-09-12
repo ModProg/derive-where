@@ -1,6 +1,3 @@
-warning: `tests/ui/target/tests/derive-where/.cargo/config` is deprecated in favor of `config.toml`
-  |
-  = help: if you need to support cargo 1.38 or earlier, you can symlink `config` to `config.toml`
 error: enums don't support `skip_inner`, use it on a variant instead
  --> tests/ui/item_skip.rs:6:16
   |

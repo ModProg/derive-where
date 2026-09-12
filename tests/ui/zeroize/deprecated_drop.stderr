@@ -1,14 +1,5 @@
-warning: `tests/ui/target/tests/derive-where/.cargo/config` is deprecated in favor of `config.toml`
-  |
-  = help: if you need to support cargo 1.38 or earlier, you can symlink `config` to `config.toml`
-error[E0463]: can't find crate for `zeroize_`
- --> tests/ui/deprecated_drop.rs:1:1
-  |
-1 | extern crate zeroize_ as zeroize;
-  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ can't find crate
-
-error: requires crate feature `zeroize`
- --> tests/ui/deprecated_drop.rs:7:16
+error: `Zeroize(drop)` is deprecated, use `ZeroizeOnDrop` instead
+ --> tests/ui/zeroize/deprecated_drop.rs:7:24
   |
 7 | #[derive_where(Zeroize(drop))]
-  |                ^^^^^^^
+  |                        ^^^^

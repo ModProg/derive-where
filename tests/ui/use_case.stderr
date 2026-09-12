@@ -1,6 +1,3 @@
-warning: `tests/ui/target/tests/derive-where/.cargo/config` is deprecated in favor of `config.toml`
-  |
-  = help: if you need to support cargo 1.38 or earlier, you can symlink `config` to `config.toml`
 error: derive-where doesn't support empty items, as this can already be handled by standard `#[derive(..)]`
  --> tests/ui/use_case.rs:4:1
   |

@@ -1,20 +1,26 @@
-warning: `tests/ui/target/tests/derive-where/.cargo/config` is deprecated in favor of `config.toml`
-  |
-  = help: if you need to support cargo 1.38 or earlier, you can symlink `config` to `config.toml`
-error[E0463]: can't find crate for `zeroize_`
- --> tests/ui/zeroize-on-drop.rs:1:1
-  |
-1 | extern crate zeroize_ as zeroize;
-  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ can't find crate
-
-error: requires crate feature `zeroize`
- --> tests/ui/zeroize-on-drop.rs:7:16
+error: duplicate `no_drop` option
+ --> tests/ui/zeroize-on-drop/zeroize-on-drop.rs:7:39
   |
 7 | #[derive_where(ZeroizeOnDrop(no_drop, no_drop))]
-  |                ^^^^^^^^^^^^^
+  |                                       ^^^^^^^
 
-error: requires crate feature `zeroize`
-  --> tests/ui/zeroize-on-drop.rs:10:16
+error[E0599]: the method `__derive_where_zeroize_on_drop` exists for mutable reference `&mut T`, but its trait bounds were not satisfied
+  --> tests/ui/zeroize-on-drop/zeroize-on-drop.rs:10:1
    |
 10 | #[derive_where(ZeroizeOnDrop(no_drop))]
-   |                ^^^^^^^^^^^^^
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ method cannot be called on `&mut T` due to unsatisfied trait bounds
+   |
+note: the following trait bounds were not satisfied:
+      `&mut T: ZeroizeOnDrop`
+      `T: ZeroizeOnDrop`
+  --> tests/ui/zeroize-on-drop/zeroize-on-drop.rs:10:1
+   |
+10 | #[derive_where(ZeroizeOnDrop(no_drop))]
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ type parameter would need to implement `AssertZeroizeOnDrop`
+   = help: consider manually implementing the trait to avoid undesired bounds
+   = help: items from traits can only be used if the type parameter is bounded by the trait
+   = note: this error originates in the derive macro `::derive_where::DeriveWhere` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: the following trait defines an item `__derive_where_zeroize_on_drop`, perhaps you need to restrict type parameter `T` with it:
+   |
+11 | struct NoDropNoZeroizeOnDrop<T: AssertZeroizeOnDrop>(T);
+   |                               +++++++++++++++++++++
