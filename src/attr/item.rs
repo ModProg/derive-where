@@ -49,16 +49,18 @@ impl ItemAttr {
 									nested.into_iter().next().expect("unexpected empty list");
 
 								if meta.path().is_ident(Skip::SKIP_INNER) {
-									// Don't allow `skip_inner` on the item level for enums.
+									// Don't allow `skip_inner` on the item
+									// level for enums.
 									if let Data::Enum(_) = data {
 										return Err(Error::option_enum_skip_inner(meta.span()));
 									}
 
-									// Don't parse `Skip` yet, because it needs access to all
-									// `DeriveWhere`s.
+									// Don't parse `Skip` yet, because it needs
+									// access to all `DeriveWhere`s.
 									skip_inners.push(meta);
 								} else if meta.path().is_ident(Incomparable::INCOMPARABLE) {
-									// Needs to be parsed after all traits are known.
+									// Needs to be parsed after all traits are
+									// known.
 									incomparables.push(meta)
 								} else if meta.path().is_ident("crate") {
 									let (path, _) = super::parse_crate(meta)
@@ -91,7 +93,8 @@ impl ItemAttr {
 			}
 		}
 
-		// Check that we specified at least one `#[derive_where(..)]` with traits.
+		// Check that we specified at least one `#[derive_where(..)]` with
+		// traits.
 		if self_.derive_wheres.is_empty() {
 			return Err(Error::none(span));
 		}
@@ -109,8 +112,8 @@ impl ItemAttr {
 				}
 			});
 
-		// Check for duplicate traits in the same `derive_where` after merging with the
-		// same bounds.
+		// Check for duplicate traits in the same `derive_where` after merging
+		// with the same bounds.
 		for derive_where in &self_.derive_wheres {
 			for (skip, trait_) in (1..).zip(&derive_where.traits) {
 				if let Some((span, _)) = derive_where
@@ -125,8 +128,8 @@ impl ItemAttr {
 			}
 		}
 
-		// Delayed parsing of `skip_inner` and `incomparable` to get access to all
-		// traits to be implemented.
+		// Delayed parsing of `skip_inner` and `incomparable` to get access to
+		// all traits to be implemented.
 		for meta in skip_inners {
 			self_
 				.skip_inner
@@ -165,13 +168,14 @@ impl DeriveWhere {
 			let mut traits = Vec::new();
 			let mut generics = Vec::new();
 
-			// Check for an empty list is already done in `ItemAttr::from_attrs`.
+			// Check for an empty list is already done in
+			// `ItemAttr::from_attrs`.
 			assert!(!input.is_empty());
 
 			while !input.is_empty() {
 				// Start with parsing a trait.
-				// Not checking for duplicates here, we do that after merging `derive_where`s
-				// with the same bounds.
+				// Not checking for duplicates here, we do that after merging
+				// `derive_where`s with the same bounds.
 				let (span, trait_) = DeriveTrait::from_stream(attrs, span, data, input)?;
 				spans.push(span);
 				traits.push(trait_);
@@ -179,8 +183,9 @@ impl DeriveWhere {
 				if !input.is_empty() {
 					let mut fork = input.fork();
 
-					// Track `Span` of whatever was found instead of a delimiter. We parse the `,`
-					// first because it's allowed to be followed by a `;`.
+					// Track `Span` of whatever was found instead of a
+					// delimiter. We parse the `,` first because it's
+					// allowed to be followed by a `;`.
 					let no_delimiter_found = match <Token![,]>::parse(&fork) {
 						Ok(_) => {
 							input.advance_to(&fork);
@@ -198,10 +203,11 @@ impl DeriveWhere {
 
 						// If we found a semi-colon, start parsing generics.
 						if !input.is_empty() {
-							// `parse_terminated` parses everything left, which should end the
-							// while-loop.
-							// Not checking for duplicates here, as even Rust doesn't give a warning
-							// for those: `where T: Clone, T: Clone` produces no error or warning.
+							// `parse_terminated` parses everything left, which
+							// should end the while-loop.
+							// Not checking for duplicates here, as even Rust
+							// doesn't give a warning for those: `where
+							// T: Clone, T: Clone` produces no error or warning.
 							generics = Punctuated::<Generic, Token![,]>::parse_terminated(input)?
 								.into_iter()
 								.collect();
@@ -252,7 +258,9 @@ impl DeriveWhere {
 		self.generics.iter().any(|generic| match generic {
 			Generic::NoBound(GenericNoBound {
 				lifetimes: _,
-				ty: Type::Path(TypePath { qself: None, path }),
+				ty: Type::Path(TypePath {
+					qself: None, path, ..
+				}),
 			}) => {
 				if let Some(ident) = path.get_ident() {
 					ident == type_param
@@ -301,6 +309,7 @@ impl DeriveWhere {
 							bounded_ty: ty.clone(),
 							colon_token: <Token![:]>::default(),
 							bounds: trait_.where_bounds(item),
+							attrs: vec![],
 						},
 					}));
 			}
@@ -342,9 +351,10 @@ impl Parse for Generic {
 	fn parse(input: ParseStream) -> Result<Self> {
 		let fork = input.fork();
 
-		// Try to parse input as a `WherePredicate`. The problem is, both expressions
-		// start with an optional lifetime for bound and then Type, so starting with the
-		// `WherePredicate` is the easiest way of differentiating them.
+		// Try to parse input as a `WherePredicate`. The problem is, both
+		// expressions start with an optional lifetime for bound and then
+		// Type, so starting with the `WherePredicate` is the easiest way of
+		// differentiating them.
 		if let Ok(where_predicate) = WherePredicate::parse(&fork) {
 			input.advance_to(&fork);
 

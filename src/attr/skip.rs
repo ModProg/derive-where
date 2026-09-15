@@ -51,8 +51,8 @@ impl Skip {
 					match skip_inner {
 						// Allow `Skip::All` on field if parent has a tighter constraint.
 						Some(Skip::None) | Some(Skip::Traits(..)) | None => {
-							// Don't allow to skip all traits if no trait to be implemented supports
-							// skipping.
+							// Don't allow to skip all traits if no trait to be
+							// implemented supports skipping.
 							if derive_wheres
 								.iter()
 								.any(|derive_where| derive_where.any_skip())
@@ -120,14 +120,15 @@ impl Skip {
 								skip_group.as_str(),
 							));
 						} else {
-							// Don't allow to skip a trait already set to be skipped in the
-							// parent.
+							// Don't allow to skip a trait already set to be
+							// skipped in the parent.
 							match skip_inner {
 								Some(skip_inner) if skip_inner.group_skipped(skip_group) => {
 									return Err(Error::option_skip_inner(path.span()))
 								}
 								_ => {
-									// Don't allow to skip trait that isn't being implemented.
+									// Don't allow to skip trait that isn't
+									// being implemented.
 									if derive_wheres.iter().any(|derive_where| {
 										skip_group
 											.traits()

@@ -351,14 +351,15 @@
 //!
 //! # MSRV
 //!
-//! The current MSRV is 1.57 and is being checked by the CI. A change will be
+//! The current MSRV is 1.71 and is being checked by the CI. A change will be
 //! accompanied by a minor version bump. If MSRV is important to you, use
 //! `derive-where = "~1.x"` to pin a specific minor version to your crate.
 //!
 //! # Alternatives
 //!
 //! - [derive_more](https://crates.io/crates/derive_more) [![Crates.io](https://img.shields.io/crates/v/derive_more.svg)](https://crates.io/crates/derive_more)
-//!   derives traits with bounds based on field types instead of parameters. It does not allow giving custom bounds.
+//!   derives traits with bounds based on field types instead of parameters. It
+//!   does not allow giving custom bounds.
 //! - [derive_bounded](https://crates.io/crates/derive_bounded) [![Crates.io](https://img.shields.io/crates/v/derive_bounded.svg)](https://crates.io/crates/derive_bounded)
 //!   is a new alternative still in development.
 //!

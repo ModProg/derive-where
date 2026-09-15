@@ -8,7 +8,7 @@ use proc_macro2::TokenStream;
 use proc_macro2::{Literal, Span};
 use quote::quote;
 #[cfg(not(feature = "nightly"))]
-use syn::{parse_quote, Expr, ExprLit, LitInt, Path};
+use syn::{parse_quote, Expr, ExprLit, Lit, LitInt, Path};
 
 #[cfg(not(feature = "nightly"))]
 use crate::{item::Representation, DeriveTrait, Discriminant};
@@ -77,14 +77,15 @@ pub fn build_ord_signature(
 
 			let incomparable = build_incomparable_pattern(variants);
 
-			// If there is only one comparable variant, it has to be it when it is non
-			// incomparable.
+			// If there is only one comparable variant, it has to be it when it
+			// is non incomparable.
 			let mut comparable = variants.iter().filter(|v| !v.is_incomparable());
-			// Takes the first value from the iterator, but only when there is only one
-			// (second yields none).
+			// Takes the first value from the iterator, but only when there is
+			// only one (second yields none).
 			if let (Some(comparable), None) = (comparable.next(), comparable.next()) {
 				let incomparable = incomparable.expect("there should be > 1 variants");
-				// Either compare the single variant or return `Equal` when it is empty
+				// Either compare the single variant or return `Equal` when it
+				// is empty
 				let equal = if comparable.is_empty(**trait_) {
 					equal
 				} else {
@@ -282,19 +283,17 @@ fn build_discriminant_order(
 				Some((None, counter)) => {
 					*counter += 1;
 
-					ExprLit {
+					Expr::Lit(ExprLit {
 						attrs: Vec::new(),
-						lit: LitInt::new(&counter.to_string(), Span::call_site()).into(),
-					}
-					.into()
+						lit: Lit::Int(LitInt::new(&counter.to_string(), Span::call_site())),
+					})
 				}
 				None => {
 					last_expression = Some((None, 0));
-					ExprLit {
+					Expr::Lit(ExprLit {
 						attrs: Vec::new(),
-						lit: LitInt::new("0", Span::call_site()).into(),
-					}
-					.into()
+						lit: Lit::Int(LitInt::new("0", Span::call_site())),
+					})
 				}
 			};
 
@@ -315,8 +314,8 @@ fn build_discriminant_order(
 			}
 		});
 
-	// `isize` is currently used by Rust as the default representation when none is
-	// defined.
+	// `isize` is currently used by Rust as the default representation when none
+	// is defined.
 	let repr = repr.unwrap_or(Representation::ISize).to_token();
 
 	let item = item.ident();

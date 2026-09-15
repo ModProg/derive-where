@@ -104,13 +104,13 @@ error: expected `,`
 59 | #[derive_where(Clone; T;)]
    |                        ^
 
-error: expected type to bind to, expected one of: `for`, parentheses, `fn`, `unsafe`, `extern`, identifier, `::`, `<`, `dyn`, square brackets, `*`, `&`, `!`, `impl`, `_`, lifetime
+error: expected type to bind to, expected one of: `for`, parentheses, `unsafe`, `fn`, `extern`, identifier, `::`, `<`, `dyn`, square brackets, `*`, `&`, `!`, `impl`, `_`, lifetime
   --> tests/ui/item.rs:62:25
    |
 62 | #[derive_where(Clone; T,,)]
    |                         ^
 
-error: expected type to bind to, expected one of: `for`, parentheses, `fn`, `unsafe`, `extern`, identifier, `::`, `<`, `dyn`, square brackets, `*`, `&`, `!`, `impl`, `_`, lifetime
+error: expected type to bind to, expected one of: `for`, parentheses, `unsafe`, `fn`, `extern`, identifier, `::`, `<`, `dyn`, square brackets, `*`, `&`, `!`, `impl`, `_`, lifetime
   --> tests/ui/item.rs:65:23
    |
 65 | #[derive_where(Clone; where)]

@@ -15,7 +15,7 @@ name = "derive-where"
 readme = "README.md"
 repository = "https://github.com/ModProg/derive-where"
 rust-version = "1.57"
-version = "1.6.1"
+version = "1.7.0"
 
 [lib]
 proc-macro = true
@@ -30,7 +30,7 @@ zeroize-on-drop = ["zeroize"]
 [dependencies]
 proc-macro2 = { version = "1", default-features = false, features = ["proc-macro"] }
 quote = { version = "1", default-features = false }
-syn = { version = "2", default-features = false, features = [
+syn = { version = "3", default-features = false, features = [
 	"clone-impls",
 	"derive",
 	"extra-traits",

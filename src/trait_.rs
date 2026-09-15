@@ -30,7 +30,7 @@ use syn::{
 	punctuated::Punctuated,
 	spanned::Spanned,
 	Attribute, DeriveInput, Ident, ImplGenerics, Meta, Path, Result, Token, TraitBound,
-	TraitBoundModifier, TypeGenerics, TypeParamBound, WhereClause,
+	TraitBoundModifiers, TypeGenerics, TypeParamBound, WhereClause,
 };
 
 use crate::{util::MetaListExt, Data, DeriveWhere, Error, Item, SplitGenerics};
@@ -245,9 +245,10 @@ impl DeriveTrait {
 
 		list.push(TypeParamBound::Trait(TraitBound {
 			paren_token: None,
-			modifier: TraitBoundModifier::None,
+			modifiers: TraitBoundModifiers::default(),
 			lifetimes: None,
 			path: self.path(),
+			maybe: None,
 		}));
 
 		// Add bounds specific to the trait.
@@ -284,7 +285,8 @@ impl DeriveTrait {
 					Meta::List(list) => {
 						let nested = list.parse_non_empty_nested_metas()?;
 
-						// This will return an error if no options are supported.
+						// This will return an error if no options are
+						// supported.
 						Ok((
 							list.span(),
 							trait_.parse_derive_trait(attrs, meta.span(), Some(nested))?,
